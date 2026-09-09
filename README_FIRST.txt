@@ -1,48 +1,31 @@
-ONE WAY Grass 4s — FINAL v15 DYNAMIC POOLS
+ONE WAY Grass 4s — FINAL v17
 
-NEW TOURNAMENT LOGIC
-- Team level choices: Competitive / Intermediate / Recreational / Not Sure.
-- Team level is PRIVATE and is used ONLY to balance initial pools.
-- Team level NEVER affects standings, wildcards, bracket seeds, or the champion.
+INCLUDES ALL v16 INTEGRITY FIXES
+- Dynamic 8–16 team formats.
+- Stronger private skill-level pool balancing.
+- Skill level ONLY influences initial pool balance.
+- Live-sync DELETE handling.
+- Pending-confirmation protection after pools lock.
+- Result-correction invalidation through QF -> SF -> Final.
+- Same-pool QF rematches avoided whenever mathematically possible.
+- Teams / Schedule / Standings / Bracket show NOT FINALIZED / PENDING REVIEW 16-team outlines before locking.
 
-DYNAMIC FORMATS
-- 16: 4 / 4 / 4 / 4
-- 15: 4 / 4 / 4 / 3
-- 14: 4 / 4 / 3 / 3
-- 13: 4 / 3 / 3 / 3
-- 12: 3 / 3 / 3 / 3
-- 11: 4 / 4 / 3
-- 10: 4 / 3 / 3
-- 9:  3 / 3 / 3
-- 8:  4 / 4
+NEW IN v17
+- Mobile registration agreement checkbox can no longer inherit full-width form-input styling.
+- Agreement text wraps completely inside the phone screen.
+- Player confirmation rows, roster names, and confirmation link are mobile-safe.
+- Automatic captain thank-you/confirmation email support.
+- Email includes the link for all teammates to confirm.
+- Email failure never deletes or rolls back the registration; the copyable link remains available.
+- Failed email includes a Retry Email button.
 
-SCHEDULING
-- 4-team pool: each opponent once = 3 matches/team.
-- 3-team pool: each opponent twice = 4 matches/team.
-- Each pool still has exactly 6 matches, so the six pool-play time slots remain simple.
-
-BRACKET
-- 4 pools: top 2 from each pool.
-- 3 pools: top 2 from each pool + 2 wildcards.
-- 2 pools: all 8 teams advance.
-- Cross-pool ranking: Win % → point differential/game → points scored/game.
-- Skill level is NOT part of bracket ranking.
-
-ADMIN FLOW
-1. Teams register and all 4 players confirm.
-2. Admin → Register → Pool Builder.
-3. Preview Balanced Pools.
-4. Regenerate or manually move teams/change private level.
-5. Re-enter Admin password.
-6. Lock Pools & Generate Schedule.
-7. Registration closes.
-8. Admin can reopen registration if necessary, then must finalize again.
-
-INSTALL — DO THIS IN THIS ORDER
-1. Supabase → SQL Editor → New Query.
-2. Paste/run supabase_v15_dynamic_pools.sql.
+DEPLOY ORDER
+1. Supabase -> SQL Editor -> New Query.
+2. Run supabase_v17_integrity_email_patch.sql.
 3. Confirm Success.
-4. GitHub → replace index.html with v15 index.html.
-5. Commit and wait for GitHub Pages.
-6. Hard refresh.
-7. Footer should show Build FINAL v15.
+4. Set up/deploy the included Edge Function (see EMAIL_SETUP_README.txt).
+5. GitHub -> replace index.html with v17 index.html.
+6. Commit and hard refresh.
+7. Footer should show Build FINAL v17.
+
+If email is not configured yet, registration still works normally and displays the copyable confirmation link.
