@@ -1,30 +1,35 @@
-ONE WAY Grass 4s — FINAL v25 SAFE EDITABLE RULES
+ONE WAY Grass 4s — FINAL v26
 
-ADMIN CAN EDIT
-- Non-Negotiables
-- Conduct & Sportsmanship
-- General Game Rules
+FIXED
+- Pool Builder now displays as a normal full-width Admin panel.
+- Captain Contacts now displays as a normal full-width Admin panel.
+- Fixed the Admin CSS bug that caused Admin DIV sections to become inline.
+- Admin buttons and dynamic status controls retain the correct layout.
 
-LOCKED FROM TEXT EDITING
-- Location & Schedule
-- Registration & Tournament Format
-- Scoring Format
+SCORING UX
+Before pools are finalized:
+- Schedule clearly says live scoring is locked.
+- No Keep Score buttons are shown.
 
-WHY THEY ARE LOCKED
-Those sections contain information that can affect the actual tournament
-program: scheduled match times, pool structure, bracket advancement, score
-limits, set format, and related calculations.
+After Admin locks pools & generates the official schedule:
+- Orange Keep Score button appears on every official pool match.
+- Clicking it opens the full-screen scorekeeper.
+- Completed matches display View Score.
 
-This prevents the public website from saying one thing while the scoring /
-bracket engine is programmed to do something different.
+SCORING CODE CHECK
+- Pool +1 / -1 controls are connected.
+- Pool scores cap at 25.
+- At 25, scorekeeper prompts to confirm the match.
+- Confirmed match is marked final and locked.
+- Final pool results feed standings.
+- Bracket Keep Score buttons use the same score overlay.
+- Bracket sets use 21 / 21 / 15, win by 2.
+- JavaScript syntax check passed.
 
-PRIZE
-The separate Admin Prize control remains editable because it is already a
-real database setting and does not affect tournament calculations.
+No new Supabase SQL is required for v26 if v25 SQL has already been run.
 
 DEPLOY
-1. Supabase -> SQL Editor -> New Query.
-2. Run supabase_v25_safe_editable_rules.sql.
-3. Replace GitHub index.html with v25 index.html.
-4. Commit and hard refresh.
-5. Footer should show Build FINAL v25.
+1. Replace GitHub index.html with v26 index.html.
+2. Commit.
+3. Hard refresh.
+4. Footer should show Build FINAL v26.

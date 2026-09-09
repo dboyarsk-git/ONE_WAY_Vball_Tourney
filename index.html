@@ -52,7 +52,12 @@ tr:last-child td{border-bottom:0}
 .standings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px} .bracket-grid{display:grid;grid-template-columns:1.2fr .9fr .7fr;gap:18px;align-items:start} .round{display:grid;gap:12px}
 .match-card{border:1px solid var(--line);border-radius:16px;background:white;overflow:hidden} .match-head{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;background:#f5f1ea;font-size:.75rem;font-weight:800}
 .match-team{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border-top:1px solid #f0ece5} .match-team strong{overflow:hidden;text-overflow:ellipsis} .winner{background:#e2f1e8} .locked{opacity:.62}
-.admin-only{display:none} body.admin-mode .admin-only{display:initial} .callout{border-left:5px solid var(--orange);background:#fff5ef;border-radius:12px;padding:12px 14px}
+.admin-only{display:none}
+body.admin-mode div.admin-only{display:block}
+body.admin-mode button.admin-only{display:inline-flex}
+body.admin-mode div.admin-only.team-admin-controls,
+body.admin-mode div.admin-only.admin-status-controls{display:flex}
+.callout{border-left:5px solid var(--orange);background:#fff5ef;border-radius:12px;padding:12px 14px}
 footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 .score-overlay{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:99999;background:#111;display:none;color:white;overscroll-behavior:none;touch-action:manipulation} .score-overlay.open{display:flex;flex-direction:column}
 .score-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#16191c;min-height:58px} .score-top .center{text-align:center;flex:1} .score-top .center b{display:block;font-size:.9rem} .score-top .center span{font-size:.76rem;color:#b9bec1}
@@ -986,6 +991,56 @@ body.confirmation-open{
   }
 }
 
+
+/* FINAL v26 — Admin layout + scoring readiness */
+body.admin-mode #poolBuilderPanel,
+body.admin-mode #poolBuilderPanel + .panel.admin-only{
+  width:100%;
+  max-width:100%;
+  margin-left:0;
+  margin-right:0;
+  box-sizing:border-box;
+}
+
+body.admin-mode #poolBuilderPanel .section-title,
+body.admin-mode #poolBuilderPanel + .panel.admin-only .section-title{
+  width:100%;
+}
+
+.scoring-readiness{
+  grid-column:1/-1;
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:2px;
+  line-height:1.45;
+}
+
+.scoring-readiness.locked{
+  background:#f4eee5;
+  border:1px solid #ddd3c6;
+}
+
+.scoring-readiness.ready{
+  background:#e5f3eb;
+  border:1px solid #c5dfd0;
+}
+
+.scoring-readiness strong{
+  display:block;
+  margin-bottom:2px;
+}
+
+.score-btn{
+  min-width:110px;
+  box-shadow:0 7px 18px rgba(240,90,36,.22);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+
+.score-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 9px 22px rgba(240,90,36,.28);
+}
+
 </style>
 </head>
 <body>
@@ -1255,7 +1310,7 @@ body.confirmation-open{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v25</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v26</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2698,6 +2753,13 @@ function renderSchedule(){
       'The reffing team shown for each match follows the planned four-team pool rotation.';
     root.appendChild(banner);
 
+    const scoringNotice=document.createElement("div");
+    scoringNotice.className="scoring-readiness locked";
+    scoringNotice.innerHTML=
+      '<strong>🔒 Live scoring is locked until pools are finalized.</strong>'+
+      'After Admin clicks <b>Lock Pools & Generate Schedule</b>, an orange <b>Keep Score</b> button will automatically appear on every official match.';
+    root.appendChild(scoringNotice);
+
     POOLS.forEach(p=>{
       const card=document.createElement("div");
       card.className="card pool-card";
@@ -2736,6 +2798,13 @@ function renderSchedule(){
 
     return;
   }
+
+  const scoringNotice=document.createElement("div");
+  scoringNotice.className="scoring-readiness ready";
+  scoringNotice.innerHTML=
+    '<strong>✓ Live scoring is ready.</strong>'+
+    'Tap <b>Keep Score</b> on any scheduled match to open the full-screen scorekeeper. Completed matches show <b>View Score</b>.';
+  root.appendChild(scoringNotice);
 
   activePools().forEach(p=>{
     const card=document.createElement("div");
