@@ -1,19 +1,17 @@
-ONE WAY Grass 4s — v10 Forced Full-Viewport Scorekeeper
+ONE WAY Grass 4s — v11
 
-FIX
-The scorekeeper now:
-- hides the underlying site while scoring
-- uses a forced header / scoreboard / controls grid
-- measures the device's live Visual Viewport in pixels
-- resizes itself whenever Safari changes viewport size
-- fills all available screen space even if native fullscreen is blocked
-- still attempts native Fullscreen API / WebKit fullscreen
+FIXED
+- Schedule and Keep Score buttons render immediately, even while Supabase is connecting.
+- A slow registration query can no longer block the tournament schedule.
+- Live database data replaces the fallback schedule as soon as it arrives.
+- Live-sync status can be tapped to retry.
+- v10 full-viewport scorekeeper remains.
+- All registration/admin features remain.
 
-NO NEW SUPABASE SQL IS REQUIRED FOR THIS VISUAL FIX.
+NO NEW SUPABASE SQL IS REQUIRED FOR THIS FIX.
 
 INSTALL
-1. Replace GitHub index.html with the v10 index.html.
-2. Commit.
-3. Wait for GitHub Pages.
-4. Hard refresh.
-5. Footer should say Build v10.
+1. Replace GitHub index.html with v11 index.html.
+2. Commit and wait for Pages deployment.
+3. Hard refresh.
+4. Footer should show Build v11.

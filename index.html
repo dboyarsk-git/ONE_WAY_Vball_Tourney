@@ -422,7 +422,7 @@ body.score-open > .shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v10</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v11</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -475,7 +475,11 @@ let activeScore=null, undoStack=[], swapped=false;
 const $=id=>document.getElementById(id);
 
 function setSync(kind,text){
-  const box=$("syncStatus"); box.className="sync"+(kind?` ${kind}`:""); $("syncText").textContent=text;
+  const box=$("syncStatus");
+  box.className="sync"+(kind?` ${kind}`:"");
+  $("syncText").textContent=text;
+  box.title="Tap to retry live sync";
+  box.style.cursor="pointer";
 }
 function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,paid:r.paid,checkedIn:r.checked_in,registrationId:r.registration_id||null}}
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked}}
@@ -577,29 +581,141 @@ function fitScoreViewport(){
 }
 
 
-async function loadAll(){
-  setSync("", "Loading live data…");
-  const [t,p,b,r,rp]=await Promise.all([
-    sb.from("teams").select("*").order("id"),
-    sb.from("pool_matches").select("*").order("round").order("court"),
-    sb.from("bracket_matches").select("*"),
-    sb.from("team_registrations").select("id,team_name,status,reserved_slot,created_at,confirmed_at").order("created_at"),
-    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number")
-  ]);
-  if(t.error||p.error||b.error||r.error||rp.error){
-    console.error(t.error||p.error||b.error||r.error||rp.error);
-    setSync("error","Database setup/upgrade needed");
-    return;
+
+function buildFallbackCore(){
+  const teams=[];
+  for(let i=1;i<=16;i++){
+    teams.push({
+      id:i,
+      name:"",
+      pool:POOLS[Math.floor((i-1)/4)],
+      court:Math.floor((i-1)/4)+1,
+      paid:false,
+      checkedIn:false,
+      registrationId:null
+    });
   }
-  state.teams=t.data.map(mapTeam);
-  state.poolMatches=p.data.map(mapPool);
-  const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
-  state.bracketMatches=b.data.map(mapBracket).sort((x,y)=>order[x.id]-order[y.id]);
-  state.registrations=r.data.map(mapRegistration);
-  state.registrationPlayers=rp.data.map(mapRegPlayer);
-  setSync("live","Live sync connected");
+
+  const pairs=[[1,2],[3,4],[1,3],[2,4],[1,4],[2,3]];
+  const times=["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM"];
+  const poolMatches=[];
+  let mid=1;
+
+  pairs.forEach((pair,roundIndex)=>{
+    for(let court=1;court<=4;court++){
+      const base=(court-1)*4;
+      poolMatches.push({
+        id:`P${mid++}`,
+        type:"pool",
+        round:roundIndex+1,
+        time:times[roundIndex],
+        court,
+        pool:POOLS[court-1],
+        teamA:base+pair[0],
+        teamB:base+pair[1],
+        scoreA:0,
+        scoreB:0,
+        final:false,
+        locked:false
+      });
+    }
+  });
+
+  const bracketMatches=[
+    {id:"QF1",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:1,keyA:"A-1",keyB:"B-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF2",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:2,keyA:"B-1",keyB:"A-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF3",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:3,keyA:"C-1",keyB:"D-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF4",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:4,keyA:"D-1",keyB:"C-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF1",type:"bracket",round:"Semifinal",time:"1:30 PM",court:1,keyA:null,keyB:null,fromA:"QF1",fromB:"QF3",sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF2",type:"bracket",round:"Semifinal",time:"1:30 PM",court:2,keyA:null,keyB:null,fromA:"QF2",fromB:"QF4",sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"FINAL",type:"bracket",round:"Championship",time:"2:30 PM",court:1,keyA:null,keyB:null,fromA:"SF1",fromB:"SF2",sets:[],currentA:0,currentB:0,final:false,locked:false}
+  ];
+
+  return {teams,poolMatches,bracketMatches};
+}
+
+function ensureFallbackCore(){
+  if(state.teams.length && state.poolMatches.length && state.bracketMatches.length)return;
+  const fallback=buildFallbackCore();
+  if(!state.teams.length)state.teams=fallback.teams;
+  if(!state.poolMatches.length)state.poolMatches=fallback.poolMatches;
+  if(!state.bracketMatches.length)state.bracketMatches=fallback.bracketMatches;
+}
+
+function promiseTimeout(promise,ms,label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timed out`)),ms))
+  ]);
+}
+
+async function loadAll(){
+  // Never let a slow live connection leave the schedule empty.
+  ensureFallbackCore();
   renderAll();
-  await loadConfirmationFromURL();
+  setSync("", "Connecting live data…");
+
+  let coreLoaded=false;
+
+  try{
+    const [t,p,b]=await promiseTimeout(
+      Promise.all([
+        sb.from("teams").select("*").order("id"),
+        sb.from("pool_matches").select("*").order("round").order("court"),
+        sb.from("bracket_matches").select("*")
+      ]),
+      8000,
+      "Tournament data"
+    );
+
+    if(!t.error && t.data?.length) state.teams=t.data.map(mapTeam);
+    if(!p.error && p.data?.length) state.poolMatches=p.data.map(mapPool);
+
+    if(!b.error && b.data?.length){
+      const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
+      state.bracketMatches=b.data.map(mapBracket).sort((x,y)=>order[x.id]-order[y.id]);
+    }
+
+    coreLoaded=!(t.error||p.error||b.error);
+    renderAll();
+  }catch(error){
+    console.error("Core live-data load:",error);
+    ensureFallbackCore();
+    renderAll();
+  }
+
+  // Registration data is useful, but it must never block schedule/scoring.
+  try{
+    const [r,rp]=await promiseTimeout(
+      Promise.all([
+        sb.from("team_registrations")
+          .select("id,team_name,status,reserved_slot,created_at,confirmed_at")
+          .order("created_at"),
+        sb.from("registration_players")
+          .select("id,registration_id,player_number,full_name,confirmed,confirmed_at")
+          .order("player_number")
+      ]),
+      8000,
+      "Registration data"
+    );
+
+    if(!r.error) state.registrations=(r.data||[]).map(mapRegistration);
+    if(!rp.error) state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
+    renderAll();
+  }catch(error){
+    console.error("Registration live-data load:",error);
+  }
+
+  setSync(
+    coreLoaded?"live":"error",
+    coreLoaded?"Live sync connected":"Schedule ready • retrying live sync"
+  );
+
+  try{
+    await loadConfirmationFromURL();
+  }catch(error){
+    console.error("Confirmation link load:",error);
+  }
 }
 function subscribeRealtime(){
   sb.channel("oneway-live")
@@ -626,7 +742,7 @@ function subscribeRealtime(){
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"team_registrations"},async()=>{await refreshRegistrations();renderAll();})
   .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},async()=>{await refreshRegistrations();renderAll();if(activeConfirmationToken)await loadConfirmationFromURL();})
-  .subscribe(status=>{if(status==="SUBSCRIBED")setSync("live","Live sync connected")});
+  .subscribe(status=>{if(status==="SUBSCRIBED"){setSync("live","Live sync connected");loadAll();}});
 }
 
 async function refreshRegistrations(){
@@ -1224,7 +1340,10 @@ if(window.visualViewport){
   window.visualViewport.addEventListener("scroll",fitScoreViewport);
 }
 
-loadAll().then(subscribeRealtime);
+$("syncStatus")?.addEventListener("click",()=>loadAll());
+ensureFallbackCore();
+renderAll();
+loadAll().finally(subscribeRealtime);
 })();
 </script>
 </body>
