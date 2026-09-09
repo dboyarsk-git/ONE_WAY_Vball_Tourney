@@ -1,40 +1,35 @@
-ONE WAY Grass 4s — FINAL v28 DIRECT CONFIRMATION
+ONE WAY Grass 4s — FINAL v29
 
-FIXED
-Confirmation links now behave like a separate page.
+HOME PAGE ADMIN EDITING
+All six public Home-page rule/info cards can now be edited in Admin mode:
 
-When a teammate opens:
-  ?confirm=<their-team-token>
+- Location & Schedule
+- Registration & Tournament Format
+- Non-Negotiables
+- Conduct & Sportsmanship
+- Scoring Format
+- Game Rules
 
-THEY IMMEDIATELY SEE
-- PLAYER CONFIRMATION
-- Confirm Your Spot
-- Team name
-- Player names
-- "Yes, I am committed to playing for this team."
-- Rules agreement
-- Yes — Confirm My Spot
+The First Place Prize remains editable through its separate Admin Prize controls.
 
-THEY DO NOT SEE FIRST
-- Home page
-- Hero
-- Navigation
-- Registration form
-- Pool Builder
-- Captain Contacts
-- Schedule / standings / bracket
+IMPORTANT
+Editing these boxes changes the PUBLIC WORDING only.
+For example, if Admin changes "Pool Play: 1 set to 25" to "1 set to 21",
+the actual scoring engine will still be programmed to 25 until its code/database
+logic is separately changed.
 
-The browser detects the confirmation token in the HEAD before the main page
-renders, preventing the normal Home page from flashing first.
-
-Back to Tournament Site removes the confirmation token and returns to Home.
+ALL v28 FEATURES ARE RETAINED
+- direct confirmation link page
+- register-page layout fixes
+- scoring buttons after pool finalization
+- paid/check-in
+- refs
+- dynamic pools/bracket
+- Admin prize control
 
 DEPLOY
-1. Replace GitHub index.html with v28 index.html.
-2. Commit / redeploy.
-3. Hard refresh.
-4. Footer on the normal site should show Build FINAL v28.
-5. Test by opening one real confirmation link in an incognito/private tab.
-
-SUPABASE
-No new SQL is required for this v28 routing fix.
+1. Run supabase_v29_all_home_boxes_editable.sql in Supabase.
+2. Replace GitHub index.html with the v29 file.
+3. Commit/redeploy.
+4. Hard refresh.
+5. Footer should show Build FINAL v29.

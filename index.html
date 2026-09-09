@@ -31,8 +31,9 @@
 body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at 90% 10%,rgba(168,200,232,.38),transparent 25%),linear-gradient(180deg,var(--cream),#ece6dc 100%);min-height:100vh}
 button,input{font:inherit} button{cursor:pointer}
 .shell{max-width:1180px;margin:0 auto;padding:22px}
-.hero{position:relative;overflow:hidden;border-radius:30px;padding:28px 30px;min-height:210px;background:linear-gradient(110deg,rgba(242,238,229,.93),rgba(242,238,229,.70)),linear-gradient(0deg,rgba(185,195,165,.5),rgba(168,200,232,.35));border:1px solid rgba(31,36,39,.08);box-shadow:var(--shadow)}
-.hero:after{content:"";position:absolute;right:-60px;bottom:-100px;width:360px;height:360px;border-radius:50%;border:34px solid rgba(240,90,36,.84);transform:rotate(-12deg)}
+.hero{position:relative;overflow:hidden;isolation:isolate;border-radius:30px;padding:28px 30px;min-height:210px;background:linear-gradient(110deg,rgba(242,238,229,.93),rgba(242,238,229,.70)),linear-gradient(0deg,rgba(185,195,165,.5),rgba(168,200,232,.35));border:1px solid rgba(31,36,39,.08);box-shadow:var(--shadow)}
+.hero>*{position:relative;z-index:1}
+.hero:after{content:"";position:absolute;right:-60px;bottom:-100px;width:360px;height:360px;border-radius:50%;border:34px solid rgba(240,90,36,.84);transform:rotate(-12deg);z-index:0;pointer-events:none}
 .kicker{text-transform:uppercase;letter-spacing:.18em;font-size:.75rem;font-weight:800;color:var(--orange-deep)}
 .brandline{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:6px}
 .oneway{font-family:"Brush Script MT","Segoe Script",cursive;font-size:4rem;line-height:.95;font-weight:500}
@@ -1211,8 +1212,11 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </div>
 </div>
 
-<div class="rule-card">
-<h3>📍 Location & Schedule</h3>
+<div class="rule-card editable-rule-card" data-rule-key="location">
+<div class="rule-card-head">
+<h3 class="rule-card-title">📍 Location & Schedule</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="location">Edit</button>
+</div>
 <ul class="rule-list">
 <li><b>Location:</b> Church of New Hope</li>
 <li><b>Saturday Registration & Check-In:</b> during the morning conference break at the clothing spot.</li>
@@ -1224,8 +1228,11 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
-<div class="rule-card">
-<h3>Registration & Tournament Format</h3>
+<div class="rule-card editable-rule-card" data-rule-key="format">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Registration & Tournament Format</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="format">Edit</button>
+</div>
 <ul class="rule-list">
 <li>Registration is capped at <b>16 teams</b>.</li>
 <li><b>$15 per player / $60 per team.</b></li>
@@ -1269,8 +1276,11 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
-<div class="rule-card">
-<h3>Scoring Format</h3>
+<div class="rule-card editable-rule-card" data-rule-key="scoring">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Scoring Format</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="scoring">Edit</button>
+</div>
 <ul class="rule-list">
 <li><b>Pool Play:</b> 1 set to 25.</li>
 <li><b>25-point hard cap:</b> first team to 25 wins.</li>
@@ -1424,7 +1434,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v28</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v30</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1469,7 +1479,7 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
   <div class="rule-editor-card">
     <span class="pill orange">ADMIN EDITOR</span>
     <h2>Edit Public Information</h2>
-    <div class="muted">Only text that does not control scoring, scheduling, pools, or bracket logic can be edited. Put each bullet point on its own line.</div>
+    <div class="muted">Edit any Home-page information box here. Put each bullet point on its own line.</div>
 
     <label style="display:block;margin-top:16px">
       <b>Square title</b>
@@ -1482,7 +1492,7 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
     </label>
 
     <div class="rule-editor-warning">
-      <b>Safe-text editor:</b> scoring format, match times, pool/bracket structure, and other program-controlled settings are locked and cannot be edited here.
+      <b>Important:</b> this editor changes the public wording only. If you change scoring points, match times, pool structure, advancement, or another tournament-engine rule here, the actual scorer/schedule/bracket logic does not change automatically.
     </div>
 
     <div class="rule-editor-actions">
@@ -3892,7 +3902,7 @@ async function renderAdminContacts(){
 
 
 
-const RULE_SECTION_KEYS=["nonnegotiables","conduct","game"];
+const RULE_SECTION_KEYS=["location","format","nonnegotiables","conduct","scoring","game"];
 
 const RULE_DEFAULTS={};
 let activeRuleEditorKey=null;
