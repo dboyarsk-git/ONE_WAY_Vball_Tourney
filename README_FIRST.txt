@@ -1,31 +1,27 @@
-ONE WAY Grass 4s — FINAL v17
+ONE WAY Grass 4s — FINAL v18
 
-INCLUDES ALL v16 INTEGRITY FIXES
-- Dynamic 8–16 team formats.
-- Stronger private skill-level pool balancing.
-- Skill level ONLY influences initial pool balance.
-- Live-sync DELETE handling.
-- Pending-confirmation protection after pools lock.
-- Result-correction invalidation through QF -> SF -> Final.
-- Same-pool QF rematches avoided whenever mathematically possible.
-- Teams / Schedule / Standings / Bracket show NOT FINALIZED / PENDING REVIEW 16-team outlines before locking.
+NEW
+1. Paid / Unpaid and Checked In / Not Checked In are back BEFORE pools are finalized.
+2. Those statuses follow the registration into the final balanced pool.
+3. Statuses remain synchronized if Admin reopens and finalizes again.
+4. Every pool match displays a reffing team.
+5. 3-team pools: the idle third team refs automatically.
+6. 4-team pools: ref duty rotates among idle teams.
+7. Bracket QFs use non-advancing teams when available, otherwise Tournament Staff.
+8. Semifinals use eliminated QF teams; Final uses an eliminated semifinal team.
+9. Admin can override any OFFICIAL match ref to another available team or Tournament Staff.
+10. Successful registration now opens a dedicated Registration Complete screen.
+11. Captain gets Copy Link + native phone Share Link.
+12. No automatic email is required.
+13. Admin Captain Contacts includes Copy Confirmation Link for recovery.
 
-NEW IN v17
-- Mobile registration agreement checkbox can no longer inherit full-width form-input styling.
-- Agreement text wraps completely inside the phone screen.
-- Player confirmation rows, roster names, and confirmation link are mobile-safe.
-- Automatic captain thank-you/confirmation email support.
-- Email includes the link for all teammates to confirm.
-- Email failure never deletes or rolls back the registration; the copyable link remains available.
-- Failed email includes a Retry Email button.
-
-DEPLOY ORDER
+DEPLOY
 1. Supabase -> SQL Editor -> New Query.
-2. Run supabase_v17_integrity_email_patch.sql.
+2. Run supabase_v18_status_refs_share.sql.
 3. Confirm Success.
-4. Set up/deploy the included Edge Function (see EMAIL_SETUP_README.txt).
-5. GitHub -> replace index.html with v17 index.html.
-6. Commit and hard refresh.
-7. Footer should show Build FINAL v17.
+4. GitHub -> replace index.html with v18 index.html.
+5. Commit.
+6. Hard refresh.
+7. Footer should show Build FINAL v18.
 
-If email is not configured yet, registration still works normally and displays the copyable confirmation link.
+The old Resend Edge Function can be left alone or deleted later. v18 does not call it.

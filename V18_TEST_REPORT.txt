@@ -1,0 +1,40 @@
+ONE WAY FINAL v18 — STATIC / LOGIC TEST REPORT
+
+Website JavaScript syntax: PASS
+
+Static checks:
+{
+  "v18 marker": true,
+  "success overlay": true,
+  "share API": true,
+  "email invocation removed": true,
+  "prefinal paid": true,
+  "prefinal checkin": true,
+  "pool ref helper": true,
+  "bracket ref helper": true,
+  "admin ref rpc": true,
+  "admin copy link": true,
+  "sql status cols": true,
+  "sql ref cols": true,
+  "sql finalizer": true
+}
+
+Ref rotation:
+4-team pool counts: {1: 1, 2: 2, 3: 2, 4: 1} — PASS
+3-team pool counts: {1: 2, 2: 2, 3: 2} — PASS
+All automatic pool refs are idle teams — PASS
+
+Registration flow:
+- Successful registration no longer calls email — PASS
+- Confirmation token still creates teammate link — PASS
+- Copy Link flow present — PASS
+- Native Share flow with clipboard fallback present — PASS
+- Admin confirmation-link recovery present — PASS
+
+Payment / Check-In:
+- Stored on registration before finalization — SQL patch present
+- Admin pre-finalization buttons present
+- Finalizer copies registration status into official team slot
+- Official team edits sync back to registration
+
+Live Supabase execution still requires running the included v18 SQL patch in the user's project.
