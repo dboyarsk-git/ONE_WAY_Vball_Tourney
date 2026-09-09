@@ -245,6 +245,41 @@ body.score-open > .shell{
   }
 }
 
+
+/* v13 team-name readability */
+.team-entry{
+  border-top:1px solid #ece8e1;
+  padding:13px 0;
+}
+.team-name-row{
+  display:block;
+  width:100%;
+}
+.team-name-row .team-input{
+  width:100%;
+  min-width:0;
+  font-size:1rem;
+  font-weight:700;
+}
+.team-status-row{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-top:8px;
+}
+.team-admin-controls{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:9px;
+}
+@media(min-width:901px){
+  .team-name-row .team-input{
+    font-size:1.02rem;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -422,7 +457,7 @@ body.score-open > .shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v11</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v13</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -446,14 +481,8 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
 
 <div class="fullscreen-help" id="fullscreenHelp">
   <div class="fullscreen-help-card">
-    <h3>Full Screen on iPhone/iPad</h3>
-    <p>Safari is blocking true webpage fullscreen on this device. For the full scoreboard with no Safari bars:</p>
-    <ol>
-      <li>Tap <b>Share</b> in Safari.</li>
-      <li>Choose <b>Add to Home Screen</b>.</li>
-      <li>Open ONE WAY from the new Home Screen icon.</li>
-      <li>Open a match and tap <b>Full Screen</b> again.</li>
-    </ol>
+    <h3 id="fullscreenHelpTitle">Full Screen</h3>
+    <div id="fullscreenHelpBody"></div>
     <button class="primary" id="closeFullscreenHelp">Got it</button>
   </div>
 </div>
@@ -559,6 +588,33 @@ async function exitTrueFullscreen(){
 }
 
 function showFullscreenHelp(){
+  const title=$("fullscreenHelpTitle");
+  const body=$("fullscreenHelpBody");
+
+  if(isIOSLike()){
+    title.textContent="Full Screen on iPhone/iPad";
+    body.innerHTML=`
+      <p>Your browser is limiting true webpage fullscreen. For the cleanest scoreboard with no browser bars:</p>
+      <ol>
+        <li>Tap <b>Share</b>.</li>
+        <li>Choose <b>Add to Home Screen</b>.</li>
+        <li>Open <b>ONE WAY</b> from the new Home Screen icon.</li>
+        <li>Open a match again. The scoreboard will fill the app window.</li>
+      </ol>
+      <p class="muted">This applies whether you opened the site in Safari, Chrome, or another browser on iPhone/iPad.</p>
+    `;
+  }else{
+    title.textContent="Full Screen";
+    body.innerHTML=`
+      <p>Your browser did not allow fullscreen automatically.</p>
+      <ol>
+        <li>Try the <b>Full Screen</b> button again.</li>
+        <li>If your browser asks for fullscreen permission, allow it.</li>
+        <li>Rotate your device to landscape for the largest scoring view.</li>
+      </ol>
+    `;
+  }
+
   $("fullscreenHelp")?.classList.add("open");
 }
 
@@ -827,44 +883,56 @@ function rosterForTeam(t){
     .sort((a,b)=>a.playerNumber-b.playerNumber);
 }
 function renderTeams(){
-  const grid=$("teamGrid");grid.innerHTML="";
+  const grid=$("teamGrid");
+  grid.innerHTML="";
+
   POOLS.forEach(p=>{
-    const card=document.createElement("div");card.className="card pool-card";
+    const card=document.createElement("div");
+    card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
 
     state.teams.filter(t=>t.pool===p).forEach(t=>{
       const row=document.createElement("div");
-      row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
+      row.className="team-entry";
 
-      const top=document.createElement("div");
-      top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
+      const nameRow=document.createElement("div");
+      nameRow.className="team-name-row";
 
       const input=document.createElement("input");
       input.className="team-input";
       input.value=state.admin?(t.name||""):nameOf(t.id);
       input.disabled=!state.admin;
       input.placeholder=`Open Slot ${t.id}`;
+      input.title=nameOf(t.id);
+
       input.addEventListener("change",async()=>{
         await updateTeam(t,{name:input.value.trim()});
       });
 
+      nameRow.appendChild(input);
+      row.appendChild(nameRow);
+
       const status=document.createElement("div");
-      status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
+      status.className="team-status-row";
+
       const paidStatus=document.createElement("span");
       paidStatus.className=`pill ${t.paid?"green":"orange"}`;
       paidStatus.textContent=t.paid?"Paid":"Unpaid";
+
       const checkStatus=document.createElement("span");
       checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;
       checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
+
       status.append(paidStatus,checkStatus);
-      top.append(input,status);
-      row.appendChild(top);
+      row.appendChild(status);
 
       const roster=rosterForTeam(t);
       if(roster.length){
-        const list=document.createElement("div");list.className="roster-list";
+        const list=document.createElement("div");
+        list.className="roster-list";
         roster.forEach(pl=>{
-          const line=document.createElement("div");line.className="roster-line";
+          const line=document.createElement("div");
+          line.className="roster-line";
           line.innerHTML=`<span>${pl.fullName}</span><span class="pill ${pl.confirmed?"green":"blue"}">${pl.confirmed?"Confirmed":"Pending"}</span>`;
           list.appendChild(line);
         });
@@ -872,17 +940,23 @@ function renderTeams(){
       }
 
       const controls=document.createElement("div");
-      controls.className="admin-only admin-action-row";
+      controls.className="admin-only team-admin-controls";
 
       const paid=document.createElement("button");
       paid.className="small-btn";
       paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";
-      paid.onclick=async()=>{paid.disabled=true;await updateTeam(t,{paid:!t.paid})};
+      paid.onclick=async()=>{
+        paid.disabled=true;
+        await updateTeam(t,{paid:!t.paid});
+      };
 
       const check=document.createElement("button");
       check.className="small-btn";
       check.textContent=t.checkedIn?"Undo Check-In":"Check In";
-      check.onclick=async()=>{check.disabled=true;await updateTeam(t,{checkedIn:!t.checkedIn})};
+      check.onclick=async()=>{
+        check.disabled=true;
+        await updateTeam(t,{checkedIn:!t.checkedIn});
+      };
 
       const clear=document.createElement("button");
       clear.className="small-btn clear-name";
@@ -897,6 +971,7 @@ function renderTeams(){
       row.appendChild(controls);
       card.appendChild(row);
     });
+
     grid.appendChild(card);
   });
 }
@@ -1309,7 +1384,7 @@ $("fullscreenBtn").onclick=async()=>{
   const ok=await enterTrueFullscreen();
   fitScoreViewport();
 
-  if(!ok && isIOSLike() && !isStandaloneApp()){
+  if(!ok){
     showFullscreenHelp();
   }
 };
