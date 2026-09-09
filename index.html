@@ -92,10 +92,10 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 </section>
 
 <section id="view-teams" class="view hidden"><div class="panel">
-<div class="section-title"><div><h2>Teams</h2><div class="muted">Admin can rename teams, mark payment, and check-in. Changes sync live.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset demo</button></div>
+<div class="section-title"><div><h2>Teams</h2><div class="muted">Payment and check-in status are visible to everyone. Only admin can make changes.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset tournament data</button></div>
 <div class="team-grid" id="teamGrid"></div></div></section>
 
-<section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">Tap Keep Score to open the full-screen scorer.</div></div></div><div class="table-wrap"><table id="scheduleTable"></table></div></div></section>
+<section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">Each pool stays together so teams can quickly find their matches.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
 <section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted">Tiebreak order: wins → point differential → points for → original pool slot.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
@@ -111,7 +111,7 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 <div class="score-bottom"><button class="light" id="swapSidesBtn">⇄ Switch Sides</button><button class="light" id="undoBtn">↶ Undo</button><button class="redbtn admin-only hidden" id="unlockMatchBtn">Unlock Match</button></div>
 </div>
 
-<div class="modal" id="adminModal"><div class="modal-box"><h3>Admin mode</h3><p class="muted">Demo PIN: <b>146</b>. Real authentication can be added before tournament day.</p><input class="team-input" id="adminPin" type="password" inputmode="numeric" placeholder="Enter PIN"><div class="modal-actions"><button class="ghost" id="cancelAdmin">Cancel</button><button class="primary" id="submitAdmin">Enter Admin</button></div></div></div>
+<div class="modal" id="adminModal"><div class="modal-box"><h3>Admin mode</h3><input class="team-input" id="adminPin" type="password" placeholder="Admin code" autocomplete="off"><div class="modal-actions"><button class="ghost" id="cancelAdmin">Cancel</button><button class="primary" id="submitAdmin">Enter Admin</button></div></div></div>
 <div class="modal" id="confirmModal"><div class="modal-box"><h3 id="confirmTitle">Confirm result</h3><p id="confirmText"></p><div class="modal-actions"><button class="ghost" id="cancelConfirm">Keep scoring</button><button class="primary" id="submitConfirm">Confirm</button></div></div></div>
 
 <script>
@@ -122,7 +122,7 @@ const SUPABASE_URL = "https://uygotksjyqusbdoepzft.supabase.co";
 const SUPABASE_KEY = "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const ADMIN_PIN="146";
+const ADMIN_HASH="4af3d72d78b405924dc814caebbc90403482aa90f3523047888f51645674e406";
 const POOLS=["A","B","C","D"];
 let state={teams:[],poolMatches:[],bracketMatches:[],admin:false,activeView:"home"};
 let activeScore=null, undoStack=[], swapped=false;
@@ -136,6 +136,11 @@ function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked}}
 const teamById=id=>state.teams.find(t=>t.id===id);
 const nameOf=id=>id?(teamById(id)?.name||"TBD"):"TBD";
+async function sha256(text){
+  const data=new TextEncoder().encode(text);
+  const digest=await crypto.subtle.digest("SHA-256",data);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
 
 async function loadAll(){
   setSync("", "Loading live data…");
@@ -233,24 +238,84 @@ function renderTeams(){
     const card=document.createElement("div");card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
     state.teams.filter(t=>t.pool===p).forEach(t=>{
-      const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:8px 0";
-      const input=document.createElement("input");input.className="team-input";input.value=t.name;input.disabled=!state.admin;
-      input.addEventListener("change",()=>{t.name=input.value.trim()||`Team ${t.id}`;updateTeam(t);renderAll();});
-      const controls=document.createElement("div");controls.className="admin-only";controls.style.cssText="display:flex;gap:5px";
-      const paid=document.createElement("button");paid.className="small-btn";paid.textContent=t.paid?"Paid ✓":"Unpaid";paid.onclick=()=>{t.paid=!t.paid;updateTeam(t);renderAll()};
-      const check=document.createElement("button");check.className="small-btn";check.textContent=t.checkedIn?"In ✓":"Check in";check.onclick=()=>{t.checkedIn=!t.checkedIn;updateTeam(t);renderAll()};
-      controls.append(paid,check);row.append(input,controls);card.appendChild(row);
-    });grid.appendChild(card);
+      const row=document.createElement("div");
+      row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
+
+      const top=document.createElement("div");
+      top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
+
+      const input=document.createElement("input");
+      input.className="team-input";
+      input.value=t.name;
+      input.disabled=!state.admin;
+      input.addEventListener("change",()=>{
+        t.name=input.value.trim()||`Team ${t.id}`;
+        updateTeam(t);renderAll();
+      });
+
+      const status=document.createElement("div");
+      status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
+      const paidStatus=document.createElement("span");
+      paidStatus.className=`pill ${t.paid?"green":"orange"}`;
+      paidStatus.textContent=t.paid?"Paid":"Unpaid";
+      const checkStatus=document.createElement("span");
+      checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;
+      checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
+      status.append(paidStatus,checkStatus);
+      top.append(input,status);
+
+      const controls=document.createElement("div");
+      controls.className="admin-only";
+      controls.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
+      const paid=document.createElement("button");
+      paid.className="small-btn";
+      paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";
+      paid.onclick=()=>{t.paid=!t.paid;updateTeam(t);renderAll()};
+      const check=document.createElement("button");
+      check.className="small-btn";
+      check.textContent=t.checkedIn?"Undo Check-In":"Check In";
+      check.onclick=()=>{t.checkedIn=!t.checkedIn;updateTeam(t);renderAll()};
+      controls.append(paid,check);
+
+      row.append(top,controls);
+      card.appendChild(row);
+    });
+    grid.appendChild(card);
   });
 }
 function renderSchedule(){
-  const table=$("scheduleTable");table.innerHTML="<thead><tr><th>Time</th><th>Court</th><th>Pool</th><th>Team A</th><th>Score</th><th>Team B</th><th>Status</th><th></th></tr></thead>";
-  const tb=document.createElement("tbody");
-  state.poolMatches.forEach(m=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${m.time}</td><td>${m.court}</td><td>Pool ${m.pool}</td><td>${nameOf(m.teamA)}</td><td><b>${m.final?`${m.scoreA}–${m.scoreB}`:"—"}</b></td><td>${nameOf(m.teamB)}</td><td>${m.final?'<span class="pill green">Final</span>':'<span class="pill blue">Scheduled</span>'}</td><td></td>`;
-    const btn=document.createElement("button");btn.className="score-btn";btn.textContent=m.final?"View Score":"Keep Score";btn.onclick=()=>openScore("pool",m.id);tr.lastElementChild.appendChild(btn);tb.appendChild(tr);
-  });table.appendChild(tb);
+  const root=$("scheduleGrid");root.innerHTML="";
+  POOLS.forEach(p=>{
+    const card=document.createElement("div");
+    card.className="card pool-card";
+    card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
+
+    const matches=state.poolMatches.filter(m=>m.pool===p).sort((a,b)=>a.round-b.round);
+    matches.forEach(m=>{
+      const row=document.createElement("div");
+      row.style.cssText="border-top:1px solid #ece8e1;padding:11px 0";
+
+      const meta=document.createElement("div");
+      meta.style.cssText="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px";
+      meta.innerHTML=`<strong>${m.time}</strong>${m.final?'<span class="pill green">Final</span>':'<span class="pill blue">Scheduled</span>'}`;
+
+      const matchup=document.createElement("div");
+      matchup.style.cssText="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center";
+      matchup.innerHTML=`<span>${nameOf(m.teamA)}</span><b>${m.final?`${m.scoreA}–${m.scoreB}`:"vs"}</b><span style="text-align:right">${nameOf(m.teamB)}</span>`;
+
+      const actions=document.createElement("div");
+      actions.style.cssText="margin-top:8px;display:flex;justify-content:flex-end";
+      const btn=document.createElement("button");
+      btn.className="score-btn";
+      btn.textContent=m.final?"View Score":"Keep Score";
+      btn.onclick=()=>openScore("pool",m.id);
+      actions.appendChild(btn);
+
+      row.append(meta,matchup,actions);
+      card.appendChild(row);
+    });
+    root.appendChild(card);
+  });
 }
 function renderStandings(){
   const root=$("standingsGrid");root.innerHTML="";
@@ -308,7 +373,8 @@ async function resetDemo(){
 document.querySelectorAll("#nav [data-view]").forEach(btn=>btn.onclick=()=>showView(btn.dataset.view));
 $("adminBtn").onclick=()=>{if(state.admin)setAdmin(false);else{$("adminPin").value="";$("adminModal").classList.add("open")}};
 $("cancelAdmin").onclick=()=>$("adminModal").classList.remove("open");
-$("submitAdmin").onclick=()=>{if($("adminPin").value===ADMIN_PIN){$("adminModal").classList.remove("open");setAdmin(true)}else alert("Incorrect PIN.")};
+$("adminPin").addEventListener("keydown",e=>{if(e.key==="Enter")$("submitAdmin").click()});
+$("submitAdmin").onclick=async()=>{const entered=await sha256($("adminPin").value);if(entered===ADMIN_HASH){$("adminModal").classList.remove("open");setAdmin(true)}else alert("Incorrect admin code.")};
 $("resetTeamsBtn").onclick=resetDemo;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{try{if(!document.fullscreenElement)await $("scoreOverlay").requestFullscreen();else await document.exitFullscreen()}catch(e){}};
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
