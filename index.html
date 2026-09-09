@@ -808,6 +808,90 @@ body.score-open > .shell{
   }
 }
 
+
+/* FINAL v19 — dedicated player confirmation screen */
+#playerConfirmationPanel{
+  margin:0;
+}
+
+#playerConfirmationPanel:not(.hidden){
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483200!important;
+  width:100%!important;
+  min-height:100dvh!important;
+  max-height:100dvh!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+  background:#f6efe5!important;
+  padding:18px!important;
+  border:0!important;
+  border-radius:0!important;
+  display:grid!important;
+  place-items:center!important;
+}
+
+#playerConfirmationPanel .player-confirm-shell{
+  width:min(660px,100%)!important;
+  margin:auto!important;
+}
+
+#playerConfirmationPanel .section-title{
+  margin-bottom:10px!important;
+}
+
+#playerConfirmationPanel .card{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+.confirm-commitment{
+  margin-top:16px!important;
+  padding:13px!important;
+  background:#fff7ed!important;
+  border:1px solid #ecd6bc!important;
+  border-radius:13px!important;
+}
+
+.confirm-page-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+body.confirmation-open{
+  overflow:hidden!important;
+}
+
+@media(max-width:650px){
+  #playerConfirmationPanel:not(.hidden){
+    padding:0!important;
+    display:block!important;
+    background:#fffaf2!important;
+  }
+
+  #playerConfirmationPanel .player-confirm-shell{
+    width:100%!important;
+    min-height:100dvh!important;
+    padding:20px 16px 28px!important;
+    box-sizing:border-box!important;
+  }
+
+  #playerConfirmationPanel .card{
+    border-radius:16px!important;
+  }
+
+  #playerConfirmationPanel .section-title h2{
+    font-size:1.7rem!important;
+  }
+
+  #confirmPlayerBtn,
+  #leaveConfirmationBtn{
+    width:100%!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -837,13 +921,42 @@ body.score-open > .shell{
 <div class="section-title"><h2>Everything You Need to Know</h2><span class="pill orange">ONE WAY Conference</span></div>
 <div class="rules-grid">
 
+<div class="rule-card" id="prizeCard">
+<h3>🏆 First Place Prize</h3>
+<p id="prizePublicText"><b>Prize: TBD.</b> Final prize details will be announced once confirmed.</p>
+
+<div class="admin-only" style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ded2">
+  <div class="muted" style="margin-bottom:6px">Admin Prize Settings</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <div style="display:flex;align-items:center;gap:5px">
+      <strong>$</strong>
+      <input
+        id="adminPrizeAmount"
+        type="number"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        placeholder="800"
+        class="team-input"
+        style="width:130px"
+      >
+    </div>
+    <button class="small-btn" id="savePrizeBtn">Save Prize</button>
+    <button class="small-btn" id="clearPrizeBtn">Set to TBD</button>
+  </div>
+  <div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
+</div>
+</div>
+
 <div class="rule-card">
 <h3>📍 Location & Schedule</h3>
 <ul class="rule-list">
 <li><b>Location:</b> Church of New Hope</li>
-<li><b>Check-in:</b> 8:00 AM</li>
-<li><b>Captains Meeting:</b> 8:45 AM</li>
-<li><b>Pool Play:</b> 9:00 AM</li>
+<li><b>Saturday Registration & Check-In:</b> during the morning conference break at the clothing spot.</li>
+<li><b>Eligibility:</b> every player must be <b>fully registered, paid, and checked in before 1:00 PM</b> in order to play.</li>
+<li><b>Pool Play:</b> starts <b>exactly at 1:00 PM on Saturday, October 3</b>. Teams should be ready to play as soon as their court slot opens.</li>
+<li><b>Match pacing:</b> approximately <b>30-minute match windows</b> with a strict turnaround so pool play stays on schedule.</li>
+<li><b>Sunday, October 4:</b> Championship bracket begins <b>after 2:00 PM</b>.</li>
 <li>Teams more than <b>10 minutes late</b> for a scheduled match forfeit that match.</li>
 </ul>
 </div>
@@ -853,6 +966,8 @@ body.score-open > .shell{
 <ul class="rule-list">
 <li>Registration is capped at <b>16 teams</b>.</li>
 <li><b>$15 per player / $60 per team.</b></li>
+<li><b>No player may compete unless they are fully registered, paid, and checked in.</b></li>
+<li><b>🏆 First Place Prize:</b> TBD — final prize details will be announced once confirmed with the event coordinator.</li>
 <li>4 players per team with a maximum of 16 teams.</li>
 <li>Pool size is generated from the number of fully registered teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
 <li>4-team pools play each opponent once; 3-team pools play each opponent twice. Every team receives at least <b>3 pool-play matches</b>.</li>
@@ -969,20 +1084,37 @@ body.score-open > .shell{
 </div>
 </div>
 
-<div class="panel hidden" id="playerConfirmationPanel">
-<div class="section-title"><div><h2>Confirm Your Team</h2><div class="muted">Select your name and personally agree to the rules.</div></div></div>
-<div class="card">
-<h3 id="confirmTeamName" style="margin-top:0"></h3>
-<div id="confirmPlayers" class="player-confirm-grid"></div>
-<label class="agree-row">
-<input type="checkbox" id="playerRulesAgreement">
-<span>I confirm that I am participating on this team and I have read and agree to the ONE WAY Grass 4s tournament rules, conduct requirements, and event policies.</span>
-</label>
-<button class="primary" id="confirmPlayerBtn" style="margin-top:14px">Confirm My Spot</button>
-<div id="playerConfirmMessage" style="margin-top:12px"></div>
-</div>
-</div>
 
+<div class="panel hidden" id="playerConfirmationPanel">
+  <div class="player-confirm-shell">
+    <div class="section-title">
+      <div>
+        <span class="pill orange">PLAYER CONFIRMATION</span>
+        <h2 style="margin:7px 0 2px">Confirm Your Spot</h2>
+        <div class="muted">This confirmation is for you personally. Select your own name below.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Team</div>
+      <h3 id="confirmTeamName" style="margin:2px 0 14px;font-size:1.4rem"></h3>
+
+      <div id="confirmPlayers" class="player-confirm-grid"></div>
+
+      <label class="agree-row confirm-commitment">
+        <input type="checkbox" id="playerRulesAgreement">
+        <span><b>Yes, I am committed to playing for this team.</b> I have read and agree to the ONE WAY Grass 4s tournament rules, conduct requirements, and event policies.</span>
+      </label>
+
+      <button class="primary" id="confirmPlayerBtn" style="margin-top:14px">Yes — Confirm My Spot</button>
+      <div id="playerConfirmMessage" style="margin-top:12px"></div>
+
+      <div class="confirm-page-actions">
+        <button class="ghost" id="leaveConfirmationBtn">Back to Tournament Site</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="panel admin-only" id="poolBuilderPanel">
   <div class="section-title">
@@ -1020,7 +1152,7 @@ body.score-open > .shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v18</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v23</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1120,7 +1252,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
-function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount)}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
@@ -1260,7 +1392,7 @@ function buildFallbackCore(){
   }
 
   const pairs=[[1,2],[3,4],[1,3],[2,4],[1,4],[2,3]];
-  const times=["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM"];
+  const times=["Sat Oct 3 • 1:00 PM","Sat Oct 3 • 1:40 PM","Sat Oct 3 • 2:20 PM","Sat Oct 3 • 3:00 PM","Sat Oct 3 • 3:40 PM","Sat Oct 3 • 4:20 PM"];
   const poolMatches=[];
   let mid=1;
 
@@ -1285,13 +1417,13 @@ function buildFallbackCore(){
   });
 
   const bracketMatches=[
-    {id:"QF1",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:1,keyA:"A-1",keyB:"B-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF2",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:2,keyA:"B-1",keyB:"A-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF3",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:3,keyA:"C-1",keyB:"D-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF4",type:"bracket",round:"Quarterfinal",time:"12:30 PM",court:4,keyA:"D-1",keyB:"C-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"SF1",type:"bracket",round:"Semifinal",time:"1:30 PM",court:1,keyA:null,keyB:null,fromA:"QF1",fromB:"QF3",sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"SF2",type:"bracket",round:"Semifinal",time:"1:30 PM",court:2,keyA:null,keyB:null,fromA:"QF2",fromB:"QF4",sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"FINAL",type:"bracket",round:"Championship",time:"2:30 PM",court:1,keyA:null,keyB:null,fromA:"SF1",fromB:"SF2",sets:[],currentA:0,currentB:0,final:false,locked:false}
+    {id:"QF1",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:1,keyA:"A-1",keyB:"B-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF2",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:2,keyA:"B-1",keyB:"A-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF3",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:3,keyA:"C-1",keyB:"D-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"QF4",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:4,keyA:"D-1",keyB:"C-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF1",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:1,keyA:null,keyB:null,fromA:"QF1",fromB:"QF3",sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF2",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:2,keyA:null,keyB:null,fromA:"QF2",fromB:"QF4",sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"FINAL",type:"bracket",round:"Championship",time:"Sun Oct 4 • 4:15 PM",court:1,keyA:null,keyB:null,fromA:"SF1",fromB:"SF2",sets:[],currentA:0,currentB:0,final:false,locked:false}
   ];
 
   return {teams,poolMatches,bracketMatches};
@@ -1864,7 +1996,7 @@ function provisionalScheduleForPool(poolLetter){
   const slots=provisionalPoolSlots(poolLetter);
   const pairs=[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
   const refs=[2,0,1,2,1,3];
-  const times=["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM"];
+  const times=["Sat Oct 3 • 1:00 PM","Sat Oct 3 • 1:40 PM","Sat Oct 3 • 2:20 PM","Sat Oct 3 • 3:00 PM","Sat Oct 3 • 3:40 PM","Sat Oct 3 • 4:20 PM"];
 
   return pairs.map((pair,i)=>({
     round:i+1,
@@ -2665,23 +2797,23 @@ function renderBracket(){
       {
         name:"Quarterfinals",
         games:[
-          ["QF1 • Court 1","Pool A #1","Pool B #2","12:30 PM","Non-advancing team / Staff"],
-          ["QF2 • Court 2","Pool B #1","Pool A #2","12:30 PM","Non-advancing team / Staff"],
-          ["QF3 • Court 3","Pool C #1","Pool D #2","12:30 PM","Non-advancing team / Staff"],
-          ["QF4 • Court 4","Pool D #1","Pool C #2","12:30 PM","Non-advancing team / Staff"]
+          ["QF1 • Court 1","Pool A #1","Pool B #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
+          ["QF2 • Court 2","Pool B #1","Pool A #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
+          ["QF3 • Court 3","Pool C #1","Pool D #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
+          ["QF4 • Court 4","Pool D #1","Pool C #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"]
         ]
       },
       {
         name:"Semifinals",
         games:[
-          ["SF1 • Court 1","QF Winner","QF Winner","1:30 PM","Quarterfinal loser"],
-          ["SF2 • Court 2","QF Winner","QF Winner","1:30 PM","Quarterfinal loser"]
+          ["SF1 • Court 1","QF Winner","QF Winner","Sun Oct 4 • 3:15 PM","Quarterfinal loser"],
+          ["SF2 • Court 2","QF Winner","QF Winner","Sun Oct 4 • 3:15 PM","Quarterfinal loser"]
         ]
       },
       {
         name:"Championship",
         games:[
-          ["FINAL • Court 1","SF Winner","SF Winner","2:30 PM","Semifinal loser"]
+          ["FINAL • Court 1","SF Winner","SF Winner","Sun Oct 4 • 4:15 PM","Semifinal loser"]
         ]
       }
     ];
@@ -2978,37 +3110,87 @@ async function submitTeamRegistration(){
 async function loadConfirmationFromURL(){
   const params=new URLSearchParams(location.search);
   const token=params.get("confirm");
-  if(!token)return;
+
+  if(!token){
+    activeConfirmationToken=null;
+    $("playerConfirmationPanel")?.classList.add("hidden");
+    document.body.classList.remove("confirmation-open");
+    return;
+  }
+
   activeConfirmationToken=token;
 
-  const {data,error}=await sb.rpc("registration_confirmation_view",{p_token:token});
-  if(error||!data){console.error(error);return;}
+  const {data,error}=await sb.rpc(
+    "registration_confirmation_view",
+    {p_token:token}
+  );
 
-  showView("register");
-  const panel=$("playerConfirmationPanel");panel.classList.remove("hidden");
+  const panel=$("playerConfirmationPanel");
+  panel.classList.remove("hidden");
+  document.body.classList.add("confirmation-open");
+
+  if(error||!data){
+    console.error(error);
+    $("confirmTeamName").textContent="Confirmation link unavailable";
+    $("confirmPlayers").innerHTML="";
+    $("playerConfirmMessage").innerHTML=
+      '<div class="callout">This confirmation link is invalid or no longer available.</div>';
+    $("confirmPlayerBtn").disabled=true;
+    return;
+  }
+
+  $("confirmPlayerBtn").disabled=false;
   $("confirmTeamName").textContent=data.team_name;
-  const root=$("confirmPlayers");root.innerHTML="";
+
+  const root=$("confirmPlayers");
+  root.innerHTML="";
+
   (data.players||[]).forEach(pl=>{
-    const label=document.createElement("label");label.className="player-choice";
+    const label=document.createElement("label");
+    label.className="player-choice";
+
     if(pl.confirmed){
-      label.innerHTML=`<input type="radio" name="confirmPlayer" value="${pl.id}" disabled><span>${pl.full_name}</span><span class="pill green" style="margin-left:auto">Confirmed ✓</span>`;
+      label.innerHTML=
+        `<input type="radio" name="confirmPlayer" value="${pl.id}" disabled>`+
+        `<span>${pl.full_name}</span>`+
+        `<span class="pill green" style="margin-left:auto">Confirmed ✓</span>`;
     }else{
-      label.innerHTML=`<input type="radio" name="confirmPlayer" value="${pl.id}"><span>${pl.full_name}</span><span class="pill blue" style="margin-left:auto">Needs Confirmation</span>`;
+      label.innerHTML=
+        `<input type="radio" name="confirmPlayer" value="${pl.id}">`+
+        `<span>${pl.full_name}</span>`+
+        `<span class="pill blue" style="margin-left:auto">Needs Confirmation</span>`;
     }
+
     root.appendChild(label);
   });
 }
+
+function leaveConfirmationPage(){
+  const url=new URL(location.href);
+  url.searchParams.delete("confirm");
+
+  const next=url.pathname+(url.searchParams.toString()?`?${url.searchParams.toString()}`:"")+url.hash;
+  history.replaceState({}, "", next);
+
+  activeConfirmationToken=null;
+  $("playerConfirmationPanel").classList.add("hidden");
+  $("playerRulesAgreement").checked=false;
+  $("playerConfirmMessage").innerHTML="";
+  document.body.classList.remove("confirmation-open");
+  showView("home");
+}
+
 async function confirmSelectedPlayer(){
   const selected=document.querySelector('input[name="confirmPlayer"]:checked');
   if(!selected){alert("Select your name.");return;}
-  if(!$("playerRulesAgreement").checked){alert("You must personally agree to the tournament rules.");return;}
+  if(!$("playerRulesAgreement").checked){alert("Check the commitment box to confirm that you are committed to this team and agree to the tournament rules.");return;}
 
   const btn=$("confirmPlayerBtn");btn.disabled=true;btn.textContent="Confirming…";
   const {data,error}=await sb.rpc("confirm_registration_player",{
     p_token:activeConfirmationToken,
     p_player_id:selected.value
   });
-  btn.disabled=false;btn.textContent="Confirm My Spot";
+  btn.disabled=false;btn.textContent="Yes — Confirm My Spot";
   const msg=$("playerConfirmMessage");
   if(error){console.error(error);msg.textContent=error.message||"Unable to confirm.";return;}
   msg.innerHTML=data.status==="registered"
@@ -3385,7 +3567,129 @@ async function renderAdminContacts(){
   });
 }
 
+
+function formatPrizeAmount(amount){
+  return Number(amount).toLocaleString("en-US",{
+    style:"currency",
+    currency:"USD",
+    maximumFractionDigits:0
+  });
+}
+
+function renderPrize(){
+  const text=$("prizePublicText");
+  if(!text)return;
+
+  const amount=state.settings?.prizeAmount;
+
+  if(amount===null || amount===undefined || Number.isNaN(Number(amount))){
+    text.innerHTML=
+      "<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
+  }else{
+    text.innerHTML=
+      `<b>First Place Prize: ${formatPrizeAmount(amount)}</b>`;
+  }
+
+  const input=$("adminPrizeAmount");
+  if(input && document.activeElement!==input){
+    input.value=
+      amount===null || amount===undefined
+        ?""
+        :String(Math.round(Number(amount)));
+  }
+}
+
+async function savePrizeAmount(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  const input=$("adminPrizeAmount");
+  const raw=input.value.trim();
+
+  if(raw===""){
+    alert("Enter a prize amount, or use Set to TBD.");
+    return;
+  }
+
+  const amount=Number(raw);
+
+  if(!Number.isFinite(amount)||amount<0){
+    alert("Enter a valid prize amount.");
+    return;
+  }
+
+  const btn=$("savePrizeBtn");
+  const status=$("adminPrizeStatus");
+
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Saving prize…");
+
+  const {data,error}=await sb.rpc("admin_update_prize",{
+    p_code:adminCodeSession,
+    p_prize_amount:Math.round(amount)
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Prize update failed.";
+    setSync("error","Prize update failed");
+    alert(error.message||"Unable to update prize.");
+    return;
+  }
+
+  state.settings.prizeAmount=
+    data?.prize_amount==null
+      ?Math.round(amount)
+      :Number(data.prize_amount);
+
+  renderPrize();
+  status.textContent=`Saved: ${formatPrizeAmount(state.settings.prizeAmount)}`;
+  setSync("live","Live sync connected");
+}
+
+async function clearPrizeAmount(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  if(!confirm("Set the public first-place prize back to TBD?"))return;
+
+  const btn=$("clearPrizeBtn");
+  const status=$("adminPrizeStatus");
+
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Updating prize…");
+
+  const {error}=await sb.rpc("admin_update_prize",{
+    p_code:adminCodeSession,
+    p_prize_amount:null
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Prize update failed.";
+    setSync("error","Prize update failed");
+    alert(error.message||"Unable to update prize.");
+    return;
+  }
+
+  state.settings.prizeAmount=null;
+  renderPrize();
+  status.textContent="Prize is now TBD.";
+  setSync("live","Live sync connected");
+}
+
 function renderAll(){
+  renderPrize();
   document.body.classList.toggle("admin-mode",!!state.admin);
   $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
   renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderPoolBuilder();renderAdminContacts();refreshScoreOverlay();
@@ -3545,7 +3849,10 @@ $("previewPoolsBtn").onclick=previewBalancedPools;
 $("regeneratePoolsBtn").onclick=generateBalancedPreview;
 $("lockPoolsBtn").onclick=lockPoolPreview;
 $("reopenRegistrationBtn").onclick=reopenRegistration;
+$("savePrizeBtn").onclick=savePrizeAmount;
+$("clearPrizeBtn").onclick=clearPrizeAmount;
 $("registrationSuccessDone").onclick=closeRegistrationComplete;
+$("leaveConfirmationBtn").onclick=leaveConfirmationPage;
 $("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{
   fitScoreViewport();
