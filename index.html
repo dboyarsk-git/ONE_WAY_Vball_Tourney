@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2eee5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="author" content="Dashia Boyarskiy">
 <title>ONE WAY Grass 4s</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -45,10 +48,10 @@ tr:last-child td{border-bottom:0}
 .match-team{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border-top:1px solid #f0ece5} .match-team strong{overflow:hidden;text-overflow:ellipsis} .winner{background:#e2f1e8} .locked{opacity:.62}
 .admin-only{display:none} body.admin-mode .admin-only{display:initial} .callout{border-left:5px solid var(--orange);background:#fff5ef;border-radius:12px;padding:12px 14px}
 footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
-.score-overlay{position:fixed;inset:0;z-index:1000;background:#111;display:none;color:white} .score-overlay.open{display:flex;flex-direction:column}
+.score-overlay{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:99999;background:#111;display:none;color:white;overscroll-behavior:none;touch-action:manipulation} .score-overlay.open{display:flex;flex-direction:column}
 .score-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#16191c;min-height:58px} .score-top .center{text-align:center;flex:1} .score-top .center b{display:block;font-size:.9rem} .score-top .center span{font-size:.76rem;color:#b9bec1}
 .score-layout{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0} .score-side{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;padding:20px;overflow:hidden}
-.score-side.blue{background:#6f9ff4} .score-side.red{background:#ef6c73} .score-number{font-size:clamp(7rem,24vw,18rem);font-weight:900;line-height:.8;letter-spacing:-.08em}
+.score-side.blue{background:#f26a2e;color:#fff} .score-side.red{background:#d6bea0;color:#1f2427} .score-number{font-size:clamp(7rem,24vw,18rem);font-weight:900;line-height:.8;letter-spacing:-.08em}
 .score-name{font-size:clamp(1.4rem,4vw,3rem);font-weight:850;margin-top:26px;text-align:center;max-width:90%;overflow:hidden;text-overflow:ellipsis}
 .set-chip{position:absolute;top:16px;left:16px;background:rgba(0,0,0,.22);padding:6px 10px;border-radius:99px;font-weight:800}
 .minus{position:absolute;bottom:20px;left:20px;border:0;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.23);color:#fff;font-size:1.8rem;font-weight:900}
@@ -91,6 +94,24 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 @media(max-width:900px){
   .rules-grid,.form-grid,.register-layout{grid-template-columns:1fr}
   .form-field.full{grid-column:auto}
+}
+
+
+.admin-action-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.admin-action-row .cancel-team{background:#e7b557;color:#35240b}
+.admin-action-row .delete-team{background:#9b332c;color:#fff}
+.admin-action-row .clear-name{background:#e8edf0;color:#1f2427}
+.destructive-note{font-size:.78rem;color:#8f2e28;margin-top:6px}
+
+
+.score-overlay.open{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh}
+body.score-open{overflow:hidden;position:fixed;width:100%;height:100%;touch-action:none}
+.score-side.red .set-chip{background:rgba(31,36,39,.18);color:#1f2427}
+.score-side.red .minus{background:rgba(31,36,39,.18);color:#1f2427}
+.score-side.red .score-number,.score-side.red .score-name{color:#1f2427}
+.score-side.blue .score-number,.score-side.blue .score-name{color:#fff}
+@supports (-webkit-touch-callout:none){
+  .score-overlay{height:-webkit-fill-available}
 }
 
 </style>
@@ -262,7 +283,7 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 </section>
 
 <section id="view-teams" class="view hidden"><div class="panel">
-<div class="section-title"><div><h2>Teams</h2><div class="muted">Payment and check-in status are visible to everyone. Only admin can make changes.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset tournament data</button></div>
+<div class="section-title"><div><h2>Teams</h2><div class="muted">Payment and check-in status are visible to everyone. Only admin can make changes.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset Tournament Data</button></div>
 <div class="team-grid" id="teamGrid"></div></div></section>
 
 <section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">Each pool stays together so teams can quickly find their matches.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
@@ -310,14 +331,14 @@ const $=id=>document.getElementById(id);
 function setSync(kind,text){
   const box=$("syncStatus"); box.className="sync"+(kind?` ${kind}`:""); $("syncText").textContent=text;
 }
-function mapTeam(r){return {id:r.id,name:r.name,pool:r.pool,court:r.court,paid:r.paid,checkedIn:r.checked_in}}
+function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,paid:r.paid,checkedIn:r.checked_in,registrationId:r.registration_id||null}}
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
-const nameOf=id=>id?(teamById(id)?.name||"TBD"):"TBD";
+const nameOf=id=>{if(!id)return"TBD";const t=teamById(id);return t&&String(t.name||"").trim()?t.name:`Open Slot ${id}`};
 async function sha256(text){
   const data=new TextEncoder().encode(text);
   const digest=await crypto.subtle.digest("SHA-256",data);
@@ -384,17 +405,32 @@ async function refreshRegistrations(){
   if(!r.error)state.registrations=r.data.map(mapRegistration);
   if(!rp.error)state.registrationPlayers=rp.data.map(mapRegPlayer);
 }
-async function updateTeam(t){
-  if(!state.admin||!adminCodeSession){alert("Admin access required.");return;}
+async function updateTeam(t, changes={}){
+  if(!state.admin||!adminCodeSession){alert("Admin access required.");return false;}
+  const nextName=Object.prototype.hasOwnProperty.call(changes,"name")?changes.name:t.name;
+  const nextPaid=Object.prototype.hasOwnProperty.call(changes,"paid")?changes.paid:t.paid;
+  const nextChecked=Object.prototype.hasOwnProperty.call(changes,"checkedIn")?changes.checkedIn:t.checkedIn;
+
+  setSync("", "Saving admin change…");
   const {error}=await sb.rpc("admin_update_team",{
     p_code:adminCodeSession,
     p_id:t.id,
-    p_name:t.name,
-    p_paid:t.paid,
-    p_checked_in:t.checkedIn
+    p_name:String(nextName??""),
+    p_paid:!!nextPaid,
+    p_checked_in:!!nextChecked
   });
-  if(error){console.error(error);setSync("error","Admin update failed");await loadAll();}
-  else setSync("live","Live sync connected");
+
+  if(error){
+    console.error(error);
+    setSync("error","Admin update failed");
+    alert(error.message||"Unable to save the change.");
+    await loadAll();
+    return false;
+  }
+
+  await loadAll();
+  setSync("live","Live sync connected");
+  return true;
 }
 async function updatePool(m){
   const {error}=await sb.from("pool_matches").update({score_a:m.scoreA,score_b:m.scoreB,final:m.final,locked:m.locked,updated_at:new Date().toISOString()}).eq("id",m.id);
@@ -437,9 +473,9 @@ function winnerOfBracket(id){const m=bracketMatch(id);if(!m||!m.final)return nul
 function allPoolsFinal(){return state.poolMatches.length===24&&state.poolMatches.every(m=>m.final)}
 
 function rosterForTeam(t){
-  if(!t.registration_id)return [];
+  if(!t.registrationId)return [];
   return state.registrationPlayers
-    .filter(p=>p.registrationId===t.registration_id)
+    .filter(p=>p.registrationId===t.registrationId)
     .sort((a,b)=>a.playerNumber-b.playerNumber);
 }
 function renderTeams(){
@@ -447,16 +483,34 @@ function renderTeams(){
   POOLS.forEach(p=>{
     const card=document.createElement("div");card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
-    state.teams.filter(t=>t.pool===p).forEach(t=>{
-      const row=document.createElement("div");row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
-      const top=document.createElement("div");top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
-      const input=document.createElement("input");input.className="team-input";input.value=t.name;input.disabled=!state.admin;
-      input.addEventListener("change",()=>{t.name=input.value.trim()||`Team ${t.id}`;updateTeam(t);renderAll()});
 
-      const status=document.createElement("div");status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
-      const paidStatus=document.createElement("span");paidStatus.className=`pill ${t.paid?"green":"orange"}`;paidStatus.textContent=t.paid?"Paid":"Unpaid";
-      const checkStatus=document.createElement("span");checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
-      status.append(paidStatus,checkStatus);top.append(input,status);row.appendChild(top);
+    state.teams.filter(t=>t.pool===p).forEach(t=>{
+      const row=document.createElement("div");
+      row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
+
+      const top=document.createElement("div");
+      top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
+
+      const input=document.createElement("input");
+      input.className="team-input";
+      input.value=state.admin?(t.name||""):nameOf(t.id);
+      input.disabled=!state.admin;
+      input.placeholder=`Open Slot ${t.id}`;
+      input.addEventListener("change",async()=>{
+        await updateTeam(t,{name:input.value.trim()});
+      });
+
+      const status=document.createElement("div");
+      status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
+      const paidStatus=document.createElement("span");
+      paidStatus.className=`pill ${t.paid?"green":"orange"}`;
+      paidStatus.textContent=t.paid?"Paid":"Unpaid";
+      const checkStatus=document.createElement("span");
+      checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;
+      checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
+      status.append(paidStatus,checkStatus);
+      top.append(input,status);
+      row.appendChild(top);
 
       const roster=rosterForTeam(t);
       if(roster.length){
@@ -469,10 +523,31 @@ function renderTeams(){
         row.appendChild(list);
       }
 
-      const controls=document.createElement("div");controls.className="admin-only";controls.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
-      const paid=document.createElement("button");paid.className="small-btn";paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";paid.onclick=()=>{t.paid=!t.paid;updateTeam(t);renderAll()};
-      const check=document.createElement("button");check.className="small-btn";check.textContent=t.checkedIn?"Undo Check-In":"Check In";check.onclick=()=>{t.checkedIn=!t.checkedIn;updateTeam(t);renderAll()};
-      controls.append(paid,check);row.appendChild(controls);card.appendChild(row);
+      const controls=document.createElement("div");
+      controls.className="admin-only admin-action-row";
+
+      const paid=document.createElement("button");
+      paid.className="small-btn";
+      paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";
+      paid.onclick=async()=>{paid.disabled=true;await updateTeam(t,{paid:!t.paid})};
+
+      const check=document.createElement("button");
+      check.className="small-btn";
+      check.textContent=t.checkedIn?"Undo Check-In":"Check In";
+      check.onclick=async()=>{check.disabled=true;await updateTeam(t,{checkedIn:!t.checkedIn})};
+
+      const clear=document.createElement("button");
+      clear.className="small-btn clear-name";
+      clear.textContent="Clear Name";
+      clear.onclick=async()=>{
+        if(!confirm(`Clear the displayed name for ${nameOf(t.id)}? This does not delete a registration.`))return;
+        clear.disabled=true;
+        await updateTeam(t,{name:""});
+      };
+
+      controls.append(paid,check,clear);
+      row.appendChild(controls);
+      card.appendChild(row);
     });
     grid.appendChild(card);
   });
@@ -653,16 +728,89 @@ async function confirmSelectedPlayer(){
   $("playerRulesAgreement").checked=false;
   await refreshRegistrations();renderAll();await loadConfirmationFromURL();
 }
+
+async function cancelRegistration(registrationId,teamName){
+  if(!state.admin||!adminCodeSession)return;
+  const ok=confirm(`Cancel "${teamName}"?\n\nThis will free its tournament slot, reset any scores tied to that slot, and promote the oldest waitlisted team if one exists.\n\nThe cancelled registration will remain in admin history.`);
+  if(!ok)return;
+
+  setSync("","Cancelling team…");
+  const {data,error}=await sb.rpc("admin_cancel_registration",{
+    p_code:adminCodeSession,
+    p_registration_id:registrationId
+  });
+  if(error){
+    console.error(error);alert(error.message||"Unable to cancel team.");setSync("error","Cancel failed");return;
+  }
+  await loadAll();
+  alert(`"${teamName}" was cancelled.${data?.promoted_team?`\n${data.promoted_team} was promoted from the waitlist.`:""}`);
+}
+
+async function deleteRegistration(registrationId,teamName){
+  if(!state.admin||!adminCodeSession)return;
+
+  const first=confirm(`DELETE "${teamName}" completely?\n\nThis permanently removes the registration, roster confirmations, and captain contact information. Its tournament slot and affected scores will be reset.`);
+  if(!first)return;
+
+  const typed=prompt(`This cannot be undone.\n\nType DELETE ${teamName} to confirm:`);
+  if(typed!==`DELETE ${teamName}`){
+    alert("Delete cancelled. The confirmation text did not match.");
+    return;
+  }
+
+  setSync("","Deleting team…");
+  const {data,error}=await sb.rpc("admin_delete_registration",{
+    p_code:adminCodeSession,
+    p_registration_id:registrationId
+  });
+  if(error){
+    console.error(error);alert(error.message||"Unable to delete team.");setSync("error","Delete failed");return;
+  }
+  await loadAll();
+  alert(`"${teamName}" was permanently deleted.${data?.promoted_team?`\n${data.promoted_team} was promoted from the waitlist.`:""}`);
+}
 async function renderAdminContacts(){
   const root=$("adminContacts");if(!root)return;
   root.innerHTML="";
-  if(!state.admin||!adminCodeSession){root.innerHTML='<div class="muted">Enter Admin mode to view contacts.</div>';return;}
+  if(!state.admin||!adminCodeSession){
+    root.innerHTML='<div class="muted">Enter Admin mode to view contacts.</div>';
+    return;
+  }
+
   const {data,error}=await sb.rpc("admin_registration_contacts",{p_code:adminCodeSession});
-  if(error){root.innerHTML='<div class="muted">Unable to load contacts.</div>';return;}
-  if(!data.length){root.innerHTML='<div class="muted">No registrations yet.</div>';return;}
+  if(error){
+    console.error(error);
+    root.innerHTML='<div class="muted">Unable to load contacts.</div>';
+    return;
+  }
+  if(!data.length){
+    root.innerHTML='<div class="muted">No registrations yet.</div>';
+    return;
+  }
+
   data.forEach(c=>{
-    const box=document.createElement("div");box.className="admin-contact";
+    const box=document.createElement("div");
+    box.className="admin-contact";
     box.innerHTML=`<b>${c.team_name}</b> <span class="pill">${c.status}</span><br>${c.captain_name}<br><a href="tel:${c.captain_phone}">${c.captain_phone}</a> • <a href="mailto:${c.captain_email}">${c.captain_email}</a>`;
+
+    const actions=document.createElement("div");
+    actions.className="admin-action-row";
+
+    if(c.status!=="cancelled"){
+      const cancelBtn=document.createElement("button");
+      cancelBtn.className="small-btn cancel-team";
+      cancelBtn.textContent="Cancel Team";
+      cancelBtn.onclick=()=>cancelRegistration(c.registration_id,c.team_name);
+      actions.appendChild(cancelBtn);
+    }
+
+    const deleteBtn=document.createElement("button");
+    deleteBtn.className="small-btn delete-team";
+    deleteBtn.textContent="Delete Team";
+    deleteBtn.onclick=()=>deleteRegistration(c.registration_id,c.team_name);
+    actions.appendChild(deleteBtn);
+
+    box.appendChild(actions);
     root.appendChild(box);
   });
 }
@@ -672,8 +820,43 @@ function renderAll(){
   renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderAdminContacts();refreshScoreOverlay();
 }
 function scoreMatch(){return !activeScore?null:(activeScore.type==="pool"?state.poolMatches.find(m=>m.id===activeScore.id):state.bracketMatches.find(m=>m.id===activeScore.id))}
-function openScore(type,id){activeScore={type,id};undoStack=[];swapped=false;$("scoreOverlay").classList.add("open");refreshScoreOverlay()}
-function closeScore(){$("scoreOverlay").classList.remove("open");activeScore=null}
+async function openScore(type,id){
+  activeScore={type,id};
+  undoStack=[];
+  swapped=false;
+
+  const overlay=$("scoreOverlay");
+  overlay.classList.add("open");
+  document.body.classList.add("score-open");
+  refreshScoreOverlay();
+
+  // A Keep Score tap is a user gesture, so request native fullscreen immediately
+  // where the browser supports it. The fixed overlay above is the fallback.
+  try{
+    if(!document.fullscreenElement && overlay.requestFullscreen){
+      await overlay.requestFullscreen({navigationUI:"hide"});
+    }else if(!document.fullscreenElement && document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen({navigationUI:"hide"});
+    }
+  }catch(e){
+    // iPhone Safari may not allow arbitrary element fullscreen.
+    // The 100dvh fixed overlay still fills the app viewport.
+  }
+
+  try{
+    if(screen.orientation && screen.orientation.lock){
+      await screen.orientation.lock("landscape");
+    }
+  }catch(e){}
+}
+async function closeScore(){
+  $("scoreOverlay").classList.remove("open");
+  document.body.classList.remove("score-open");
+  activeScore=null;
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+  }catch(e){}
+}
 function snapshot(){const m=scoreMatch();if(m)undoStack.push(JSON.stringify(m));if(undoStack.length>30)undoStack.shift()}
 async function restoreLast(){if(!activeScore||!undoStack.length)return;const restored=JSON.parse(undoStack.pop()),arr=activeScore.type==="pool"?state.poolMatches:state.bracketMatches,idx=arr.findIndex(m=>m.id===activeScore.id);arr[idx]=restored;renderAll();activeScore.type==="pool"?await updatePool(restored):await updateBracket(restored)}
 function currentScores(m){return m.type==="pool"?[m.scoreA,m.scoreB]:[m.currentA||0,m.currentB||0]}
@@ -692,7 +875,41 @@ function refreshScoreOverlay(){
   $("nameA").textContent=names[left];$("nameB").textContent=names[right];$("scoreA").textContent=scores[left];$("scoreB").textContent=scores[right];$("setWinsA").textContent=`${left===0?wins.a:wins.b} set${(left===0?wins.a:wins.b)===1?"":"s"}`;$("setWinsB").textContent=`${right===0?wins.a:wins.b} set${(right===0?wins.a:wins.b)===1?"":"s"}`;$("scoreTitle").textContent=m.type==="pool"?`Pool ${m.pool} • ${m.id}`:`${m.round} • ${m.id}`;$("scoreSubtitle").textContent=`Court ${m.court} • ${m.time}`;$("sideA").classList.toggle("locked-side",m.locked);$("sideB").classList.toggle("locked-side",m.locked);$("unlockMatchBtn").classList.toggle("hidden",!state.admin||!m.locked);$("setHistory").innerHTML="";if(m.type==="bracket")m.sets.forEach((s,i)=>{const p=document.createElement("span");p.className="pill";p.textContent=`S${i+1}: ${s.a}-${s.b}`;$("setHistory").appendChild(p)})
 }
 async function resetDemo(){
-  alert("Tournament reset is disabled in the finalized build to protect live registrations and scores.");
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  const first=confirm(
+    "RESET THE ENTIRE TOURNAMENT?\n\n"+
+    "This will permanently delete all registrations and captain contacts, clear all team names, mark every team unpaid/not checked in, and erase every pool/bracket score."
+  );
+  if(!first)return;
+
+  const typed=prompt('Type RESET ONE WAY exactly to continue:');
+  if(typed!=="RESET ONE WAY"){
+    alert("Reset cancelled.");
+    return;
+  }
+
+  setSync("","Resetting tournament…");
+  const {error}=await sb.rpc("admin_reset_tournament",{
+    p_code:adminCodeSession,
+    p_confirmation:typed
+  });
+
+  if(error){
+    console.error(error);
+    alert(error.message||"Tournament reset failed.");
+    setSync("error","Reset failed");
+    return;
+  }
+
+  history.replaceState(null,"",location.pathname);
+  activeConfirmationToken="";
+  await loadAll();
+  showView("home");
+  alert("Tournament data has been reset.");
 }
 
 document.querySelectorAll("#nav [data-view]").forEach(btn=>btn.onclick=()=>showView(btn.dataset.view));
@@ -703,11 +920,28 @@ $("submitAdmin").onclick=async()=>{const raw=$("adminPin").value;const entered=a
 $("resetTeamsBtn").onclick=resetDemo;
 $("submitRegistration").onclick=submitTeamRegistration;
 $("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
-$("fullscreenBtn").onclick=async()=>{try{if(!document.fullscreenElement)await $("scoreOverlay").requestFullscreen();else await document.exitFullscreen()}catch(e){}};
+$("fullscreenBtn").onclick=async()=>{
+  try{
+    if(!document.fullscreenElement){
+      const overlay=$("scoreOverlay");
+      if(overlay.requestFullscreen) await overlay.requestFullscreen({navigationUI:"hide"});
+      else if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({navigationUI:"hide"});
+    }else{
+      await document.exitFullscreen();
+    }
+  }catch(e){}
+};
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
 $("sideA").onclick=e=>{if(e.target.id!=="minusA")increment(swapped?"B":"A",1)};$("sideB").onclick=e=>{if(e.target.id!=="minusB")increment(swapped?"A":"B",1)};
 $("minusA").onclick=e=>{e.stopPropagation();increment(swapped?"B":"A",-1)};$("minusB").onclick=e=>{e.stopPropagation();increment(swapped?"A":"B",-1)};
 $("cancelConfirm").onclick=()=>$("confirmModal").classList.remove("open");$("submitConfirm").onclick=confirmSet;
+
+
+document.addEventListener("fullscreenchange",()=>{
+  if(activeScore && $("scoreOverlay").classList.contains("open")){
+    document.body.classList.add("score-open");
+  }
+});
 
 loadAll().then(subscribeRealtime);
 })();
