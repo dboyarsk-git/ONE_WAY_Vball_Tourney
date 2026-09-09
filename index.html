@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2eee5">
+<meta name="author" content="Dashia Boyarskiy">
 <title>ONE WAY Grass 4s</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -58,6 +59,40 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 .set-history{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px} .set-history .pill{background:#2a2f33;color:white} .hidden{display:none!important}
 @media(max-width:900px){.grid.cards{grid-template-columns:repeat(2,1fr)}.team-grid,.standings-grid{grid-template-columns:1fr}.bracket-grid{grid-template-columns:1fr}.oneway{font-size:3rem}.conference{font-size:2.35rem}.nav .admin{margin-left:0}}
 @media(max-width:650px){.shell{padding:12px}.hero{padding:22px 18px;min-height:190px}.grid.cards{grid-template-columns:1fr 1fr}.panel{padding:15px}.score-top{padding-top:max(10px,env(safe-area-inset-top))}.score-bottom{padding-bottom:max(10px,env(safe-area-inset-bottom))}}
+
+.rules-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.rule-card{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}
+.rule-card h3{margin:0 0 10px;font-size:1.05rem}
+.rule-list{margin:0;padding-left:20px;line-height:1.65}
+.rule-list li+li{margin-top:4px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-field{display:grid;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#687074}
+.form-field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff}
+.register-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+.roster-list{display:grid;gap:6px;margin-top:10px}
+.roster-line{display:flex;justify-content:space-between;gap:10px;padding:7px 9px;background:#f7f4ee;border-radius:10px}
+.reg-team{border-top:1px solid #ece8e1;padding:12px 0}
+.reg-team:first-child{border-top:0}
+.confirm-box{background:#eef7f1;border:1px solid #cfe5d7;border-radius:16px;padding:14px}
+.confirm-link{display:flex;gap:8px;align-items:center;margin-top:10px}
+.confirm-link input{flex:1;min-width:0}
+.agree-row{display:flex;gap:9px;align-items:flex-start;line-height:1.45}
+.agree-row input{margin-top:3px}
+.progressbar{height:10px;background:#ebe6de;border-radius:999px;overflow:hidden;margin-top:8px}
+.progressbar>span{display:block;height:100%;background:var(--orange);border-radius:999px}
+.player-confirm-grid{display:grid;gap:8px;margin:12px 0}
+.player-choice{display:flex;gap:9px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;background:white}
+.public-status{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.copyright-box{margin-top:18px;padding:12px 14px;border-radius:14px;background:rgba(31,36,39,.06);font-size:.78rem;line-height:1.5;color:#5d6468}
+.admin-contacts{display:grid;gap:8px}
+.admin-contact{padding:10px;border-radius:12px;background:#f7f4ee}
+@media(max-width:900px){
+  .rules-grid,.form-grid,.register-layout{grid-template-columns:1fr}
+  .form-field.full{grid-column:auto}
+}
+
 </style>
 </head>
 <body>
@@ -71,24 +106,159 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 </section>
 
 <nav class="nav" id="nav">
-<button data-view="home" class="active">Home</button><button data-view="teams">Teams</button><button data-view="schedule">Schedule</button><button data-view="standings">Standings</button><button data-view="bracket">Bracket</button><button class="admin" id="adminBtn">Admin</button>
+<button data-view="home" class="active">Home</button><button data-view="register">Register</button><button data-view="teams">Teams</button><button data-view="schedule">Schedule</button><button data-view="standings">Standings</button><button data-view="bracket">Bracket</button><button class="admin" id="adminBtn">Admin</button>
 </nav>
 
 <main>
 <section id="view-home" class="view">
 <div class="grid cards">
-<div class="card"><div class="label">Teams</div><div class="metric">16</div><div class="muted">4 pools of 4</div></div>
-<div class="card"><div class="label">Courts</div><div class="metric">4</div><div class="muted">One pool per court</div></div>
-<div class="card"><div class="label">Pool games</div><div class="metric">24</div><div class="muted">3 guaranteed per team</div></div>
-<div class="card"><div class="label">Advance</div><div class="metric">8</div><div class="muted">Top 2 per pool</div></div>
+<div class="card"><div class="label">Team cap</div><div class="metric">16</div><div class="muted">$15/player • $60/team</div></div>
+<div class="card"><div class="label">Courts</div><div class="metric">4</div><div class="muted">4 pools of 4</div></div>
+<div class="card"><div class="label">Pool games</div><div class="metric">3</div><div class="muted">Guaranteed per team</div></div>
+<div class="card"><div class="label">Advance</div><div class="metric">8</div><div class="muted">Top 2 from each pool</div></div>
 </div>
-<div class="panel"><div class="section-title"><h2>Tournament day</h2><span class="pill orange">ONE WAY Conference</span></div>
-<div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-<div class="card"><div class="label">Check-in</div><div class="metric">8:00</div><div class="muted">AM</div></div>
-<div class="card"><div class="label">Captains meeting</div><div class="metric">8:45</div><div class="muted">AM</div></div>
-<div class="card"><div class="label">Pool play</div><div class="metric">9:00</div><div class="muted">AM</div></div>
-</div></div>
-<div class="panel"><div class="section-title"><h2>Format</h2></div><div class="callout"><b>Pool play:</b> one set to 25, hard cap at 25. <b>Bracket:</b> best 2 of 3; sets 1 & 2 to 21, set 3 to 15. Completed sets and matches lock automatically.</div></div>
+
+<div class="panel">
+<div class="section-title"><h2>Everything You Need to Know</h2><span class="pill orange">ONE WAY Conference</span></div>
+<div class="rules-grid">
+
+<div class="rule-card">
+<h3>📍 Location & Schedule</h3>
+<ul class="rule-list">
+<li><b>Location:</b> Church of New Hope</li>
+<li><b>Check-in:</b> 8:00 AM</li>
+<li><b>Captains Meeting:</b> 8:45 AM</li>
+<li><b>Pool Play:</b> 9:00 AM</li>
+<li>Teams more than <b>10 minutes late</b> for a scheduled match forfeit that match.</li>
+</ul>
+</div>
+
+<div class="rule-card">
+<h3>Registration & Tournament Format</h3>
+<ul class="rule-list">
+<li>Registration is capped at <b>16 teams</b>.</li>
+<li><b>$15 per player / $60 per team.</b></li>
+<li>4 players per team, 4 pools of 4, 4 courts.</li>
+<li>Each team receives <b>3 pool-play matches</b>.</li>
+<li>The <b>top 2 teams from each pool</b> advance to the 8-team bracket.</li>
+<li>All 4 players must personally confirm their roster spot and agree to the rules before the team becomes fully registered.</li>
+</ul>
+</div>
+
+<div class="rule-card">
+<h3>⚠️ Non-Negotiables</h3>
+<ul class="rule-list">
+<li>Modest shorts.</li>
+<li>Shirts must fully cover the stomach, including when arms are raised.</li>
+<li>Shirts must remain on at all times.</li>
+<li>No sleeveless shirts.</li>
+<li>No alcohol, smoking, vaping, or drugs.</li>
+<li>No cursing or inappropriate language.</li>
+<li><b>Violations WILL result in disqualification.</b></li>
+</ul>
+</div>
+
+<div class="rule-card">
+<h3>Conduct & Sportsmanship</h3>
+<ul class="rule-list">
+<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
+<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
+<li>Disrespectful comments toward women or other players will not be tolerated.</li>
+<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
+</ul>
+</div>
+
+<div class="rule-card">
+<h3>Scoring Format</h3>
+<ul class="rule-list">
+<li><b>Pool Play:</b> 1 set to 25.</li>
+<li><b>25-point hard cap:</b> first team to 25 wins.</li>
+<li><b>Bracket Play:</b> best 2 out of 3 sets.</li>
+<li>Sets 1 & 2 are played to <b>21</b>.</li>
+<li>Set 3 is played to <b>15</b>.</li>
+<li>Completed sets and matches lock automatically.</li>
+</ul>
+</div>
+
+<div class="rule-card">
+<h3>Game Rules</h3>
+<ul class="rule-list">
+<li>4 players on the court.</li>
+<li>Maximum of 3 contacts per side.</li>
+<li>A block does <b>not</b> count as one of the 3 contacts.</li>
+<li>No catches, carries, lifts, or throws.</li>
+<li>No open-hand tips/dinks; roll shots and knuckles are allowed.</li>
+<li>The ball may be played off the net.</li>
+<li>No interfering net contact or unsafe crossing under the net.</li>
+<li>Overhand and underhand serves are allowed.</li>
+<li>No blocking or attacking a serve above the net.</li>
+<li>If a call cannot be clearly determined, the point is replayed.</li>
+</ul>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="view-register" class="view hidden">
+<div class="panel">
+<div class="section-title">
+<div><h2>Register a Team</h2><div class="muted">Captain submits the roster. Every player must personally confirm before the team becomes fully registered.</div></div>
+<span class="pill orange" id="registrationCount">Loading…</span>
+</div>
+
+<div class="register-layout">
+<div class="card">
+<h3 style="margin-top:0">Captain Registration</h3>
+<div class="form-grid">
+<div class="form-field full"><label>Team Name</label><input id="regTeamName" maxlength="50" placeholder="Team name"></div>
+<div class="form-field"><label>Captain Name</label><input id="regCaptainName" maxlength="80" placeholder="Captain full name"></div>
+<div class="form-field"><label>Captain Phone</label><input id="regCaptainPhone" type="tel" maxlength="30" placeholder="Phone number"></div>
+<div class="form-field full"><label>Captain Email</label><input id="regCaptainEmail" type="email" maxlength="120" placeholder="Email"></div>
+
+<div class="form-field"><label>Player 1</label><input id="regPlayer1" maxlength="80" placeholder="Full name"></div>
+<div class="form-field"><label>Player 2</label><input id="regPlayer2" maxlength="80" placeholder="Full name"></div>
+<div class="form-field"><label>Player 3</label><input id="regPlayer3" maxlength="80" placeholder="Full name"></div>
+<div class="form-field"><label>Player 4</label><input id="regPlayer4" maxlength="80" placeholder="Full name"></div>
+
+<div class="form-field full">
+<label class="agree-row">
+<input type="checkbox" id="regAgreement">
+<span>I understand that each of the four players must personally confirm their spot and agree to all ONE WAY Grass 4s tournament rules before the team is fully registered.</span>
+</label>
+</div>
+<div class="form-field full"><button class="primary" id="submitRegistration">Submit Team Registration</button></div>
+</div>
+<div id="registrationResult" class="hidden" style="margin-top:14px"></div>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">Registration Status</h3>
+<div class="muted">The first 16 submitted teams receive a reserved spot while player confirmations are completed. Additional teams are placed on the waitlist.</div>
+<div class="progressbar"><span id="registrationProgress" style="width:0%"></span></div>
+<div id="registrationPublicList" style="margin-top:12px"></div>
+</div>
+</div>
+</div>
+
+<div class="panel hidden" id="playerConfirmationPanel">
+<div class="section-title"><div><h2>Confirm Your Team</h2><div class="muted">Select your name and personally agree to the rules.</div></div></div>
+<div class="card">
+<h3 id="confirmTeamName" style="margin-top:0"></h3>
+<div id="confirmPlayers" class="player-confirm-grid"></div>
+<label class="agree-row">
+<input type="checkbox" id="playerRulesAgreement">
+<span>I confirm that I am participating on this team and I have read and agree to the ONE WAY Grass 4s tournament rules, conduct requirements, and event policies.</span>
+</label>
+<button class="primary" id="confirmPlayerBtn" style="margin-top:14px">Confirm My Spot</button>
+<div id="playerConfirmMessage" style="margin-top:12px"></div>
+</div>
+</div>
+
+<div class="panel admin-only">
+<div class="section-title"><div><h2>Captain Contacts</h2><div class="muted">Admin only. Contact information is never shown publicly.</div></div></div>
+<div id="adminContacts" class="admin-contacts"></div>
+</div>
 </section>
 
 <section id="view-teams" class="view hidden"><div class="panel">
@@ -99,7 +269,14 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 <section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted">Tiebreak order: wins → point differential → points for → original pool slot.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
-<footer>ONE WAY Grass 4s • Church of New Hope • John 14:6</footer>
+<footer>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6</div>
+<div class="copyright-box">
+© 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
+Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
+Church, conference, ministry, and third-party names, logos, trademarks, and brand assets remain the property of their respective owners.
+</div>
+</footer>
 </div>
 
 <div class="score-overlay" id="scoreOverlay">
@@ -124,7 +301,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="4af3d72d78b405924dc814caebbc90403482aa90f3523047888f51645674e406";
 const POOLS=["A","B","C","D"];
-let state={teams:[],poolMatches:[],bracketMatches:[],admin:false,activeView:"home"};
+let state={teams:[],poolMatches:[],bracketMatches:[],registrations:[],registrationPlayers:[],admin:false,activeView:"home"};
+let adminCodeSession="";
+let activeConfirmationToken="";
 let activeScore=null, undoStack=[], swapped=false;
 const $=id=>document.getElementById(id);
 
@@ -134,6 +313,9 @@ function setSync(kind,text){
 function mapTeam(r){return {id:r.id,name:r.name,pool:r.pool,court:r.court,paid:r.paid,checkedIn:r.checked_in}}
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked}}
+function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at}}
+function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
+
 const teamById=id=>state.teams.find(t=>t.id===id);
 const nameOf=id=>id?(teamById(id)?.name||"TBD"):"TBD";
 async function sha256(text){
@@ -144,53 +326,75 @@ async function sha256(text){
 
 async function loadAll(){
   setSync("", "Loading live data…");
-  const [t,p,b]=await Promise.all([
+  const [t,p,b,r,rp]=await Promise.all([
     sb.from("teams").select("*").order("id"),
     sb.from("pool_matches").select("*").order("round").order("court"),
-    sb.from("bracket_matches").select("*")
+    sb.from("bracket_matches").select("*"),
+    sb.from("team_registrations").select("id,team_name,status,reserved_slot,created_at,confirmed_at").order("created_at"),
+    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number")
   ]);
-  if(t.error||p.error||b.error){
-    console.error(t.error||p.error||b.error);
-    setSync("error","Database setup needed");
+  if(t.error||p.error||b.error||r.error||rp.error){
+    console.error(t.error||p.error||b.error||r.error||rp.error);
+    setSync("error","Database setup/upgrade needed");
     return;
   }
   state.teams=t.data.map(mapTeam);
   state.poolMatches=p.data.map(mapPool);
   const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
   state.bracketMatches=b.data.map(mapBracket).sort((x,y)=>order[x.id]-order[y.id]);
+  state.registrations=r.data.map(mapRegistration);
+  state.registrationPlayers=rp.data.map(mapRegPlayer);
   setSync("live","Live sync connected");
   renderAll();
+  await loadConfirmationFromURL();
 }
-
 function subscribeRealtime(){
   sb.channel("oneway-live")
   .on("postgres_changes",{event:"*",schema:"public",table:"teams"},payload=>{
     if(payload.new?.id){
-      const v=mapTeam(payload.new), i=state.teams.findIndex(x=>x.id===v.id);
-      if(i>=0)state.teams[i]=v; else state.teams.push(v);
-      state.teams.sort((a,b)=>a.id-b.id); renderAll();
+      const v=mapTeam(payload.new),i=state.teams.findIndex(x=>x.id===v.id);
+      if(i>=0)state.teams[i]=v;else state.teams.push(v);
+      state.teams.sort((a,b)=>a.id-b.id);renderAll();
     }
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"pool_matches"},payload=>{
     if(payload.new?.id){
-      const v=mapPool(payload.new), i=state.poolMatches.findIndex(x=>x.id===v.id);
-      if(i>=0)state.poolMatches[i]=v; else state.poolMatches.push(v);
-      state.poolMatches.sort((a,b)=>a.round-b.round||a.court-b.court); renderAll();
+      const v=mapPool(payload.new),i=state.poolMatches.findIndex(x=>x.id===v.id);
+      if(i>=0)state.poolMatches[i]=v;else state.poolMatches.push(v);
+      state.poolMatches.sort((a,b)=>a.round-b.round||a.court-b.court);renderAll();
     }
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"bracket_matches"},payload=>{
     if(payload.new?.id){
-      const v=mapBracket(payload.new), i=state.bracketMatches.findIndex(x=>x.id===v.id);
-      if(i>=0)state.bracketMatches[i]=v; else state.bracketMatches.push(v);
+      const v=mapBracket(payload.new),i=state.bracketMatches.findIndex(x=>x.id===v.id);
+      if(i>=0)state.bracketMatches[i]=v;else state.bracketMatches.push(v);
       renderAll();
     }
   })
-  .subscribe(status=>{ if(status==="SUBSCRIBED") setSync("live","Live sync connected"); });
+  .on("postgres_changes",{event:"*",schema:"public",table:"team_registrations"},async()=>{await refreshRegistrations();renderAll();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},async()=>{await refreshRegistrations();renderAll();if(activeConfirmationToken)await loadConfirmationFromURL();})
+  .subscribe(status=>{if(status==="SUBSCRIBED")setSync("live","Live sync connected")});
 }
 
+async function refreshRegistrations(){
+  const [r,rp]=await Promise.all([
+    sb.from("team_registrations").select("id,team_name,status,reserved_slot,created_at,confirmed_at").order("created_at"),
+    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number")
+  ]);
+  if(!r.error)state.registrations=r.data.map(mapRegistration);
+  if(!rp.error)state.registrationPlayers=rp.data.map(mapRegPlayer);
+}
 async function updateTeam(t){
-  const {error}=await sb.from("teams").update({name:t.name,paid:t.paid,checked_in:t.checkedIn,updated_at:new Date().toISOString()}).eq("id",t.id);
-  if(error){console.error(error);setSync("error","Sync error");} else setSync("live","Live sync connected");
+  if(!state.admin||!adminCodeSession){alert("Admin access required.");return;}
+  const {error}=await sb.rpc("admin_update_team",{
+    p_code:adminCodeSession,
+    p_id:t.id,
+    p_name:t.name,
+    p_paid:t.paid,
+    p_checked_in:t.checkedIn
+  });
+  if(error){console.error(error);setSync("error","Admin update failed");await loadAll();}
+  else setSync("live","Live sync connected");
 }
 async function updatePool(m){
   const {error}=await sb.from("pool_matches").update({score_a:m.scoreA,score_b:m.scoreB,final:m.final,locked:m.locked,updated_at:new Date().toISOString()}).eq("id",m.id);
@@ -208,7 +412,7 @@ function showView(view){
   document.querySelectorAll("#nav [data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   renderAll();
 }
-function setAdmin(on){state.admin=on;document.body.classList.toggle("admin-mode",on);$("adminBtn").textContent=on?"Exit Admin":"Admin";renderAll();}
+function setAdmin(on){state.admin=on;if(!on)adminCodeSession="";document.body.classList.toggle("admin-mode",on);$("adminBtn").textContent=on?"Exit Admin":"Admin";renderAll();}
 
 function poolStandings(poolLetter){
   const ids=state.teams.filter(t=>t.pool===poolLetter).map(t=>t.id);
@@ -232,53 +436,43 @@ function bracketSetWins(m){let a=0,b=0;(m.sets||[]).forEach(s=>{if(s.a>s.b)a++;e
 function winnerOfBracket(id){const m=bracketMatch(id);if(!m||!m.final)return null;const [a,b]=bracketTeamIds(m),w=bracketSetWins(m);return w.a>w.b?a:b}
 function allPoolsFinal(){return state.poolMatches.length===24&&state.poolMatches.every(m=>m.final)}
 
+function rosterForTeam(t){
+  if(!t.registration_id)return [];
+  return state.registrationPlayers
+    .filter(p=>p.registrationId===t.registration_id)
+    .sort((a,b)=>a.playerNumber-b.playerNumber);
+}
 function renderTeams(){
   const grid=$("teamGrid");grid.innerHTML="";
   POOLS.forEach(p=>{
     const card=document.createElement("div");card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
     state.teams.filter(t=>t.pool===p).forEach(t=>{
-      const row=document.createElement("div");
-      row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
+      const row=document.createElement("div");row.style.cssText="border-top:1px solid #ece8e1;padding:12px 0";
+      const top=document.createElement("div");top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
+      const input=document.createElement("input");input.className="team-input";input.value=t.name;input.disabled=!state.admin;
+      input.addEventListener("change",()=>{t.name=input.value.trim()||`Team ${t.id}`;updateTeam(t);renderAll()});
 
-      const top=document.createElement("div");
-      top.style.cssText="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center";
+      const status=document.createElement("div");status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
+      const paidStatus=document.createElement("span");paidStatus.className=`pill ${t.paid?"green":"orange"}`;paidStatus.textContent=t.paid?"Paid":"Unpaid";
+      const checkStatus=document.createElement("span");checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
+      status.append(paidStatus,checkStatus);top.append(input,status);row.appendChild(top);
 
-      const input=document.createElement("input");
-      input.className="team-input";
-      input.value=t.name;
-      input.disabled=!state.admin;
-      input.addEventListener("change",()=>{
-        t.name=input.value.trim()||`Team ${t.id}`;
-        updateTeam(t);renderAll();
-      });
+      const roster=rosterForTeam(t);
+      if(roster.length){
+        const list=document.createElement("div");list.className="roster-list";
+        roster.forEach(pl=>{
+          const line=document.createElement("div");line.className="roster-line";
+          line.innerHTML=`<span>${pl.fullName}</span><span class="pill ${pl.confirmed?"green":"blue"}">${pl.confirmed?"Confirmed":"Pending"}</span>`;
+          list.appendChild(line);
+        });
+        row.appendChild(list);
+      }
 
-      const status=document.createElement("div");
-      status.style.cssText="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end";
-      const paidStatus=document.createElement("span");
-      paidStatus.className=`pill ${t.paid?"green":"orange"}`;
-      paidStatus.textContent=t.paid?"Paid":"Unpaid";
-      const checkStatus=document.createElement("span");
-      checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;
-      checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
-      status.append(paidStatus,checkStatus);
-      top.append(input,status);
-
-      const controls=document.createElement("div");
-      controls.className="admin-only";
-      controls.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
-      const paid=document.createElement("button");
-      paid.className="small-btn";
-      paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";
-      paid.onclick=()=>{t.paid=!t.paid;updateTeam(t);renderAll()};
-      const check=document.createElement("button");
-      check.className="small-btn";
-      check.textContent=t.checkedIn?"Undo Check-In":"Check In";
-      check.onclick=()=>{t.checkedIn=!t.checkedIn;updateTeam(t);renderAll()};
-      controls.append(paid,check);
-
-      row.append(top,controls);
-      card.appendChild(row);
+      const controls=document.createElement("div");controls.className="admin-only";controls.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
+      const paid=document.createElement("button");paid.className="small-btn";paid.textContent=t.paid?"Mark Unpaid":"Mark Paid";paid.onclick=()=>{t.paid=!t.paid;updateTeam(t);renderAll()};
+      const check=document.createElement("button");check.className="small-btn";check.textContent=t.checkedIn?"Undo Check-In":"Check In";check.onclick=()=>{t.checkedIn=!t.checkedIn;updateTeam(t);renderAll()};
+      controls.append(paid,check);row.appendChild(controls);card.appendChild(row);
     });
     grid.appendChild(card);
   });
@@ -339,8 +533,144 @@ function renderBracket(){
     });root.appendChild(col);
   });
 }
-function renderAll(){document.body.classList.toggle("admin-mode",!!state.admin);$("adminBtn").textContent=state.admin?"Exit Admin":"Admin";renderTeams();renderSchedule();renderStandings();renderBracket();refreshScoreOverlay()}
 
+function playersForRegistration(regId){
+  return state.registrationPlayers
+    .filter(p=>p.registrationId===regId)
+    .sort((a,b)=>a.playerNumber-b.playerNumber);
+}
+function renderRegistrations(){
+  const countEl=$("registrationCount");
+  if(!countEl)return;
+  const reserved=state.registrations.filter(r=>["pending","registered"].includes(r.status)&&r.reservedSlot).length;
+  const registered=state.registrations.filter(r=>r.status==="registered").length;
+  countEl.textContent=`${reserved}/16 spots reserved • ${registered} fully registered`;
+  $("registrationProgress").style.width=`${Math.min(100,(reserved/16)*100)}%`;
+
+  const root=$("registrationPublicList");root.innerHTML="";
+  if(!state.registrations.length){root.innerHTML='<div class="muted">No teams have registered yet.</div>';return;}
+
+  state.registrations.forEach((r,index)=>{
+    if(r.status==="cancelled")return;
+    const box=document.createElement("div");box.className="reg-team";
+    const title=document.createElement("div");title.style.cssText="display:flex;justify-content:space-between;gap:10px;align-items:center";
+    const statusClass=r.status==="registered"?"green":r.status==="waitlisted"?"orange":"blue";
+    const statusText=r.status==="registered"?"Registered":r.status==="waitlisted"?"Waitlisted":"Pending Confirmation";
+    title.innerHTML=`<strong>${r.teamName}</strong><span class="pill ${statusClass}">${statusText}</span>`;
+    box.appendChild(title);
+
+    const players=playersForRegistration(r.id);
+    const list=document.createElement("div");list.className="roster-list";
+    players.forEach(pl=>{
+      const line=document.createElement("div");line.className="roster-line";
+      line.innerHTML=`<span>${pl.fullName}</span><span>${pl.confirmed?"✅":"⏳"}</span>`;
+      list.appendChild(line);
+    });
+    box.appendChild(list);
+    root.appendChild(box);
+  });
+}
+async function submitTeamRegistration(){
+  const teamName=$("regTeamName").value.trim();
+  const captainName=$("regCaptainName").value.trim();
+  const captainPhone=$("regCaptainPhone").value.trim();
+  const captainEmail=$("regCaptainEmail").value.trim();
+  const players=[1,2,3,4].map(i=>$(`regPlayer${i}`).value.trim());
+
+  if(!teamName||!captainName||!captainPhone||!captainEmail||players.some(x=>!x)){
+    alert("Please complete every field.");return;
+  }
+  if(!$("regAgreement").checked){alert("Please agree to the registration requirement.");return;}
+
+  const btn=$("submitRegistration");btn.disabled=true;btn.textContent="Submitting…";
+  const {data,error}=await sb.rpc("register_team",{
+    p_team_name:teamName,
+    p_captain_name:captainName,
+    p_captain_phone:captainPhone,
+    p_captain_email:captainEmail,
+    p_players:players
+  });
+  btn.disabled=false;btn.textContent="Submit Team Registration";
+
+  const result=$("registrationResult");result.classList.remove("hidden");
+  if(error){
+    console.error(error);result.className="callout";result.textContent=error.message||"Registration failed.";return;
+  }
+
+  const token=data.confirmation_token;
+  const link=`${location.origin}${location.pathname}?confirm=${token}`;
+  const status=data.status==="waitlisted"?"WAITLISTED":"SPOT RESERVED";
+  result.className="confirm-box";
+  result.innerHTML=`<b>${status}</b><br>Your team was submitted successfully. Share this confirmation link with all four players. Each player must confirm personally before the team becomes fully registered.<div class="confirm-link"><input class="team-input" id="newConfirmationLink" readonly value="${link}"><button class="small-btn" id="copyConfirmationLink">Copy</button></div>`;
+  $("copyConfirmationLink").onclick=async()=>{
+    await navigator.clipboard.writeText(link);
+    $("copyConfirmationLink").textContent="Copied ✓";
+  };
+
+  ["regTeamName","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4"].forEach(id=>$(id).value="");
+  $("regAgreement").checked=false;
+  await refreshRegistrations();renderRegistrations();
+}
+async function loadConfirmationFromURL(){
+  const params=new URLSearchParams(location.search);
+  const token=params.get("confirm");
+  if(!token)return;
+  activeConfirmationToken=token;
+
+  const {data,error}=await sb.rpc("registration_confirmation_view",{p_token:token});
+  if(error||!data){console.error(error);return;}
+
+  showView("register");
+  const panel=$("playerConfirmationPanel");panel.classList.remove("hidden");
+  $("confirmTeamName").textContent=data.team_name;
+  const root=$("confirmPlayers");root.innerHTML="";
+  (data.players||[]).forEach(pl=>{
+    const label=document.createElement("label");label.className="player-choice";
+    if(pl.confirmed){
+      label.innerHTML=`<input type="radio" name="confirmPlayer" value="${pl.id}" disabled><span>${pl.full_name}</span><span class="pill green" style="margin-left:auto">Confirmed ✓</span>`;
+    }else{
+      label.innerHTML=`<input type="radio" name="confirmPlayer" value="${pl.id}"><span>${pl.full_name}</span><span class="pill blue" style="margin-left:auto">Needs Confirmation</span>`;
+    }
+    root.appendChild(label);
+  });
+}
+async function confirmSelectedPlayer(){
+  const selected=document.querySelector('input[name="confirmPlayer"]:checked');
+  if(!selected){alert("Select your name.");return;}
+  if(!$("playerRulesAgreement").checked){alert("You must personally agree to the tournament rules.");return;}
+
+  const btn=$("confirmPlayerBtn");btn.disabled=true;btn.textContent="Confirming…";
+  const {data,error}=await sb.rpc("confirm_registration_player",{
+    p_token:activeConfirmationToken,
+    p_player_id:selected.value
+  });
+  btn.disabled=false;btn.textContent="Confirm My Spot";
+  const msg=$("playerConfirmMessage");
+  if(error){console.error(error);msg.textContent=error.message||"Unable to confirm.";return;}
+  msg.innerHTML=data.status==="registered"
+    ? '<span class="pill green">TEAM FULLY REGISTERED ✓</span>'
+    : `<span class="pill green">Your spot is confirmed ✓</span> ${data.confirmed_count}/4 players confirmed.`;
+  $("playerRulesAgreement").checked=false;
+  await refreshRegistrations();renderAll();await loadConfirmationFromURL();
+}
+async function renderAdminContacts(){
+  const root=$("adminContacts");if(!root)return;
+  root.innerHTML="";
+  if(!state.admin||!adminCodeSession){root.innerHTML='<div class="muted">Enter Admin mode to view contacts.</div>';return;}
+  const {data,error}=await sb.rpc("admin_registration_contacts",{p_code:adminCodeSession});
+  if(error){root.innerHTML='<div class="muted">Unable to load contacts.</div>';return;}
+  if(!data.length){root.innerHTML='<div class="muted">No registrations yet.</div>';return;}
+  data.forEach(c=>{
+    const box=document.createElement("div");box.className="admin-contact";
+    box.innerHTML=`<b>${c.team_name}</b> <span class="pill">${c.status}</span><br>${c.captain_name}<br><a href="tel:${c.captain_phone}">${c.captain_phone}</a> • <a href="mailto:${c.captain_email}">${c.captain_email}</a>`;
+    root.appendChild(box);
+  });
+}
+function renderAll(){
+  document.body.classList.toggle("admin-mode",!!state.admin);
+  $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
+  renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderAdminContacts();refreshScoreOverlay();
+}
 function scoreMatch(){return !activeScore?null:(activeScore.type==="pool"?state.poolMatches.find(m=>m.id===activeScore.id):state.bracketMatches.find(m=>m.id===activeScore.id))}
 function openScore(type,id){activeScore={type,id};undoStack=[];swapped=false;$("scoreOverlay").classList.add("open");refreshScoreOverlay()}
 function closeScore(){$("scoreOverlay").classList.remove("open");activeScore=null}
@@ -362,20 +692,17 @@ function refreshScoreOverlay(){
   $("nameA").textContent=names[left];$("nameB").textContent=names[right];$("scoreA").textContent=scores[left];$("scoreB").textContent=scores[right];$("setWinsA").textContent=`${left===0?wins.a:wins.b} set${(left===0?wins.a:wins.b)===1?"":"s"}`;$("setWinsB").textContent=`${right===0?wins.a:wins.b} set${(right===0?wins.a:wins.b)===1?"":"s"}`;$("scoreTitle").textContent=m.type==="pool"?`Pool ${m.pool} • ${m.id}`:`${m.round} • ${m.id}`;$("scoreSubtitle").textContent=`Court ${m.court} • ${m.time}`;$("sideA").classList.toggle("locked-side",m.locked);$("sideB").classList.toggle("locked-side",m.locked);$("unlockMatchBtn").classList.toggle("hidden",!state.admin||!m.locked);$("setHistory").innerHTML="";if(m.type==="bracket")m.sets.forEach((s,i)=>{const p=document.createElement("span");p.className="pill";p.textContent=`S${i+1}: ${s.a}-${s.b}`;$("setHistory").appendChild(p)})
 }
 async function resetDemo(){
-  if(!state.admin||!confirm("Reset all tournament names, scores and check-ins for EVERY device?"))return;
-  setSync("","Resetting live data…");
-  await Promise.all(state.teams.map(t=>sb.from("teams").update({name:`Team ${t.id}`,paid:false,checked_in:false}).eq("id",t.id)));
-  await Promise.all(state.poolMatches.map(m=>sb.from("pool_matches").update({score_a:0,score_b:0,final:false,locked:false}).eq("id",m.id)));
-  await Promise.all(state.bracketMatches.map(m=>sb.from("bracket_matches").update({sets:[],current_a:0,current_b:0,final:false,locked:false}).eq("id",m.id)));
-  await loadAll();
+  alert("Tournament reset is disabled in the finalized build to protect live registrations and scores.");
 }
 
 document.querySelectorAll("#nav [data-view]").forEach(btn=>btn.onclick=()=>showView(btn.dataset.view));
 $("adminBtn").onclick=()=>{if(state.admin)setAdmin(false);else{$("adminPin").value="";$("adminModal").classList.add("open")}};
 $("cancelAdmin").onclick=()=>$("adminModal").classList.remove("open");
 $("adminPin").addEventListener("keydown",e=>{if(e.key==="Enter")$("submitAdmin").click()});
-$("submitAdmin").onclick=async()=>{const entered=await sha256($("adminPin").value);if(entered===ADMIN_HASH){$("adminModal").classList.remove("open");setAdmin(true)}else alert("Incorrect admin code.")};
-$("resetTeamsBtn").onclick=resetDemo;$("closeScoreBtn").onclick=closeScore;
+$("submitAdmin").onclick=async()=>{const raw=$("adminPin").value;const entered=await sha256(raw);if(entered===ADMIN_HASH){adminCodeSession=raw;$("adminModal").classList.remove("open");setAdmin(true)}else alert("Incorrect admin code.")};
+$("resetTeamsBtn").onclick=resetDemo;
+$("submitRegistration").onclick=submitTeamRegistration;
+$("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{try{if(!document.fullscreenElement)await $("scoreOverlay").requestFullscreen();else await document.exitFullscreen()}catch(e){}};
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
 $("sideA").onclick=e=>{if(e.target.id!=="minusA")increment(swapped?"B":"A",1)};$("sideB").onclick=e=>{if(e.target.id!=="minusB")increment(swapped?"A":"B",1)};

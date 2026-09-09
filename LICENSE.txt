@@ -1,0 +1,25 @@
+ONE WAY GRASS 4S TOURNAMENT PLATFORM
+PROPRIETARY SOFTWARE LICENSE NOTICE
+
+Copyright © 2026 Dashia Boyarskiy. All Rights Reserved.
+
+The original software code, interface design, tournament workflow, scoring system,
+registration workflow, standings logic, bracket logic, documentation, and original
+visual implementation included in this package are proprietary works of Dashia Boyarskiy.
+
+No person, church, ministry, organization, company, or other party may copy, reproduce,
+redistribute, resell, sublicense, publish, deploy, modify for redistribution, or create
+a commercial derivative of this software without prior written permission from
+Dashia Boyarskiy.
+
+A separately purchased or written license may authorize a church, ministry, or other
+organization to deploy and customize one copy of the platform for its own event(s).
+
+EXCLUDED THIRD-PARTY RIGHTS:
+This notice does not claim ownership of third-party names, trademarks, logos, photographs,
+conference branding, church branding, Bible translations, or other materials owned by
+their respective rights holders. "Church of New Hope", "ONE WAY Conference", and any
+associated ministry marks or brand assets remain the property of their respective owners.
+
+This notice is a copyright and licensing statement included with the software. It is not
+a government copyright registration, trademark registration, or legal opinion.
