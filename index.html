@@ -15,6 +15,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>ONE WAY Grass 4s</title>
+<script>
+(function(){
+  try{
+    if(new URLSearchParams(location.search).has("confirm")){
+      document.documentElement.classList.add("confirmation-route");
+    }
+  }catch(e){}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--ink:#1f2427;--charcoal:#30363a;--cream:#f2eee5;--paper:#fbf9f4;--blue:#a8c8e8;--orange:#f05a24;--orange-deep:#d94714;--sage:#b9c3a5;--line:#d9d4ca;--good:#317a55;--bad:#b84035;--shadow:0 18px 50px rgba(31,36,39,.12);--radius:22px}
@@ -1041,6 +1050,111 @@ body.admin-mode #poolBuilderPanel + .panel.admin-only .section-title{
   box-shadow:0 9px 22px rgba(240,90,36,.28);
 }
 
+
+/* FINAL v27 — register-page admin panel containment */
+main,.view,#view-register{width:100%;max-width:100%;min-width:0}
+#view-register{overflow-x:hidden}
+#view-register>.panel,
+#view-register .panel,
+#playerConfirmationPanel,
+#poolBuilderPanel,
+#captainContactsPanel{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin-left:0;
+  margin-right:0;
+  box-sizing:border-box;
+  clear:both;
+}
+#view-register .register-layout,
+#view-register .form-grid,
+#view-register .card,
+#view-register .callout,
+#view-register .pool-builder-grid,
+#view-register .admin-contacts{
+  min-width:0;
+}
+#view-register .section-title{
+  flex-wrap:wrap;
+}
+#view-register .muted,
+#view-register h2,
+#view-register h3,
+#view-register p,
+#view-register span,
+#view-register div,
+#view-register li{
+  overflow-wrap:anywhere;
+}
+body.admin-mode #poolBuilderPanel,
+body.admin-mode #captainContactsPanel{
+  display:block;
+}
+
+
+/* FINAL v28 — confirmation links open as their own page immediately */
+html.confirmation-route body{
+  overflow:hidden!important;
+  background:#fffaf2!important;
+}
+
+html.confirmation-route .hero,
+html.confirmation-route #nav,
+html.confirmation-route footer,
+html.confirmation-route #view-home,
+html.confirmation-route #view-teams,
+html.confirmation-route #view-schedule,
+html.confirmation-route #view-standings,
+html.confirmation-route #view-bracket,
+html.confirmation-route #view-register > .panel:first-child,
+html.confirmation-route #poolBuilderPanel,
+html.confirmation-route #captainContactsPanel{
+  display:none!important;
+}
+
+html.confirmation-route #view-register{
+  display:block!important;
+}
+
+html.confirmation-route #playerConfirmationPanel{
+  display:grid!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483200!important;
+  width:100%!important;
+  min-height:100dvh!important;
+  max-height:100dvh!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+  background:#f6efe5!important;
+  padding:18px!important;
+  border:0!important;
+  border-radius:0!important;
+  margin:0!important;
+  place-items:center!important;
+}
+
+html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
+  width:min(660px,100%)!important;
+  margin:auto!important;
+}
+
+@media(max-width:650px){
+  html.confirmation-route #playerConfirmationPanel{
+    display:block!important;
+    padding:0!important;
+    background:#fffaf2!important;
+  }
+
+  html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
+    width:100%!important;
+    min-height:100dvh!important;
+    padding:20px 16px 28px!important;
+    box-sizing:border-box!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1255,7 +1369,7 @@ body.admin-mode #poolBuilderPanel + .panel.admin-only .section-title{
 
     <div class="card">
       <div class="muted">Team</div>
-      <h3 id="confirmTeamName" style="margin:2px 0 14px;font-size:1.4rem"></h3>
+      <h3 id="confirmTeamName" style="margin:2px 0 14px;font-size:1.4rem">Loading team confirmation…</h3>
 
       <div id="confirmPlayers" class="player-confirm-grid"></div>
 
@@ -1295,7 +1409,7 @@ body.admin-mode #poolBuilderPanel + .panel.admin-only .section-title{
   <div id="poolPreviewGrid" class="pool-builder-grid"></div>
 </div>
 
-<div class="panel admin-only">
+<div class="panel admin-only" id="captainContactsPanel">
 <div class="section-title"><div><h2>Captain Contacts</h2><div class="muted">Admin only. Contact information is never shown publicly.</div></div></div>
 <div id="adminContacts" class="admin-contacts"></div>
 </div>
@@ -1310,7 +1424,7 @@ body.admin-mode #poolBuilderPanel + .panel.admin-only .section-title{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v26</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v28</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -3316,12 +3430,19 @@ async function loadConfirmationFromURL(){
 
   if(!token){
     activeConfirmationToken=null;
+    document.documentElement.classList.remove("confirmation-route");
     $("playerConfirmationPanel")?.classList.add("hidden");
     document.body.classList.remove("confirmation-open");
     return;
   }
 
+  document.documentElement.classList.add("confirmation-route");
   activeConfirmationToken=token;
+
+  // Make the confirmation screen visible immediately while data loads.
+  const earlyPanel=$("playerConfirmationPanel");
+  earlyPanel?.classList.remove("hidden");
+  document.body.classList.add("confirmation-open");
 
   const {data,error}=await sb.rpc(
     "registration_confirmation_view",
@@ -3329,8 +3450,6 @@ async function loadConfirmationFromURL(){
   );
 
   const panel=$("playerConfirmationPanel");
-  panel.classList.remove("hidden");
-  document.body.classList.add("confirmation-open");
 
   if(error||!data){
     console.error(error);
@@ -3376,6 +3495,7 @@ function leaveConfirmationPage(){
   history.replaceState({}, "", next);
 
   activeConfirmationToken=null;
+  document.documentElement.classList.remove("confirmation-route");
   $("playerConfirmationPanel").classList.add("hidden");
   $("playerRulesAgreement").checked=false;
   $("playerConfirmMessage").innerHTML="";
@@ -4307,7 +4427,19 @@ if(window.visualViewport){
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
 ensureFallbackCore();
-renderAll();
+
+const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
+if(startupConfirmToken){
+  activeConfirmationToken=startupConfirmToken;
+  document.documentElement.classList.add("confirmation-route");
+  document.body.classList.add("confirmation-open");
+  $("playerConfirmationPanel")?.classList.remove("hidden");
+  $("confirmTeamName").textContent="Loading team confirmation…";
+  $("playerConfirmMessage").innerHTML='<span class="muted">Loading your team and player list…</span>';
+}else{
+  renderAll();
+}
+
 loadAll().finally(subscribeRealtime);
 })();
 </script>
