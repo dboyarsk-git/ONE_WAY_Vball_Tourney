@@ -355,6 +355,103 @@ body.score-open > .shell{
   }
 }
 
+
+/* FINAL v15 — dynamic pools + skill-balanced pool builder */
+.form-field select,
+.pool-builder-select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:11px 12px;
+  background:#fffdfa;
+  color:var(--ink);
+  font:inherit;
+}
+
+.pool-builder-toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.pool-builder-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:14px;
+}
+
+.pool-preview-card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  min-width:0;
+}
+
+.pool-preview-card h3{
+  margin:0 0 10px;
+}
+
+.pool-preview-team{
+  border-top:1px solid #ece8e1;
+  padding:10px 0;
+}
+
+.pool-preview-team:first-of-type{
+  border-top:0;
+}
+
+.pool-preview-name{
+  font-weight:850;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+  margin-bottom:7px;
+}
+
+.pool-preview-controls{
+  display:grid;
+  grid-template-columns:1fr 90px;
+  gap:7px;
+}
+
+.pool-count-good{color:#246644}
+.pool-count-bad{color:#9b332c}
+
+.registration-closed{
+  padding:13px 14px;
+  border-radius:14px;
+  background:#f2e7dc;
+  border:1px solid #e2c9b3;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+.tournament-not-finalized{
+  padding:18px;
+  border-radius:16px;
+  background:#fff6ec;
+  border:1px solid #eed3b9;
+  line-height:1.5;
+}
+
+.private-skill-note{
+  font-size:.82rem;
+  line-height:1.45;
+  color:#626a6e;
+  margin-top:5px;
+}
+
+@media(max-width:1050px){
+  .pool-builder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:650px){
+  .pool-builder-grid{grid-template-columns:1fr}
+  .pool-preview-controls{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -400,9 +497,11 @@ body.score-open > .shell{
 <ul class="rule-list">
 <li>Registration is capped at <b>16 teams</b>.</li>
 <li><b>$15 per player / $60 per team.</b></li>
-<li>4 players per team, 4 pools of 4, 4 courts.</li>
-<li>Each team receives <b>3 pool-play matches</b>.</li>
-<li>The <b>top 2 teams from each pool</b> advance to the 8-team bracket.</li>
+<li>4 players per team with a maximum of 16 teams.</li>
+<li>Pool size is generated from the number of fully registered teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
+<li>4-team pools play each opponent once; 3-team pools play each opponent twice. Every team receives at least <b>3 pool-play matches</b>.</li>
+<li>An <b>8-team championship bracket</b> is created from pool results. With 3 pools, the two best remaining teams advance as wildcards.</li>
+<li>Skill level is used <b>only to balance the initial pools</b>. It never affects standings, advancement, bracket seeding, or the champion.</li>
 <li>All 4 players must personally confirm their roster spot and agree to the rules before the team becomes fully registered.</li>
 </ul>
 </div>
@@ -469,11 +568,22 @@ body.score-open > .shell{
 <span class="pill orange" id="registrationCount">Loading…</span>
 </div>
 
+<div id="registrationClosedBanner" class="registration-closed hidden">Registration is currently closed. Pools have been finalized.</div>
 <div class="register-layout">
 <div class="card">
 <h3 style="margin-top:0">Captain Registration</h3>
 <div class="form-grid">
 <div class="form-field full"><label>Team Name</label><input id="regTeamName" maxlength="50" placeholder="Team name"></div>
+<div class="form-field full">
+<label>Team Level</label>
+<select id="regSkillLevel">
+  <option value="not_sure">Not Sure</option>
+  <option value="competitive">Competitive</option>
+  <option value="intermediate">Intermediate</option>
+  <option value="recreational">Recreational</option>
+</select>
+<div class="private-skill-note">Used only to create balanced starting pools. This does not affect standings or bracket seeding.</div>
+</div>
 <div class="form-field"><label>Captain Name</label><input id="regCaptainName" maxlength="80" placeholder="Captain full name"></div>
 <div class="form-field"><label>Captain Phone</label><input id="regCaptainPhone" type="tel" maxlength="30" placeholder="Phone number"></div>
 <div class="form-field full"><label>Captain Email</label><input id="regCaptainEmail" type="email" maxlength="120" placeholder="Email"></div>
@@ -517,6 +627,28 @@ body.score-open > .shell{
 </div>
 </div>
 
+
+<div class="panel admin-only" id="poolBuilderPanel">
+  <div class="section-title">
+    <div>
+      <h2>Pool Builder</h2>
+      <div class="muted">Skill level balances the starting pools only. Once pools are locked, every ranking decision is based only on match results.</div>
+    </div>
+  </div>
+
+  <div id="poolBuilderStatus" class="callout"></div>
+
+  <div class="pool-builder-toolbar" style="margin-top:12px">
+    <button class="primary" id="previewPoolsBtn">Preview Balanced Pools</button>
+    <button class="small-btn hidden" id="regeneratePoolsBtn">Regenerate Pools</button>
+    <button class="primary hidden" id="lockPoolsBtn">🔒 Lock Pools & Generate Schedule</button>
+    <button class="danger hidden" id="reopenRegistrationBtn">Reopen Registration</button>
+  </div>
+
+  <div id="poolPreviewMessage" class="muted" style="margin-top:10px"></div>
+  <div id="poolPreviewGrid" class="pool-builder-grid"></div>
+</div>
+
 <div class="panel admin-only">
 <div class="section-title"><div><h2>Captain Contacts</h2><div class="muted">Admin only. Contact information is never shown publicly.</div></div></div>
 <div id="adminContacts" class="admin-contacts"></div>
@@ -528,11 +660,11 @@ body.score-open > .shell{
 <div class="team-grid" id="teamGrid"></div></div></section>
 
 <section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">Each pool stays together so teams can quickly find their matches.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
-<section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted">Tiebreak order: wins → point differential → points for → original pool slot.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
-<section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
+<section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted" id="standingsNote">Standings are based only on match results.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
+<section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v14</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v15</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -572,7 +704,19 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
 const POOLS=["A","B","C","D"];
-let state={teams:[],poolMatches:[],bracketMatches:[],registrations:[],registrationPlayers:[],admin:false,activeView:"home"};
+let state={
+  teams:[],
+  poolMatches:[],
+  bracketMatches:[],
+  registrations:[],
+  registrationPlayers:[],
+  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0},
+  poolCandidates:[],
+  poolPreview:[],
+  poolPreviewFormat:null,
+  admin:false,
+  activeView:"home"
+};
 let adminCodeSession="";
 let activeConfirmationToken="";
 let activeScore=null, undoStack=[], swapped=false;
@@ -589,6 +733,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
@@ -801,11 +946,163 @@ async function clearLegacyOneWayCache(){
   }
 }
 
+
+function activePools(){
+  const count=state.settings.poolCount||0;
+  return POOLS.slice(0,count);
+}
+
+function formatForTeamCount(n){
+  const formats={
+    8:{poolCount:2,sizes:[4,4]},
+    9:{poolCount:3,sizes:[3,3,3]},
+    10:{poolCount:3,sizes:[4,3,3]},
+    11:{poolCount:3,sizes:[4,4,3]},
+    12:{poolCount:4,sizes:[3,3,3,3]},
+    13:{poolCount:4,sizes:[4,3,3,3]},
+    14:{poolCount:4,sizes:[4,4,3,3]},
+    15:{poolCount:4,sizes:[4,4,4,3]},
+    16:{poolCount:4,sizes:[4,4,4,4]}
+  };
+  return formats[n]||null;
+}
+
+function skillLabel(level){
+  return ({
+    competitive:"Competitive",
+    intermediate:"Intermediate",
+    recreational:"Recreational",
+    not_sure:"Not Sure"
+  })[level]||"Not Sure";
+}
+
+function shuffled(arr){
+  const out=[...arr];
+  for(let i=out.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [out[i],out[j]]=[out[j],out[i]];
+  }
+  return out;
+}
+
+function generateBalancedPreview(){
+  const candidates=state.poolCandidates.map(x=>({...x}));
+  const format=formatForTeamCount(candidates.length);
+  state.poolPreviewFormat=format;
+
+  if(!format){
+    state.poolPreview=[];
+    renderPoolBuilder();
+    return;
+  }
+
+  const priority=["competitive","intermediate","recreational","not_sure"];
+  const ordered=[];
+  priority.forEach(level=>{
+    ordered.push(...shuffled(candidates.filter(t=>t.skillLevel===level)));
+  });
+
+  const pools=Array.from({length:format.poolCount},()=>[]);
+  const capacities=[...format.sizes];
+
+  // Snake distribution spreads stronger categories across pools.
+  const snake=[];
+  for(let pass=0;pass<10;pass++){
+    const forward=[...Array(format.poolCount).keys()];
+    const backward=[...forward].reverse();
+    snake.push(...(pass%2===0?forward:backward));
+  }
+
+  let cursor=0;
+  ordered.forEach(team=>{
+    let chosen=-1;
+    let guard=0;
+    while(chosen<0 && guard<200){
+      const p=snake[cursor++%snake.length];
+      if(pools[p].length<capacities[p])chosen=p;
+      guard++;
+    }
+    if(chosen<0){
+      chosen=pools.findIndex((pool,i)=>pool.length<capacities[i]);
+    }
+    pools[chosen].push(team);
+  });
+
+  state.poolPreview=[];
+  pools.forEach((pool,poolIndex)=>{
+    pool.forEach((team,order)=>{
+      state.poolPreview.push({
+        ...team,
+        pool:POOLS[poolIndex],
+        previewOrder:order
+      });
+    });
+  });
+
+  renderPoolBuilder();
+}
+
+function previewPoolCounts(){
+  const format=state.poolPreviewFormat;
+  if(!format)return {valid:false,counts:{}};
+  const counts={};
+  POOLS.slice(0,format.poolCount).forEach(p=>counts[p]=0);
+  state.poolPreview.forEach(t=>{if(Object.prototype.hasOwnProperty.call(counts,t.pool))counts[t.pool]++});
+  const valid=format.sizes.every((size,i)=>counts[POOLS[i]]===size) &&
+    state.poolPreview.length===format.sizes.reduce((a,b)=>a+b,0);
+  return {valid,counts};
+}
+
+function resultRankingCompare(a,b){
+  return (b.winPct-a.winPct) ||
+    (b.diffPerGame-a.diffPerGame) ||
+    (b.pfPerGame-a.pfPerGame) ||
+    (a.teamId-b.teamId);
+}
+
+function qualifiedBracketSeeds(){
+  if(!state.settings.poolsFinalized)return [];
+  const pools=activePools();
+  if(!pools.length)return [];
+
+  let qualifiers=[];
+  let wildcardPool=[];
+
+  pools.forEach(p=>{
+    const rows=poolStandings(p);
+    if(state.settings.poolCount===2){
+      qualifiers.push(...rows.slice(0,4));
+    }else{
+      qualifiers.push(...rows.slice(0,2));
+      wildcardPool.push(...rows.slice(2));
+    }
+  });
+
+  if(state.settings.poolCount===3){
+    wildcardPool.sort(resultRankingCompare);
+    qualifiers.push(...wildcardPool.slice(0,2).map(r=>({...r,wildcard:true})));
+  }
+
+  qualifiers.sort(resultRankingCompare);
+  return qualifiers.slice(0,8).map((r,i)=>({...r,bracketSeed:i+1}));
+}
+
 async function loadAll(){
   // Never let a slow live connection leave the schedule empty.
   ensureFallbackCore();
   renderAll();
   setSync("", "Connecting live data…");
+
+  try{
+    const s=await promiseTimeout(
+      sb.from("tournament_settings").select("*").eq("id",1).maybeSingle(),
+      5000,
+      "Tournament settings"
+    );
+    if(!s.error && s.data)state.settings=mapSettings(s.data);
+  }catch(error){
+    console.error("Tournament settings load:",error);
+  }
 
   let coreLoaded=false;
 
@@ -894,16 +1191,19 @@ function subscribeRealtime(){
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"team_registrations"},async()=>{await refreshRegistrations();renderAll();})
   .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},async()=>{await refreshRegistrations();renderAll();if(activeConfirmationToken)await loadConfirmationFromURL();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},async payload=>{if(payload.new)state.settings=mapSettings(payload.new);renderAll();})
   .subscribe(status=>{if(status==="SUBSCRIBED"){setSync("live","Live sync connected");loadAll();}});
 }
 
 async function refreshRegistrations(){
-  const [r,rp]=await Promise.all([
+  const [r,rp,s]=await Promise.all([
     sb.from("team_registrations").select("id,team_name,status,reserved_slot,created_at,confirmed_at").order("created_at"),
-    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number")
+    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number"),
+    sb.from("tournament_settings").select("*").eq("id",1).maybeSingle()
   ]);
-  if(!r.error)state.registrations=r.data.map(mapRegistration);
-  if(!rp.error)state.registrationPlayers=rp.data.map(mapRegPlayer);
+  if(!r.error)state.registrations=(r.data||[]).map(mapRegistration);
+  if(!rp.error)state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
+  if(!s.error&&s.data)state.settings=mapSettings(s.data);
 }
 async function updateTeam(t, changes={}){
   if(!state.admin||!adminCodeSession){alert("Admin access required.");return false;}
@@ -951,26 +1251,88 @@ function showView(view){
 function setAdmin(on){state.admin=on;if(!on)adminCodeSession="";document.body.classList.toggle("admin-mode",on);$("adminBtn").textContent=on?"Exit Admin":"Admin";renderAll();}
 
 function poolStandings(poolLetter){
-  const ids=state.teams.filter(t=>t.pool===poolLetter).map(t=>t.id);
+  const ids=state.teams
+    .filter(t=>t.pool===poolLetter && t.registrationId)
+    .map(t=>t.id);
+
   const rows=ids.map(teamId=>{
     const matches=state.poolMatches.filter(m=>m.final&&(m.teamA===teamId||m.teamB===teamId));
     let w=0,l=0,pf=0,pa=0;
-    matches.forEach(m=>{const a=m.teamA===teamId,fp=a?m.scoreA:m.scoreB,ap=a?m.scoreB:m.scoreA;pf+=fp;pa+=ap;if(fp>ap)w++;else l++;});
-    return {teamId,gp:matches.length,w,l,pf,pa,diff:pf-pa,slot:teamId};
+
+    matches.forEach(m=>{
+      const isA=m.teamA===teamId;
+      const fp=isA?m.scoreA:m.scoreB;
+      const ap=isA?m.scoreB:m.scoreA;
+      pf+=fp;pa+=ap;
+      if(fp>ap)w++;else l++;
+    });
+
+    const gp=matches.length;
+    return {
+      teamId,
+      gp,
+      w,
+      l,
+      pf,
+      pa,
+      diff:pf-pa,
+      winPct:gp?w/gp:0,
+      diffPerGame:gp?(pf-pa)/gp:0,
+      pfPerGame:gp?pf/gp:0
+    };
   });
-  rows.sort((a,b)=>b.w-a.w||b.diff-a.diff||b.pf-a.pf||a.slot-b.slot);
-  rows.forEach((r,i)=>r.seed=i+1);return rows;
+
+  rows.sort(resultRankingCompare);
+  rows.forEach((r,i)=>r.seed=i+1);
+  return rows;
 }
-function bracketKeyMap(){const map={};POOLS.forEach(p=>poolStandings(p).forEach(r=>map[`${p}-${r.seed}`]=r.teamId));return map;}
+
+function bracketKeyMap(){
+  const map={};
+
+  // Dynamic bracket seeds, based ONLY on pool-play results.
+  qualifiedBracketSeeds().forEach(r=>{
+    map[`S-${r.bracketSeed}`]=r.teamId;
+  });
+
+  // Backward compatibility for any older pool-key bracket rows.
+  activePools().forEach(p=>{
+    poolStandings(p).forEach(r=>map[`${p}-${r.seed}`]=r.teamId);
+  });
+
+  return map;
+}
+
 function bracketMatch(id){return state.bracketMatches.find(m=>m.id===id)}
+
 function bracketTeamIds(m){
-  const map=bracketKeyMap();let a=null,b=null;
-  if(m.keyA)a=map[m.keyA]||null;if(m.keyB)b=map[m.keyB]||null;if(m.fromA)a=winnerOfBracket(m.fromA);if(m.fromB)b=winnerOfBracket(m.fromB);
+  const map=bracketKeyMap();
+  let a=null,b=null;
+  if(m.keyA)a=map[m.keyA]||null;
+  if(m.keyB)b=map[m.keyB]||null;
+  if(m.fromA)a=winnerOfBracket(m.fromA);
+  if(m.fromB)b=winnerOfBracket(m.fromB);
   return [a,b];
 }
-function bracketSetWins(m){let a=0,b=0;(m.sets||[]).forEach(s=>{if(s.a>s.b)a++;else b++;});return {a,b}}
-function winnerOfBracket(id){const m=bracketMatch(id);if(!m||!m.final)return null;const [a,b]=bracketTeamIds(m),w=bracketSetWins(m);return w.a>w.b?a:b}
-function allPoolsFinal(){return state.poolMatches.length===24&&state.poolMatches.every(m=>m.final)}
+
+function bracketSetWins(m){
+  let a=0,b=0;
+  (m.sets||[]).forEach(s=>{if(s.a>s.b)a++;else b++;});
+  return {a,b};
+}
+
+function winnerOfBracket(id){
+  const m=bracketMatch(id);
+  if(!m||!m.final)return null;
+  const [a,b]=bracketTeamIds(m),w=bracketSetWins(m);
+  return w.a>w.b?a:b;
+}
+
+function allPoolsFinal(){
+  return state.settings.poolsFinalized &&
+    state.poolMatches.length>0 &&
+    state.poolMatches.every(m=>m.final);
+}
 
 function rosterForTeam(t){
   if(!t.registrationId)return [];
@@ -982,12 +1344,17 @@ function renderTeams(){
   const grid=$("teamGrid");
   grid.innerHTML="";
 
-  POOLS.forEach(p=>{
+  if(!state.settings.poolsFinalized){
+    grid.innerHTML='<div class="tournament-not-finalized" style="grid-column:1/-1"><b>Pools have not been finalized yet.</b><br>Once Admin locks the pools, the official teams, courts, schedule, standings, and bracket will appear here.</div>';
+    return;
+  }
+
+  activePools().forEach(p=>{
     const card=document.createElement("div");
     card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
 
-    state.teams.filter(t=>t.pool===p).forEach(t=>{
+    state.teams.filter(t=>t.pool===p && t.registrationId).forEach(t=>{
       const row=document.createElement("div");
       row.className="team-entry";
 
@@ -1081,8 +1448,15 @@ function renderTeams(){
   });
 }
 function renderSchedule(){
-  const root=$("scheduleGrid");root.innerHTML="";
-  POOLS.forEach(p=>{
+  const root=$("scheduleGrid");
+  root.innerHTML="";
+
+  if(!state.settings.poolsFinalized){
+    root.innerHTML='<div class="tournament-not-finalized" style="grid-column:1/-1"><b>Official schedule not generated yet.</b><br>Admin must lock the pools after registration is ready.</div>';
+    return;
+  }
+
+  activePools().forEach(p=>{
     const card=document.createElement("div");
     card.className="card pool-card";
     card.innerHTML=`<h3><span class="pool-badge">Pool ${p}</span> Court ${POOLS.indexOf(p)+1}</h3>`;
@@ -1111,29 +1485,121 @@ function renderSchedule(){
       row.append(meta,matchup,actions);
       card.appendChild(row);
     });
+
     root.appendChild(card);
   });
 }
 function renderStandings(){
-  const root=$("standingsGrid");root.innerHTML="";
-  POOLS.forEach(p=>{
-    const box=document.createElement("div");box.className="table-wrap";const rows=poolStandings(p),table=document.createElement("table");table.style.minWidth="520px";
-    table.innerHTML=`<thead><tr><th colspan="7">Pool ${p} • Court ${POOLS.indexOf(p)+1}</th></tr><tr><th>#</th><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th><th>Diff</th></tr></thead>`;
-    const tb=document.createElement("tbody");rows.forEach(r=>{const tr=document.createElement("tr");if(r.seed<=2)tr.style.background="#eef8f2";tr.innerHTML=`<td><b>${r.seed}</b></td><td>${nameOf(r.teamId)}${r.seed<=2?' <span class="pill green">Advance</span>':''}</td><td>${r.w}</td><td>${r.l}</td><td>${r.pf}</td><td>${r.pa}</td><td>${r.diff>0?"+":""}${r.diff}</td>`;tb.appendChild(tr)});table.appendChild(tb);box.appendChild(table);root.appendChild(box);
+  const root=$("standingsGrid");
+  root.innerHTML="";
+
+  if(!state.settings.poolsFinalized){
+    root.innerHTML='<div class="tournament-not-finalized" style="grid-column:1/-1">Standings will appear after pools are finalized.</div>';
+    return;
+  }
+
+  const poolCount=state.settings.poolCount;
+  const note=$("standingsNote");
+  if(note){
+    note.textContent=poolCount===4
+      ?"Top 2 from each pool advance. Cross-pool bracket seeds use win % → point differential/game → points/game."
+      :poolCount===3
+        ?"Top 2 from each pool advance plus 2 wildcards. Wildcards and bracket seeds use win % → point differential/game → points/game."
+        :"All 8 teams advance; pool play determines bracket seeds using win % → point differential/game → points/game.";
+  }
+
+  const qualified=allPoolsFinal()?qualifiedBracketSeeds():[];
+  const qualifiedMap=new Map(qualified.map(q=>[q.teamId,q]));
+
+  activePools().forEach(p=>{
+    const box=document.createElement("div");
+    box.className="table-wrap";
+    const rows=poolStandings(p);
+    const table=document.createElement("table");
+    table.style.minWidth="610px";
+    table.innerHTML=`<thead><tr><th colspan="8">Pool ${p} • Court ${POOLS.indexOf(p)+1}</th></tr><tr><th>#</th><th>Team</th><th>GP</th><th>W</th><th>L</th><th>Win %</th><th>Diff/G</th><th>Status</th></tr></thead>`;
+
+    const tb=document.createElement("tbody");
+    rows.forEach(r=>{
+      const tr=document.createElement("tr");
+      const q=qualifiedMap.get(r.teamId);
+      let status="";
+
+      if(poolCount===2){
+        status='<span class="pill green">Advances</span>';
+      }else if(r.seed<=2){
+        status='<span class="pill green">Auto Bid</span>';
+      }else if(q?.wildcard){
+        status='<span class="pill orange">Wildcard</span>';
+      }
+
+      if(status)tr.style.background="#eef8f2";
+
+      tr.innerHTML=`<td><b>${r.seed}</b></td><td>${nameOf(r.teamId)}</td><td>${r.gp}</td><td>${r.w}</td><td>${r.l}</td><td>${(r.winPct*100).toFixed(0)}%</td><td>${r.diffPerGame>=0?"+":""}${r.diffPerGame.toFixed(1)}</td><td>${status}</td>`;
+      tb.appendChild(tr);
+    });
+
+    table.appendChild(tb);
+    box.appendChild(table);
+    root.appendChild(box);
   });
 }
-function bracketStatus(m){if(m.final)return"Final";const[a,b]=bracketTeamIds(m);if(!a||!b)return"Waiting";if(m.id.startsWith("QF")&&!allPoolsFinal())return"Locked";return"Ready"}
+function bracketStatus(m){
+  if(m.final)return"Final";
+  const[a,b]=bracketTeamIds(m);
+  if(!a||!b)return"Waiting";
+  if(m.id.startsWith("QF")&&!allPoolsFinal())return"Locked";
+  return"Ready";
+}
+
 function renderBracket(){
-  const root=$("bracketGrid");root.innerHTML="";
+  const root=$("bracketGrid");
+  root.innerHTML="";
+
+  if(!state.settings.poolsFinalized){
+    root.innerHTML='<div class="tournament-not-finalized" style="grid-column:1/-1">Bracket will be generated after pools are finalized.</div>';
+    return;
+  }
+
+  const note=$("bracketNote");
+  if(note){
+    note.textContent="Skill level is not used here. The 8 bracket seeds are determined only by pool-play results.";
+  }
+
   [{name:"Quarterfinals",ids:["QF1","QF2","QF3","QF4"]},{name:"Semifinals",ids:["SF1","SF2"]},{name:"Championship",ids:["FINAL"]}].forEach(round=>{
-    const col=document.createElement("div");col.className="round";col.innerHTML=`<h3>${round.name}</h3>`;
-    round.ids.forEach(id=>{const m=bracketMatch(id);if(!m)return;const[a,b]=bracketTeamIds(m),w=bracketSetWins(m),win=winnerOfBracket(id),status=bracketStatus(m);
-      const card=document.createElement("div");card.className="match-card"+((status==="Locked"||status==="Waiting")?" locked":"");
+    const col=document.createElement("div");
+    col.className="round";
+    col.innerHTML=`<h3>${round.name}</h3>`;
+
+    round.ids.forEach(id=>{
+      const m=bracketMatch(id);
+      if(!m)return;
+      const[a,b]=bracketTeamIds(m),w=bracketSetWins(m),win=winnerOfBracket(id),status=bracketStatus(m);
+
+      const card=document.createElement("div");
+      card.className="match-card"+((status==="Locked"||status==="Waiting")?" locked":"");
       card.innerHTML=`<div class="match-head"><span>${m.id} • Court ${m.court}</span><span>${m.time}</span></div><div class="match-team ${win===a&&a?"winner":""}"><strong>${nameOf(a)}</strong><span>${w.a}</span></div><div class="match-team ${win===b&&b?"winner":""}"><strong>${nameOf(b)}</strong><span>${w.b}</span></div>`;
-      const foot=document.createElement("div");foot.style.cssText="padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px";
-      const pill=document.createElement("span");pill.className="pill "+(m.final?"green":status==="Ready"?"blue":"");pill.textContent=status;
-      const btn=document.createElement("button");btn.className="score-btn";btn.textContent=m.final?"View":"Keep Score";btn.disabled=status==="Waiting"||status==="Locked";btn.style.opacity=btn.disabled?".45":"1";btn.onclick=()=>openScore("bracket",id);foot.append(pill,btn);card.appendChild(foot);col.appendChild(card);
-    });root.appendChild(col);
+
+      const foot=document.createElement("div");
+      foot.style.cssText="padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px";
+
+      const pill=document.createElement("span");
+      pill.className="pill "+(m.final?"green":status==="Ready"?"blue":"");
+      pill.textContent=status;
+
+      const btn=document.createElement("button");
+      btn.className="score-btn";
+      btn.textContent=m.final?"View":"Keep Score";
+      btn.disabled=status==="Waiting"||status==="Locked";
+      btn.style.opacity=btn.disabled?".45":"1";
+      btn.onclick=()=>openScore("bracket",id);
+
+      foot.append(pill,btn);
+      card.appendChild(foot);
+      col.appendChild(card);
+    });
+
+    root.appendChild(col);
   });
 }
 
@@ -1145,41 +1611,74 @@ function playersForRegistration(regId){
 function renderRegistrations(){
   const countEl=$("registrationCount");
   if(!countEl)return;
+
   const reserved=state.registrations.filter(r=>["pending","registered"].includes(r.status)&&r.reservedSlot).length;
   const registered=state.registrations.filter(r=>r.status==="registered").length;
-  countEl.textContent=`${reserved}/16 spots reserved • ${registered} fully registered`;
+
+  if(state.settings.registrationOpen){
+    countEl.textContent=`${reserved}/16 spots reserved • ${registered} fully registered`;
+  }else{
+    countEl.textContent=`Registration Closed • ${registered} fully registered`;
+  }
+
   $("registrationProgress").style.width=`${Math.min(100,(reserved/16)*100)}%`;
 
-  const root=$("registrationPublicList");root.innerHTML="";
-  if(!state.registrations.length){root.innerHTML='<div class="muted">No teams have registered yet.</div>';return;}
+  const closed=$("registrationClosedBanner");
+  closed.classList.toggle("hidden",state.settings.registrationOpen);
 
-  state.registrations.forEach((r,index)=>{
+  const ids=["regTeamName","regSkillLevel","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4","regAgreement","submitRegistration"];
+  ids.forEach(id=>{
+    const el=$(id);
+    if(el)el.disabled=!state.settings.registrationOpen;
+  });
+
+  const root=$("registrationPublicList");
+  root.innerHTML="";
+
+  if(!state.registrations.length){
+    root.innerHTML='<div class="muted">No teams have registered yet.</div>';
+    return;
+  }
+
+  state.registrations.forEach(r=>{
     if(r.status==="cancelled")return;
-    const box=document.createElement("div");box.className="reg-team";
-    const title=document.createElement("div");title.style.cssText="display:flex;justify-content:space-between;gap:10px;align-items:center";
+
+    const box=document.createElement("div");
+    box.className="reg-team";
+
+    const title=document.createElement("div");
+    title.style.cssText="display:flex;justify-content:space-between;gap:10px;align-items:center";
+
     const statusClass=r.status==="registered"?"green":r.status==="waitlisted"?"orange":"blue";
     const statusText=r.status==="registered"?"Registered":r.status==="waitlisted"?"Waitlisted":"Pending Confirmation";
+
     title.innerHTML=`<strong>${r.teamName}</strong><span class="pill ${statusClass}">${statusText}</span>`;
     box.appendChild(title);
 
     const players=playersForRegistration(r.id);
-    const list=document.createElement("div");list.className="roster-list";
+    const list=document.createElement("div");
+    list.className="roster-list";
+
     players.forEach(pl=>{
-      const line=document.createElement("div");line.className="roster-line";
+      const line=document.createElement("div");
+      line.className="roster-line";
       line.innerHTML=`<span>${pl.fullName}</span><span>${pl.confirmed?"✅":"⏳"}</span>`;
       list.appendChild(line);
     });
+
     box.appendChild(list);
     root.appendChild(box);
   });
 }
 async function submitTeamRegistration(){
   const teamName=$("regTeamName").value.trim();
+  const skillLevel=$("regSkillLevel").value;
   const captainName=$("regCaptainName").value.trim();
   const captainPhone=$("regCaptainPhone").value.trim();
   const captainEmail=$("regCaptainEmail").value.trim();
   const players=[1,2,3,4].map(i=>$(`regPlayer${i}`).value.trim());
 
+  if(!state.settings.registrationOpen){alert("Registration is closed.");return;}
   if(!teamName||!captainName||!captainPhone||!captainEmail||players.some(x=>!x)){
     alert("Please complete every field.");return;
   }
@@ -1188,6 +1687,7 @@ async function submitTeamRegistration(){
   const btn=$("submitRegistration");btn.disabled=true;btn.textContent="Submitting…";
   const {data,error}=await sb.rpc("register_team",{
     p_team_name:teamName,
+    p_skill_level:skillLevel,
     p_captain_name:captainName,
     p_captain_phone:captainPhone,
     p_captain_email:captainEmail,
@@ -1211,6 +1711,7 @@ async function submitTeamRegistration(){
   };
 
   ["regTeamName","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4"].forEach(id=>$(id).value="");
+  $("regSkillLevel").value="not_sure";
   $("regAgreement").checked=false;
   await refreshRegistrations();renderRegistrations();
 }
@@ -1297,6 +1798,250 @@ async function deleteRegistration(registrationId,teamName){
   await loadAll();
   alert(`"${teamName}" was permanently deleted.${data?.promoted_team?`\n${data.promoted_team} was promoted from the waitlist.`:""}`);
 }
+
+async function loadPoolCandidates(){
+  if(!state.admin||!adminCodeSession)return false;
+
+  const {data,error}=await sb.rpc("admin_pool_candidates",{p_code:adminCodeSession});
+  if(error){
+    console.error(error);
+    alert(error.message||"Unable to load registered teams for pool building.");
+    return false;
+  }
+
+  state.poolCandidates=(data||[]).map(r=>({
+    registrationId:r.registration_id,
+    teamName:r.team_name,
+    skillLevel:r.skill_level||"not_sure"
+  }));
+
+  return true;
+}
+
+async function previewBalancedPools(){
+  const ok=await loadPoolCandidates();
+  if(!ok)return;
+  generateBalancedPreview();
+}
+
+async function updatePreviewSkill(team,newLevel){
+  const old=team.skillLevel;
+  team.skillLevel=newLevel;
+
+  const {error}=await sb.rpc("admin_update_skill_level",{
+    p_code:adminCodeSession,
+    p_registration_id:team.registrationId,
+    p_skill_level:newLevel
+  });
+
+  if(error){
+    console.error(error);
+    team.skillLevel=old;
+    alert(error.message||"Unable to update skill level.");
+    renderPoolBuilder();
+    return;
+  }
+
+  const candidate=state.poolCandidates.find(x=>x.registrationId===team.registrationId);
+  if(candidate)candidate.skillLevel=newLevel;
+
+  generateBalancedPreview();
+}
+
+function renderPoolBuilder(){
+  const status=$("poolBuilderStatus");
+  const previewBtn=$("previewPoolsBtn");
+  const regenBtn=$("regeneratePoolsBtn");
+  const lockBtn=$("lockPoolsBtn");
+  const reopenBtn=$("reopenRegistrationBtn");
+  const grid=$("poolPreviewGrid");
+  const msg=$("poolPreviewMessage");
+
+  if(!status||!grid)return;
+
+  const registered=state.registrations.filter(r=>r.status==="registered").length;
+
+  if(state.settings.poolsFinalized){
+    status.innerHTML=`<b>Pools locked.</b> ${state.settings.teamCount} teams are assigned across ${state.settings.poolCount} pools. Registration is closed.`;
+    previewBtn.classList.add("hidden");
+    regenBtn.classList.add("hidden");
+    lockBtn.classList.add("hidden");
+    reopenBtn.classList.remove("hidden");
+    grid.innerHTML="";
+    msg.textContent="Skill ratings are no longer used. From this point forward, only match results determine standings and bracket seeds.";
+    return;
+  }
+
+  reopenBtn.classList.add("hidden");
+  previewBtn.classList.remove("hidden");
+
+  if(!state.settings.registrationOpen){
+    status.innerHTML=`<b>Registration is closed, but pools need to be finalized again.</b> ${registered} fully registered teams are currently eligible.`;
+  }else if(registered<8){
+    status.innerHTML=`<b>${registered} fully registered team${registered===1?"":"s"}.</b> A minimum of 8 is required to generate the tournament.`;
+  }else{
+    const format=formatForTeamCount(registered);
+    status.innerHTML=`<b>${registered} fully registered teams.</b> Current format: ${format.poolCount} pools (${format.sizes.join(" / ")} teams).`;
+  }
+
+  previewBtn.disabled=registered<8||registered>16;
+
+  if(!state.poolPreview.length){
+    regenBtn.classList.add("hidden");
+    lockBtn.classList.add("hidden");
+    grid.innerHTML="";
+    msg.textContent=registered>=8
+      ?"Preview creates balanced pools by spreading Competitive, Intermediate, Recreational, and Not Sure teams. You can adjust them before locking."
+      :"Complete at least 8 team confirmations before finalizing.";
+    return;
+  }
+
+  regenBtn.classList.remove("hidden");
+  lockBtn.classList.remove("hidden");
+
+  const format=state.poolPreviewFormat;
+  const validation=previewPoolCounts();
+
+  msg.innerHTML=validation.valid
+    ? `<span class="pool-count-good"><b>Pool sizes are valid.</b></span> Review them, move teams if desired, then lock the tournament.`
+    : `<span class="pool-count-bad"><b>Pool sizes need adjustment.</b></span> Required: ${format.sizes.map((s,i)=>`Pool ${POOLS[i]} = ${s}`).join(", ")}.`;
+
+  lockBtn.disabled=!validation.valid;
+
+  grid.innerHTML="";
+  POOLS.slice(0,format.poolCount).forEach((poolLetter,poolIndex)=>{
+    const card=document.createElement("div");
+    card.className="pool-preview-card";
+
+    const count=validation.counts[poolLetter]||0;
+    const needed=format.sizes[poolIndex];
+    card.innerHTML=`<h3><span class="pool-badge">Pool ${poolLetter}</span> <span class="${count===needed?"pool-count-good":"pool-count-bad"}">${count}/${needed}</span></h3>`;
+
+    state.poolPreview
+      .filter(t=>t.pool===poolLetter)
+      .forEach(team=>{
+        const row=document.createElement("div");
+        row.className="pool-preview-team";
+
+        const name=document.createElement("div");
+        name.className="pool-preview-name";
+        name.textContent=team.teamName;
+
+        const controls=document.createElement("div");
+        controls.className="pool-preview-controls";
+
+        const skill=document.createElement("select");
+        skill.className="pool-builder-select";
+        ["competitive","intermediate","recreational","not_sure"].forEach(level=>{
+          const op=document.createElement("option");
+          op.value=level;
+          op.textContent=skillLabel(level);
+          op.selected=team.skillLevel===level;
+          skill.appendChild(op);
+        });
+        skill.title="Private team level — used only for initial pool balance";
+        skill.onchange=()=>updatePreviewSkill(team,skill.value);
+
+        const poolSelect=document.createElement("select");
+        poolSelect.className="pool-builder-select";
+        POOLS.slice(0,format.poolCount).forEach(p=>{
+          const op=document.createElement("option");
+          op.value=p;
+          op.textContent=`Pool ${p}`;
+          op.selected=team.pool===p;
+          poolSelect.appendChild(op);
+        });
+        poolSelect.onchange=()=>{
+          team.pool=poolSelect.value;
+          renderPoolBuilder();
+        };
+
+        controls.append(skill,poolSelect);
+        row.append(name,controls);
+        card.appendChild(row);
+      });
+
+    grid.appendChild(card);
+  });
+}
+
+async function lockPoolPreview(){
+  const validation=previewPoolCounts();
+  if(!validation.valid){
+    alert("Fix the pool sizes before locking.");
+    return;
+  }
+
+  const entered=prompt("Re-enter the Admin password to lock pools and generate the official schedule:");
+  if(entered===null)return;
+  if(await sha256(entered)!==ADMIN_HASH){
+    alert("Incorrect Admin password.");
+    return;
+  }
+
+  const yes=confirm(
+    "Lock these pools and close registration?\n\n"+
+    "This will generate the official pool schedule and reset any old pool/bracket results."
+  );
+  if(!yes)return;
+
+  const assignments=state.poolPreview.map((t,i)=>({
+    registration_id:t.registrationId,
+    pool:t.pool,
+    seed_order:i+1
+  }));
+
+  setSync("","Finalizing pools…");
+
+  const {data,error}=await sb.rpc("admin_finalize_pools",{
+    p_code:entered,
+    p_assignments:assignments
+  });
+
+  if(error){
+    console.error(error);
+    alert(error.message||"Unable to finalize pools.");
+    setSync("error","Pool finalization failed");
+    return;
+  }
+
+  state.poolPreview=[];
+  state.poolCandidates=[];
+  state.poolPreviewFormat=null;
+  await loadAll();
+
+  alert(`Pools are locked. ${data.team_count} teams • ${data.pool_count} pools • official schedule generated.`);
+  showView("schedule");
+}
+
+async function reopenRegistration(){
+  const yes=confirm(
+    "Reopen registration?\n\n"+
+    "The current pools will become provisional and scoring will be disabled until you finalize pools again."
+  );
+  if(!yes)return;
+
+  const entered=prompt("Re-enter the Admin password:");
+  if(entered===null)return;
+  if(await sha256(entered)!==ADMIN_HASH){
+    alert("Incorrect Admin password.");
+    return;
+  }
+
+  const {error}=await sb.rpc("admin_reopen_registration",{p_code:entered});
+  if(error){
+    console.error(error);
+    alert(error.message||"Unable to reopen registration.");
+    return;
+  }
+
+  state.poolPreview=[];
+  state.poolCandidates=[];
+  state.poolPreviewFormat=null;
+  await loadAll();
+  showView("register");
+}
+
 async function renderAdminContacts(){
   const root=$("adminContacts");
   if(!root)return;
@@ -1357,7 +2102,7 @@ async function renderAdminContacts(){
 function renderAll(){
   document.body.classList.toggle("admin-mode",!!state.admin);
   $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
-  renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderAdminContacts();refreshScoreOverlay();
+  renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderPoolBuilder();renderAdminContacts();refreshScoreOverlay();
 }
 function scoreMatch(){return !activeScore?null:(activeScore.type==="pool"?state.poolMatches.find(m=>m.id===activeScore.id):state.bracketMatches.find(m=>m.id===activeScore.id))}
 async function openScore(type,id){
@@ -1475,6 +2220,10 @@ $("adminPin").addEventListener("keydown",e=>{if(e.key==="Enter")$("submitAdmin")
 $("submitAdmin").onclick=async()=>{const raw=$("adminPin").value;const entered=await sha256(raw);if(entered===ADMIN_HASH){adminCodeSession=raw;$("adminModal").classList.remove("open");setAdmin(true)}else alert("Incorrect admin code.")};
 $("resetTeamsBtn").onclick=resetDemo;
 $("submitRegistration").onclick=submitTeamRegistration;
+$("previewPoolsBtn").onclick=previewBalancedPools;
+$("regeneratePoolsBtn").onclick=generateBalancedPreview;
+$("lockPoolsBtn").onclick=lockPoolPreview;
+$("reopenRegistrationBtn").onclick=reopenRegistration;
 $("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{
   fitScoreViewport();
