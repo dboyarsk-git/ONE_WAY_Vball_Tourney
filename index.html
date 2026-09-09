@@ -892,6 +892,100 @@ body.confirmation-open{
   }
 }
 
+
+/* FINAL v24 — Admin-editable public rule/info cards */
+.rule-card{
+  position:relative;
+}
+
+.rule-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.rule-card-head h3{
+  margin:0;
+}
+
+.rule-edit-btn{
+  flex:0 0 auto;
+}
+
+.rule-editor-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:2147483300;
+  background:rgba(20,23,25,.72);
+  padding:18px;
+  overflow:auto;
+}
+
+.rule-editor-overlay.open{
+  display:grid;
+  place-items:center;
+}
+
+.rule-editor-card{
+  width:min(680px,100%);
+  background:#fffaf2;
+  border:1px solid #e5d9ca;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 24px 80px rgba(0,0,0,.24);
+}
+
+.rule-editor-card h2{
+  margin:4px 0 6px;
+}
+
+.rule-editor-card textarea{
+  width:100%;
+  min-height:260px;
+  box-sizing:border-box;
+  resize:vertical;
+}
+
+.rule-editor-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+.rule-editor-warning{
+  margin-top:12px;
+  padding:11px 12px;
+  border-radius:12px;
+  background:#fff1df;
+  border:1px solid #ead0ae;
+  line-height:1.45;
+}
+
+@media(max-width:650px){
+  .rule-editor-overlay{
+    padding:0;
+    background:#fffaf2;
+  }
+
+  .rule-editor-card{
+    width:100%;
+    min-height:100dvh;
+    box-sizing:border-box;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    padding:20px 16px 30px;
+  }
+
+  .rule-editor-actions button{
+    width:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -977,8 +1071,11 @@ body.confirmation-open{
 </ul>
 </div>
 
-<div class="rule-card">
-<h3>⚠️ Non-Negotiables</h3>
+<div class="rule-card editable-rule-card" data-rule-key="nonnegotiables">
+<div class="rule-card-head">
+<h3 class="rule-card-title">⚠️ Non-Negotiables</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="nonnegotiables">Edit</button>
+</div>
 <ul class="rule-list">
 <li>Modest shorts.</li>
 <li>Shirts must fully cover the stomach, including when arms are raised.</li>
@@ -990,8 +1087,11 @@ body.confirmation-open{
 </ul>
 </div>
 
-<div class="rule-card">
-<h3>Conduct & Sportsmanship</h3>
+<div class="rule-card editable-rule-card" data-rule-key="conduct">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Conduct & Sportsmanship</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="conduct">Edit</button>
+</div>
 <ul class="rule-list">
 <li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
 <li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
@@ -1012,8 +1112,11 @@ body.confirmation-open{
 </ul>
 </div>
 
-<div class="rule-card">
-<h3>Game Rules</h3>
+<div class="rule-card editable-rule-card" data-rule-key="game">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Game Rules</h3>
+<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="game">Edit</button>
+</div>
 <ul class="rule-list">
 <li>4 players on the court.</li>
 <li>Maximum of 3 contacts per side.</li>
@@ -1152,7 +1255,7 @@ body.confirmation-open{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v23</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v25</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1189,6 +1292,37 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
     </div>
 
     <div class="muted" style="margin-top:12px" id="registrationSuccessMessage"></div>
+  </div>
+</div>
+
+
+<div class="rule-editor-overlay" id="ruleEditorOverlay">
+  <div class="rule-editor-card">
+    <span class="pill orange">ADMIN EDITOR</span>
+    <h2>Edit Public Information</h2>
+    <div class="muted">Only text that does not control scoring, scheduling, pools, or bracket logic can be edited. Put each bullet point on its own line.</div>
+
+    <label style="display:block;margin-top:16px">
+      <b>Square title</b>
+      <input class="team-input" id="ruleEditorTitle" style="width:100%;margin-top:6px">
+    </label>
+
+    <label style="display:block;margin-top:14px">
+      <b>Bullet points</b>
+      <textarea class="team-input" id="ruleEditorItems" style="margin-top:6px"></textarea>
+    </label>
+
+    <div class="rule-editor-warning">
+      <b>Safe-text editor:</b> scoring format, match times, pool/bracket structure, and other program-controlled settings are locked and cannot be edited here.
+    </div>
+
+    <div class="rule-editor-actions">
+      <button class="primary" id="ruleEditorSave">Save Changes</button>
+      <button class="small-btn" id="ruleEditorRestore">Restore Default</button>
+      <button class="ghost" id="ruleEditorCancel">Cancel</button>
+    </div>
+
+    <div class="muted" id="ruleEditorStatus" style="margin-top:10px"></div>
   </div>
 </div>
 
@@ -1229,7 +1363,7 @@ let state={
   bracketMatches:[],
   registrations:[],
   registrationPlayers:[],
-  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0},
+  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{}},
   poolCandidates:[],
   poolPreview:[],
   poolPreviewFormat:null,
@@ -1252,7 +1386,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
-function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount)}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{}}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
@@ -1833,7 +1967,7 @@ function subscribeRealtime(){
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},async payload=>{
     if(payload.eventType==="DELETE"){
-      state.settings={registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0};
+      state.settings={registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{}};
     }else if(payload.new){
       state.settings=mapSettings(payload.new);
     }
@@ -3568,6 +3702,195 @@ async function renderAdminContacts(){
 }
 
 
+
+const RULE_SECTION_KEYS=["nonnegotiables","conduct","game"];
+
+const RULE_DEFAULTS={};
+let activeRuleEditorKey=null;
+
+function captureRuleDefaults(){
+  RULE_SECTION_KEYS.forEach(key=>{
+    const card=document.querySelector(`[data-rule-key="${key}"]`);
+    if(!card)return;
+
+    const title=card.querySelector(".rule-card-title")?.textContent?.trim()||"";
+    const items=[...card.querySelectorAll(".rule-list li")]
+      .map(li=>li.textContent.trim())
+      .filter(Boolean);
+
+    RULE_DEFAULTS[key]={title,items};
+  });
+}
+
+function cleanRuleSection(section,fallback){
+  if(!section||typeof section!=="object")return fallback;
+
+  const title=String(section.title??fallback.title).trim()||fallback.title;
+  const items=Array.isArray(section.items)
+    ?section.items.map(x=>String(x??"").trim()).filter(Boolean)
+    :fallback.items;
+
+  return {title,items};
+}
+
+function effectiveRuleSection(key){
+  const fallback=RULE_DEFAULTS[key]||{title:key,items:[]};
+  const override=state.settings?.ruleSections?.[key];
+  return cleanRuleSection(override,fallback);
+}
+
+function renderRuleSections(){
+  RULE_SECTION_KEYS.forEach(key=>{
+    const card=document.querySelector(`[data-rule-key="${key}"]`);
+    if(!card)return;
+
+    const section=effectiveRuleSection(key);
+
+    const title=card.querySelector(".rule-card-title");
+    if(title)title.textContent=section.title;
+
+    const list=card.querySelector(".rule-list");
+    if(list){
+      list.innerHTML="";
+      section.items.forEach(item=>{
+        const li=document.createElement("li");
+        li.textContent=item;
+        list.appendChild(li);
+      });
+    }
+  });
+}
+
+function openRuleEditor(key){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  if(!RULE_SECTION_KEYS.includes(key))return;
+
+  activeRuleEditorKey=key;
+  const section=effectiveRuleSection(key);
+
+  $("ruleEditorTitle").value=section.title;
+  $("ruleEditorItems").value=section.items.join("\n");
+  $("ruleEditorStatus").textContent="";
+  $("ruleEditorOverlay").classList.add("open");
+}
+
+function closeRuleEditor(){
+  $("ruleEditorOverlay").classList.remove("open");
+  $("ruleEditorStatus").textContent="";
+  activeRuleEditorKey=null;
+}
+
+async function saveRuleEditor(){
+  if(!state.admin||!adminCodeSession||!activeRuleEditorKey){
+    alert("Admin access required.");
+    return;
+  }
+
+  const title=$("ruleEditorTitle").value.trim();
+  const items=$("ruleEditorItems").value
+    .split(/\r?\n/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  if(!title){
+    alert("The square needs a title.");
+    return;
+  }
+
+  if(!items.length){
+    alert("Add at least one bullet point.");
+    return;
+  }
+
+  const btn=$("ruleEditorSave");
+  const status=$("ruleEditorStatus");
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Saving public information…");
+
+  const {data,error}=await sb.rpc("admin_update_rule_section",{
+    p_code:adminCodeSession,
+    p_section_key:activeRuleEditorKey,
+    p_title:title,
+    p_items:items
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Save failed.";
+    setSync("error","Rule update failed");
+    alert(error.message||"Unable to save this square.");
+    return;
+  }
+
+  state.settings.ruleSections=
+    data?.rule_sections && typeof data.rule_sections==="object"
+      ?data.rule_sections
+      :{
+          ...(state.settings.ruleSections||{}),
+          [activeRuleEditorKey]:{title,items}
+        };
+
+  renderRuleSections();
+  status.textContent="Saved ✓";
+  setSync("live","Live sync connected");
+
+  setTimeout(closeRuleEditor,500);
+}
+
+async function restoreRuleDefault(){
+  if(!state.admin||!adminCodeSession||!activeRuleEditorKey){
+    alert("Admin access required.");
+    return;
+  }
+
+  const fallback=RULE_DEFAULTS[activeRuleEditorKey];
+  if(!fallback)return;
+
+  if(!confirm(`Restore "${fallback.title}" to the original website wording?`))return;
+
+  const btn=$("ruleEditorRestore");
+  const status=$("ruleEditorStatus");
+  btn.disabled=true;
+  status.textContent="Restoring…";
+  setSync("","Restoring default wording…");
+
+  const {data,error}=await sb.rpc("admin_reset_rule_section",{
+    p_code:adminCodeSession,
+    p_section_key:activeRuleEditorKey
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Restore failed.";
+    setSync("error","Restore failed");
+    alert(error.message||"Unable to restore this square.");
+    return;
+  }
+
+  state.settings.ruleSections=
+    data?.rule_sections && typeof data.rule_sections==="object"
+      ?data.rule_sections
+      :Object.fromEntries(
+          Object.entries(state.settings.ruleSections||{})
+            .filter(([k])=>k!==activeRuleEditorKey)
+        );
+
+  renderRuleSections();
+  $("ruleEditorTitle").value=fallback.title;
+  $("ruleEditorItems").value=fallback.items.join("\n");
+  status.textContent="Default restored ✓";
+  setSync("live","Live sync connected");
+}
+
 function formatPrizeAmount(amount){
   return Number(amount).toLocaleString("en-US",{
     style:"currency",
@@ -3689,6 +4012,7 @@ async function clearPrizeAmount(){
 }
 
 function renderAll(){
+  renderRuleSections();
   renderPrize();
   document.body.classList.toggle("admin-mode",!!state.admin);
   $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
@@ -3849,6 +4173,19 @@ $("previewPoolsBtn").onclick=previewBalancedPools;
 $("regeneratePoolsBtn").onclick=generateBalancedPreview;
 $("lockPoolsBtn").onclick=lockPoolPreview;
 $("reopenRegistrationBtn").onclick=reopenRegistration;
+captureRuleDefaults();
+
+document.addEventListener("click",event=>{
+  const btn=event.target.closest("[data-edit-rule]");
+  if(btn){
+    openRuleEditor(btn.dataset.editRule);
+  }
+});
+
+$("ruleEditorSave").onclick=saveRuleEditor;
+$("ruleEditorRestore").onclick=restoreRuleDefault;
+$("ruleEditorCancel").onclick=closeRuleEditor;
+
 $("savePrizeBtn").onclick=savePrizeAmount;
 $("clearPrizeBtn").onclick=clearPrizeAmount;
 $("registrationSuccessDone").onclick=closeRegistrationComplete;
