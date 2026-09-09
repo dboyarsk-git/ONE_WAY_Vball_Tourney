@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="author" content="Dashia Boyarskiy">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>ONE WAY Grass 4s</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -113,6 +116,44 @@ body.score-open{overflow:hidden;position:fixed;width:100%;height:100%;touch-acti
 @supports (-webkit-touch-callout:none){
   .score-overlay{height:-webkit-fill-available}
 }
+
+
+/* v8 fullscreen scorer hardening */
+.score-overlay{
+  position:fixed!important;
+  top:0!important;right:0!important;bottom:0!important;left:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  border-radius:0!important;
+  z-index:2147483647!important;
+}
+.score-overlay:fullscreen,
+.score-overlay:-webkit-full-screen{
+  width:100vw!important;
+  height:100vh!important;
+  background:#16191c!important;
+}
+body.score-open{
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+.fullscreen-help{
+  position:fixed;inset:0;z-index:2147483647;
+  display:none;place-items:center;padding:24px;
+  background:rgba(15,17,19,.92);color:white;
+}
+.fullscreen-help.open{display:grid}
+.fullscreen-help-card{
+  width:min(520px,100%);
+  background:#f2eee5;color:#1f2427;border-radius:22px;
+  padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.35);
+}
+.fullscreen-help-card h3{margin-top:0}
+.fullscreen-help-card ol{line-height:1.7;padding-left:22px}
 
 </style>
 </head>
@@ -291,7 +332,7 @@ body.score-open{overflow:hidden;position:fixed;width:100%;height:100%;touch-acti
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v9</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -312,6 +353,21 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
 <div class="modal" id="adminModal"><div class="modal-box"><h3>Admin mode</h3><input class="team-input" id="adminPin" type="password" placeholder="Admin code" autocomplete="off"><div class="modal-actions"><button class="ghost" id="cancelAdmin">Cancel</button><button class="primary" id="submitAdmin">Enter Admin</button></div></div></div>
 <div class="modal" id="confirmModal"><div class="modal-box"><h3 id="confirmTitle">Confirm result</h3><p id="confirmText"></p><div class="modal-actions"><button class="ghost" id="cancelConfirm">Keep scoring</button><button class="primary" id="submitConfirm">Confirm</button></div></div></div>
 
+
+<div class="fullscreen-help" id="fullscreenHelp">
+  <div class="fullscreen-help-card">
+    <h3>Full Screen on iPhone/iPad</h3>
+    <p>Safari is blocking true webpage fullscreen on this device. For the full scoreboard with no Safari bars:</p>
+    <ol>
+      <li>Tap <b>Share</b> in Safari.</li>
+      <li>Choose <b>Add to Home Screen</b>.</li>
+      <li>Open ONE WAY from the new Home Screen icon.</li>
+      <li>Open a match and tap <b>Full Screen</b> again.</li>
+    </ol>
+    <button class="primary" id="closeFullscreenHelp">Got it</button>
+  </div>
+</div>
+
 <script>
 (() => {
 "use strict";
@@ -320,7 +376,7 @@ const SUPABASE_URL = "https://uygotksjyqusbdoepzft.supabase.co";
 const SUPABASE_KEY = "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const ADMIN_HASH="4af3d72d78b405924dc814caebbc90403482aa90f3523047888f51645674e406";
+const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
 const POOLS=["A","B","C","D"];
 let state={teams:[],poolMatches:[],bracketMatches:[],registrations:[],registrationPlayers:[],admin:false,activeView:"home"};
 let adminCodeSession="";
@@ -344,6 +400,74 @@ async function sha256(text){
   const digest=await crypto.subtle.digest("SHA-256",data);
   return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
+
+function isIOSLike(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+}
+
+function isStandaloneApp(){
+  return window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone===true;
+}
+
+async function enterTrueFullscreen(){
+  const el=$("scoreOverlay");
+
+  // Standard Fullscreen API — no options first for Safari compatibility.
+  try{
+    if(el.requestFullscreen){
+      await el.requestFullscreen();
+      return true;
+    }
+  }catch(e){
+    console.warn("requestFullscreen failed:",e);
+  }
+
+  // Older WebKit fallback.
+  try{
+    if(el.webkitRequestFullscreen){
+      el.webkitRequestFullscreen();
+      return true;
+    }
+  }catch(e){
+    console.warn("webkitRequestFullscreen failed:",e);
+  }
+
+  // Some WebKit builds expose the method on documentElement only.
+  try{
+    const root=document.documentElement;
+    if(root.requestFullscreen){
+      await root.requestFullscreen();
+      return true;
+    }
+    if(root.webkitRequestFullscreen){
+      root.webkitRequestFullscreen();
+      return true;
+    }
+  }catch(e){
+    console.warn("root fullscreen failed:",e);
+  }
+
+  return false;
+}
+
+async function exitTrueFullscreen(){
+  try{
+    if(document.fullscreenElement && document.exitFullscreen){
+      await document.exitFullscreen();
+      return;
+    }
+    if(document.webkitFullscreenElement && document.webkitExitFullscreen){
+      document.webkitExitFullscreen();
+    }
+  }catch(e){}
+}
+
+function showFullscreenHelp(){
+  $("fullscreenHelp")?.classList.add("open");
+}
+
 
 async function loadAll(){
   setSync("", "Loading live data…");
@@ -770,20 +894,26 @@ async function deleteRegistration(registrationId,teamName){
   alert(`"${teamName}" was permanently deleted.${data?.promoted_team?`\n${data.promoted_team} was promoted from the waitlist.`:""}`);
 }
 async function renderAdminContacts(){
-  const root=$("adminContacts");if(!root)return;
+  const root=$("adminContacts");
+  if(!root)return;
+
   root.innerHTML="";
   if(!state.admin||!adminCodeSession){
     root.innerHTML='<div class="muted">Enter Admin mode to view contacts.</div>';
     return;
   }
 
-  const {data,error}=await sb.rpc("admin_registration_contacts",{p_code:adminCodeSession});
+  const {data,error}=await sb.rpc("admin_get_registration_contacts",{
+    p_code:adminCodeSession
+  });
+
   if(error){
-    console.error(error);
-    root.innerHTML='<div class="muted">Unable to load contacts.</div>';
+    console.error("Captain Contacts error:",error);
+    root.innerHTML=`<div class="callout"><b>Unable to load contacts.</b><br><span class="muted">${error.message||"Admin database function is not available yet."}</span></div>`;
     return;
   }
-  if(!data.length){
+
+  if(!data||!data.length){
     root.innerHTML='<div class="muted">No registrations yet.</div>';
     return;
   }
@@ -791,7 +921,13 @@ async function renderAdminContacts(){
   data.forEach(c=>{
     const box=document.createElement("div");
     box.className="admin-contact";
-    box.innerHTML=`<b>${c.team_name}</b> <span class="pill">${c.status}</span><br>${c.captain_name}<br><a href="tel:${c.captain_phone}">${c.captain_phone}</a> • <a href="mailto:${c.captain_email}">${c.captain_email}</a>`;
+    box.innerHTML=`
+      <b>${c.team_name}</b>
+      <span class="pill">${c.status}</span>
+      <br>${c.captain_name}
+      <br><a href="tel:${c.captain_phone}">${c.captain_phone}</a>
+      • <a href="mailto:${c.captain_email}">${c.captain_email}</a>
+    `;
 
     const actions=document.createElement("div");
     actions.className="admin-action-row";
@@ -830,21 +966,17 @@ async function openScore(type,id){
   document.body.classList.add("score-open");
   refreshScoreOverlay();
 
-  // A Keep Score tap is a user gesture, so request native fullscreen immediately
-  // where the browser supports it. The fixed overlay above is the fallback.
-  try{
-    if(!document.fullscreenElement && overlay.requestFullscreen){
-      await overlay.requestFullscreen({navigationUI:"hide"});
-    }else if(!document.fullscreenElement && document.documentElement.requestFullscreen){
-      await document.documentElement.requestFullscreen({navigationUI:"hide"});
-    }
-  }catch(e){
-    // iPhone Safari may not allow arbitrary element fullscreen.
-    // The 100dvh fixed overlay still fills the app viewport.
+  // Try immediately while this is still part of the user's Keep Score tap.
+  const wentFullscreen=await enterTrueFullscreen();
+
+  // iOS Safari may reject Fullscreen API entirely.
+  // The overlay still fills the viewport; installed Home Screen mode removes Safari chrome.
+  if(!wentFullscreen && isIOSLike() && !isStandaloneApp()){
+    // Do not interrupt scoring immediately. The Full Screen button will show instructions.
   }
 
   try{
-    if(screen.orientation && screen.orientation.lock){
+    if(screen.orientation?.lock){
       await screen.orientation.lock("landscape");
     }
   }catch(e){}
@@ -853,9 +985,7 @@ async function closeScore(){
   $("scoreOverlay").classList.remove("open");
   document.body.classList.remove("score-open");
   activeScore=null;
-  try{
-    if(document.fullscreenElement) await document.exitFullscreen();
-  }catch(e){}
+  await exitTrueFullscreen();
 }
 function snapshot(){const m=scoreMatch();if(m)undoStack.push(JSON.stringify(m));if(undoStack.length>30)undoStack.shift()}
 async function restoreLast(){if(!activeScore||!undoStack.length)return;const restored=JSON.parse(undoStack.pop()),arr=activeScore.type==="pool"?state.poolMatches:state.bracketMatches,idx=arr.findIndex(m=>m.id===activeScore.id);arr[idx]=restored;renderAll();activeScore.type==="pool"?await updatePool(restored):await updateBracket(restored)}
@@ -882,30 +1012,45 @@ async function resetDemo(){
 
   const first=confirm(
     "RESET THE ENTIRE TOURNAMENT?\n\n"+
-    "This will permanently delete all registrations and captain contacts, clear all team names, mark every team unpaid/not checked in, and erase every pool/bracket score."
+    "This will permanently delete all registrations and captain contacts, clear all team names, mark every team unpaid/not checked in, and erase every pool and bracket score."
   );
   if(!first)return;
 
-  const typed=prompt('Type RESET ONE WAY exactly to continue:');
+  // Safety step 1: require the Admin password again even though Admin mode is already active.
+  const reenteredCode=prompt("Re-enter the Admin password to authorize a full tournament reset:");
+  if(reenteredCode===null)return;
+
+  const reenteredHash=await sha256(reenteredCode);
+  if(reenteredHash!==ADMIN_HASH){
+    alert("Incorrect Admin password. Reset cancelled.");
+    return;
+  }
+
+  // Safety step 2: explicit destructive confirmation phrase.
+  const typed=prompt("Final safety check.\n\nType RESET ONE WAY exactly to permanently erase the tournament data:");
   if(typed!=="RESET ONE WAY"){
     alert("Reset cancelled.");
     return;
   }
 
   setSync("","Resetting tournament…");
-  const {error}=await sb.rpc("admin_reset_tournament",{
-    p_code:adminCodeSession,
+
+  const {error}=await sb.rpc("admin_reset_tournament_v2",{
+    p_code:reenteredCode,
     p_confirmation:typed
   });
 
   if(error){
-    console.error(error);
+    console.error("Reset error:",error);
     alert(error.message||"Tournament reset failed.");
     setSync("error","Reset failed");
     return;
   }
 
-  history.replaceState(null,"",location.pathname);
+  try{
+    history.replaceState(null,"",location.pathname);
+  }catch(e){}
+
   activeConfirmationToken="";
   await loadAll();
   showView("home");
@@ -921,15 +1066,21 @@ $("resetTeamsBtn").onclick=resetDemo;
 $("submitRegistration").onclick=submitTeamRegistration;
 $("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{
-  try{
-    if(!document.fullscreenElement){
-      const overlay=$("scoreOverlay");
-      if(overlay.requestFullscreen) await overlay.requestFullscreen({navigationUI:"hide"});
-      else if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({navigationUI:"hide"});
+  const active=document.fullscreenElement||document.webkitFullscreenElement;
+  if(active){
+    await exitTrueFullscreen();
+    return;
+  }
+
+  const ok=await enterTrueFullscreen();
+  if(!ok){
+    // Safari/iOS commonly does not expose true page fullscreen.
+    if(isIOSLike() && !isStandaloneApp()){
+      showFullscreenHelp();
     }else{
-      await document.exitFullscreen();
+      alert("This browser is blocking fullscreen. The scoreboard is already using the full webpage viewport.");
     }
-  }catch(e){}
+  }
 };
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
 $("sideA").onclick=e=>{if(e.target.id!=="minusA")increment(swapped?"B":"A",1)};$("sideB").onclick=e=>{if(e.target.id!=="minusB")increment(swapped?"A":"B",1)};
@@ -941,6 +1092,10 @@ document.addEventListener("fullscreenchange",()=>{
   if(activeScore && $("scoreOverlay").classList.contains("open")){
     document.body.classList.add("score-open");
   }
+});
+
+$("closeFullscreenHelp")?.addEventListener("click",()=>{
+  $("fullscreenHelp")?.classList.remove("open");
 });
 
 loadAll().then(subscribeRealtime);
