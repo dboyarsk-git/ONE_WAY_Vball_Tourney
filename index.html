@@ -155,6 +155,96 @@ body.score-open{
 .fullscreen-help-card h3{margin-top:0}
 .fullscreen-help-card ol{line-height:1.7;padding-left:22px}
 
+
+/* v10 forced score viewport */
+html.score-active,
+body.score-open{
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#16191c!important;
+}
+
+body.score-open > .shell{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+#scoreOverlay.score-overlay.open{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100vw!important;
+  min-width:100vw!important;
+  max-width:100vw!important;
+  height:100vh!important;
+  min-height:100vh!important;
+  max-height:100vh!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  z-index:2147483647!important;
+  background:#16191c!important;
+  border:0!important;
+  border-radius:0!important;
+}
+
+#scoreOverlay .score-top{
+  grid-row:1;
+  width:100%;
+  flex:0 0 auto!important;
+}
+
+#scoreOverlay .score-layout{
+  grid-row:2;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+}
+
+#scoreOverlay .score-side{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+}
+
+#scoreOverlay .score-bottom{
+  grid-row:3;
+  width:100%;
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+
+@media (orientation:portrait){
+  #scoreOverlay .score-number{
+    font-size:clamp(6rem,31vw,16rem)!important;
+  }
+}
+
+@media (orientation:landscape){
+  #scoreOverlay .score-number{
+    font-size:clamp(7rem,25vh,18rem)!important;
+  }
+}
+
+/* When Safari exposes dynamic viewport units, use them as an additional fallback. */
+@supports (height:100dvh){
+  #scoreOverlay.score-overlay.open{
+    height:100dvh!important;
+    min-height:100dvh!important;
+    max-height:100dvh!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -332,7 +422,7 @@ body.score-open{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted">Top 2 from each pool advance. Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v9</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build v10</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -466,6 +556,24 @@ async function exitTrueFullscreen(){
 
 function showFullscreenHelp(){
   $("fullscreenHelp")?.classList.add("open");
+}
+
+function fitScoreViewport(){
+  const overlay=$("scoreOverlay");
+  if(!overlay || !overlay.classList.contains("open")) return;
+
+  const vv=window.visualViewport;
+  const width=Math.round(vv?.width || window.innerWidth || document.documentElement.clientWidth);
+  const height=Math.round(vv?.height || window.innerHeight || document.documentElement.clientHeight);
+
+  overlay.style.setProperty("width",`${width}px`,"important");
+  overlay.style.setProperty("min-width",`${width}px`,"important");
+  overlay.style.setProperty("max-width",`${width}px`,"important");
+  overlay.style.setProperty("height",`${height}px`,"important");
+  overlay.style.setProperty("min-height",`${height}px`,"important");
+  overlay.style.setProperty("max-height",`${height}px`,"important");
+  overlay.style.setProperty("top",`${Math.round(vv?.offsetTop || 0)}px`,"important");
+  overlay.style.setProperty("left",`${Math.round(vv?.offsetLeft || 0)}px`,"important");
 }
 
 
@@ -962,27 +1070,34 @@ async function openScore(type,id){
   swapped=false;
 
   const overlay=$("scoreOverlay");
-  overlay.classList.add("open");
+  document.documentElement.classList.add("score-active");
   document.body.classList.add("score-open");
+
+  overlay.classList.add("open");
   refreshScoreOverlay();
 
-  // Try immediately while this is still part of the user's Keep Score tap.
-  const wentFullscreen=await enterTrueFullscreen();
+  // Force the score view to the exact live viewport.
+  fitScoreViewport();
+  requestAnimationFrame(fitScoreViewport);
+  setTimeout(fitScoreViewport,50);
+  setTimeout(fitScoreViewport,250);
 
-  // iOS Safari may reject Fullscreen API entirely.
-  // The overlay still fills the viewport; installed Home Screen mode removes Safari chrome.
-  if(!wentFullscreen && isIOSLike() && !isStandaloneApp()){
-    // Do not interrupt scoring immediately. The Full Screen button will show instructions.
-  }
+  // Attempt true browser fullscreen as well.
+  await enterTrueFullscreen();
 
   try{
     if(screen.orientation?.lock){
       await screen.orientation.lock("landscape");
     }
   }catch(e){}
+
+  fitScoreViewport();
 }
 async function closeScore(){
-  $("scoreOverlay").classList.remove("open");
+  const overlay=$("scoreOverlay");
+  overlay.classList.remove("open");
+  overlay.removeAttribute("style");
+  document.documentElement.classList.remove("score-active");
   document.body.classList.remove("score-open");
   activeScore=null;
   await exitTrueFullscreen();
@@ -1066,20 +1181,20 @@ $("resetTeamsBtn").onclick=resetDemo;
 $("submitRegistration").onclick=submitTeamRegistration;
 $("confirmPlayerBtn").onclick=confirmSelectedPlayer;$("closeScoreBtn").onclick=closeScore;
 $("fullscreenBtn").onclick=async()=>{
+  fitScoreViewport();
+
   const active=document.fullscreenElement||document.webkitFullscreenElement;
   if(active){
     await exitTrueFullscreen();
+    fitScoreViewport();
     return;
   }
 
   const ok=await enterTrueFullscreen();
-  if(!ok){
-    // Safari/iOS commonly does not expose true page fullscreen.
-    if(isIOSLike() && !isStandaloneApp()){
-      showFullscreenHelp();
-    }else{
-      alert("This browser is blocking fullscreen. The scoreboard is already using the full webpage viewport.");
-    }
+  fitScoreViewport();
+
+  if(!ok && isIOSLike() && !isStandaloneApp()){
+    showFullscreenHelp();
   }
 };
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
@@ -1097,6 +1212,17 @@ document.addEventListener("fullscreenchange",()=>{
 $("closeFullscreenHelp")?.addEventListener("click",()=>{
   $("fullscreenHelp")?.classList.remove("open");
 });
+
+
+window.addEventListener("resize",fitScoreViewport);
+window.addEventListener("orientationchange",()=>{
+  setTimeout(fitScoreViewport,50);
+  setTimeout(fitScoreViewport,300);
+});
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize",fitScoreViewport);
+  window.visualViewport.addEventListener("scroll",fitScoreViewport);
+}
 
 loadAll().then(subscribeRealtime);
 })();

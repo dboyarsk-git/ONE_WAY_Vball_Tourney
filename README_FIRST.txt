@@ -1,27 +1,19 @@
-ONE WAY Grass 4s — v9
+ONE WAY Grass 4s — v10 Forced Full-Viewport Scorekeeper
 
-NEW RESET SAFETY
-Reset Tournament Data now requires:
-1. Existing Admin mode
-2. Reset warning confirmation
-3. Re-entry of the Admin password
-4. Exact phrase: RESET ONE WAY
-5. Server-side Admin password verification
+FIX
+The scorekeeper now:
+- hides the underlying site while scoring
+- uses a forced header / scoreboard / controls grid
+- measures the device's live Visual Viewport in pixels
+- resizes itself whenever Safari changes viewport size
+- fills all available screen space even if native fullscreen is blocked
+- still attempts native Fullscreen API / WebKit fullscreen
 
-ADMIN PASSWORD
-onewaygrassd
-
-OTHER FEATURES RETAINED
-- v8 fullscreen/WebKit fallback
-- Orange/tan scorekeeper
-- Captain Contacts repair
-- Paid/Unpaid + Check-In controls
-- Clear team name
-- Cancel/Delete Team
-- Full registration and player confirmation system
+NO NEW SUPABASE SQL IS REQUIRED FOR THIS VISUAL FIX.
 
 INSTALL
-- No new SQL is required if your v7 admin repair SQL has already been run.
-- Replace GitHub index.html with this v9 index.html.
-- Commit and hard refresh.
-- Footer should show Build v9.
+1. Replace GitHub index.html with the v10 index.html.
+2. Commit.
+3. Wait for GitHub Pages.
+4. Hard refresh.
+5. Footer should say Build v10.
