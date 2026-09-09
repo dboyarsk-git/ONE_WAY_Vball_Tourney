@@ -1156,6 +1156,39 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* FINAL v31 — mobile hero ring readability */
+@media(max-width:650px){
+  .hero{
+    isolation:isolate;
+  }
+
+  .hero:after{
+    width:220px!important;
+    height:220px!important;
+    right:-78px!important;
+    top:-70px!important;
+    bottom:auto!important;
+    border-width:22px!important;
+    opacity:.42!important;
+    transform:rotate(-12deg)!important;
+    z-index:0!important;
+    pointer-events:none!important;
+  }
+
+  .hero>*{
+    position:relative!important;
+    z-index:2!important;
+  }
+
+  .hero p,
+  .hero .verse,
+  .hero .sync{
+    position:relative!important;
+    z-index:3!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1434,7 +1467,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v30</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v31</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
