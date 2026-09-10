@@ -1567,79 +1567,28 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 }
 
 
-/* ONE WAY v40 — compact mobile navigation */
-.nav-links{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  flex:1;
-  min-width:0;
-}
-
-.nav-bar{display:none}
-
+/* ONE WAY v40 — two-row mobile navigation, every section always visible */
 @media(max-width:900px){
   #nav{
-    flex-direction:column;
-    align-items:stretch;
-    gap:0;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
     top:0;
-    /* Break out of .shell padding so the bar spans the full screen width. */
+    /* Negative side margins cancel the shell padding for a full-width bar. */
     margin:14px calc(50% - 50vw);
-    padding:5px 12px;
+    padding:6px 10px;
     border-width:0 0 1px;
     border-radius:0;
   }
 
-  .nav-bar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-
-  .nav-current{
-    flex:1;
-    min-width:0;
-    font-size:.78rem;
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:#687074;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  .nav-toggle{
-    border:0;
-    border-radius:10px;
-    padding:7px 14px;
-    font-weight:800;
-    background:var(--ink);
-    color:#fff;
-  }
-
-  .nav-links{
-    display:none;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-    margin:6px 0 5px;
-  }
-
-  #nav.nav-open .nav-links{
-    display:grid;
-  }
-
-  .nav-links button{
-    width:100%;
-  }
-
-  .nav-links button.active{
-    box-shadow:inset 0 -3px 0 var(--orange);
+  .nav button{
+    padding:8px 4px;
+    font-size:.8rem;
+    text-align:center;
   }
 
   .nav .admin{
-    grid-column:1/-1;
+    grid-column:span 2;
   }
 }
 
@@ -1656,13 +1605,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </section>
 
 <nav class="nav" id="nav">
-<div class="nav-bar">
-<span class="nav-current" id="navCurrent">Home</span>
-<button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
-</div>
-<div class="nav-links" id="navLinks">
 <button data-view="home" class="active">Home</button><button data-view="register">Register</button><button data-view="teams">Teams</button><button data-view="schedule">Schedule</button><button data-view="standings">Standings</button><button data-view="bracket">Bracket</button><button class="admin" id="adminBtn">Admin</button>
-</div>
 </nav>
 
 <div class="live-data-guard hidden" id="liveDataGuard">
@@ -2132,71 +2075,6 @@ let scoreHeartbeatTimer=null;
 let scoreTournamentFrozen=false;
 let realtimeFirstSubscribe=true;
 const $=id=>document.getElementById(id);
-
-const VIEW_LABELS={
-  home:"Home",
-  register:"Register",
-  teams:"Teams",
-  schedule:"Schedule",
-  standings:"Standings",
-  bracket:"Bracket"
-};
-
-function mobileNavEnabled(){
-  return window.matchMedia("(max-width: 900px)").matches;
-}
-
-function setMobileNavOpen(open){
-  const nav=$("nav");
-  const toggle=$("navToggle");
-  if(!nav||!toggle)return;
-  nav.classList.toggle("nav-open",open);
-  toggle.setAttribute("aria-expanded",open?"true":"false");
-  toggle.textContent=open?"Close":"Menu";
-}
-
-function closeMobileNav(){
-  setMobileNavOpen(false);
-}
-
-function renderMobileNavLabel(){
-  const label=$("navCurrent");
-  if(!label)return;
-  label.textContent=VIEW_LABELS[state.activeView]||"Home";
-}
-
-function installMobileNav(){
-  const nav=$("nav");
-  const toggle=$("navToggle");
-  if(!nav||!toggle)return;
-
-  renderMobileNavLabel();
-
-  toggle.addEventListener("click",()=>{
-    setMobileNavOpen(!nav.classList.contains("nav-open"));
-  });
-
-  nav.querySelectorAll("[data-view]").forEach(button=>{
-    button.addEventListener("click",closeMobileNav);
-  });
-
-  $("adminBtn")?.addEventListener("click",closeMobileNav);
-
-  document.addEventListener("click",event=>{
-    if(!nav.classList.contains("nav-open"))return;
-    if(nav.contains(event.target))return;
-    closeMobileNav();
-  });
-
-  document.addEventListener("keydown",event=>{
-    if(event.key==="Escape")closeMobileNav();
-  });
-
-  window.addEventListener("resize",()=>{
-    if(!mobileNavEnabled())closeMobileNav();
-  });
-}
-
 
 
 function setSync(kind,text){
@@ -3363,7 +3241,6 @@ function showView(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
   $(`view-${view}`).classList.remove("hidden");
   document.querySelectorAll("#nav [data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
-  renderMobileNavLabel();
   renderAll();
 }
 function setAdmin(on){state.admin=on;if(!on)adminCodeSession="";document.body.classList.toggle("admin-mode",on);$("adminBtn").textContent=on?"Exit Admin":"Admin";renderAll();}
@@ -6110,7 +5987,6 @@ window.addEventListener("online",()=>{
 });
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
-installMobileNav();
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
 if(startupConfirmToken){
