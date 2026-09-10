@@ -1577,7 +1577,8 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 
   .nav button{
     padding:8px 4px;
-    font-size:.8rem;
+    min-width:0;
+    font-size:clamp(.7rem,3.2vw,.8rem);
     text-align:center;
   }
 
@@ -2067,7 +2068,6 @@ let scoreSaving=false;
 let scorePendingSave=null;
 let scoreHeartbeatTimer=null;
 let scoreTournamentFrozen=false;
-let realtimeFirstSubscribe=true;
 const $=id=>document.getElementById(id);
 
 
@@ -2590,13 +2590,15 @@ function qualifiedBracketSeeds(){
   return qualifiers.slice(0,8).map((r,i)=>({...r,bracketSeed:i+1}));
 }
 
-async function loadAll(){
+async function loadAll({silent=false}={}){
   const previouslyFinalized=!!state.settings?.poolsFinalized;
 
-  state.liveDataState="loading";
-  state.liveDataMessage="Connecting to tournament database…";
-  renderLiveDataGuard();
-  setSync("","Connecting live data…");
+  if(!silent){
+    state.liveDataState="loading";
+    state.liveDataMessage="Connecting to tournament database…";
+    renderLiveDataGuard();
+    setSync("","Connecting live data…");
+  }
 
   try{
     const [s,t,p,b]=await promiseTimeout(
@@ -2775,15 +2777,12 @@ function subscribeRealtime(){
   })
   .subscribe(status=>{
     if(status==="SUBSCRIBED"){
-      // The startup load already ran, so the first subscribe must not repeat it.
-      const alreadyLoaded=realtimeFirstSubscribe&&state.liveDataState==="ready";
-      realtimeFirstSubscribe=false;
-
-      if(state.liveDataState==="ready"){
+      const alreadyReady=state.liveDataState==="ready";
+      if(alreadyReady){
         setSync("live","Live sync connected");
       }
-
-      if(!alreadyLoaded)loadAll();
+      // Refetch after the stream is live to close the snapshot-to-subscribe gap.
+      loadAll({silent:alreadyReady});
     }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
       setSync("error","Realtime reconnecting…");
     }
