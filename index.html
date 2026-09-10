@@ -1189,6 +1189,67 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* FINAL v32 — captain team payment */
+.payment-public-box{
+  margin-top:18px;
+  padding:14px;
+  border:1px solid #e5d9ca;
+  border-radius:14px;
+  background:#fff7ed;
+}
+
+.payment-public-box h4{
+  margin:0 0 9px;
+  font-size:1rem;
+}
+
+.payment-line{
+  margin:5px 0;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.payment-admin{
+  margin-top:13px;
+  padding-top:12px;
+  border-top:1px solid #ead6bd;
+}
+
+.payment-admin-grid{
+  display:grid;
+  gap:9px;
+}
+
+.payment-admin label{
+  display:grid;
+  gap:5px;
+  font-size:.78rem;
+  font-weight:800;
+}
+
+.registration-payment-box{
+  margin-top:16px;
+  padding:15px;
+  border-radius:15px;
+  background:#fff7ed;
+  border:1px solid #ecd6bc;
+}
+
+.registration-payment-box h3{
+  margin:0 0 8px;
+}
+
+.registration-payment-box .payment-line{
+  margin:6px 0;
+}
+
+@media(max-width:650px){
+  .payment-admin .team-input{
+    width:100%!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1242,6 +1303,57 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
     <button class="small-btn" id="clearPrizeBtn">Set to TBD</button>
   </div>
   <div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
+</div>
+
+<div class="payment-public-box" id="paymentPublicBox">
+  <h4>💵 Payments</h4>
+  <div class="payment-line"><b>Team Fee:</b> $60</div>
+  <div class="payment-line"><b>Zelle:</b> <span id="paymentZellePublic">TBD</span></div>
+  <div class="payment-line" id="paymentCashPublic">Cash can be paid at conference check-in.</div>
+  <div class="payment-line muted" id="paymentNotePublic">Captain is responsible for the full team payment.</div>
+
+  <div class="admin-only payment-admin">
+    <div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
+
+    <div class="payment-admin-grid">
+      <label>
+        Zelle phone number or email
+        <input
+          id="adminPaymentZelle"
+          class="team-input"
+          maxlength="120"
+          placeholder="Example: 980-555-1234"
+        >
+      </label>
+
+      <label>
+        Cash instructions
+        <input
+          id="adminPaymentCash"
+          class="team-input"
+          maxlength="220"
+          placeholder="Cash can be paid at conference check-in."
+        >
+      </label>
+
+      <label>
+        Payment note
+        <input
+          id="adminPaymentNote"
+          class="team-input"
+          maxlength="220"
+          placeholder="Captain is responsible for the full team payment."
+        >
+      </label>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="small-btn" id="savePaymentInfoBtn">Save Payment Info</button>
+      <button class="small-btn" id="clearPaymentZelleBtn">Clear Zelle</button>
+    </div>
+
+    <div class="muted" id="adminPaymentStatus" style="margin-top:7px"></div>
+  </div>
 </div>
 </div>
 
@@ -1467,7 +1579,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v31</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v32</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1491,6 +1603,14 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
     <div class="registration-success-instructions">
       <b>Send this same link to all four teammates.</b><br>
       Each player opens it, selects their own name, agrees to the tournament rules, and confirms their spot.
+    </div>
+
+    <div class="registration-payment-box">
+      <h3>💵 Team Payment — $60</h3>
+      <div class="payment-line"><b>The captain is responsible for submitting the full team payment.</b></div>
+      <div class="payment-line"><b>Zelle:</b> <span id="registrationPaymentZelle">TBD</span></div>
+      <div class="payment-line" id="registrationPaymentCash">Cash can be paid at conference check-in.</div>
+      <div class="muted" id="registrationPaymentNote">Admin will mark the team Paid after payment is verified.</div>
     </div>
 
     <div class="registration-success-link">
@@ -1575,7 +1695,7 @@ let state={
   bracketMatches:[],
   registrations:[],
   registrationPlayers:[],
-  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{}},
+  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{},paymentZelle:"",paymentCashText:"Cash can be paid at conference check-in.",paymentNote:"Captain is responsible for the full team payment."},
   poolCandidates:[],
   poolPreview:[],
   poolPreviewFormat:null,
@@ -1598,7 +1718,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
-function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{}}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
@@ -3347,6 +3467,7 @@ function openRegistrationComplete(teamName,status,link){
     `pill ${status==="waitlisted"?"orange":"green"}`;
   $("registrationSuccessLink").value=link;
   $("registrationSuccessMessage").textContent="";
+  renderPaymentInfo();
   overlay.classList.add("open");
 
   $("registrationSuccessCopy").onclick=async()=>{
@@ -4123,6 +4244,122 @@ async function restoreRuleDefault(){
   setSync("live","Live sync connected");
 }
 
+
+function renderPaymentInfo(){
+  const zelle=String(state.settings?.paymentZelle||"").trim();
+  const cash=String(
+    state.settings?.paymentCashText||
+    "Cash can be paid at conference check-in."
+  ).trim();
+  const note=String(
+    state.settings?.paymentNote||
+    "Captain is responsible for the full team payment."
+  ).trim();
+
+  const zellePublic=$("paymentZellePublic");
+  if(zellePublic)zellePublic.textContent=zelle||"TBD";
+
+  const cashPublic=$("paymentCashPublic");
+  if(cashPublic)cashPublic.textContent=cash;
+
+  const notePublic=$("paymentNotePublic");
+  if(notePublic)notePublic.textContent=note;
+
+  const regZelle=$("registrationPaymentZelle");
+  if(regZelle)regZelle.textContent=zelle||"TBD";
+
+  const regCash=$("registrationPaymentCash");
+  if(regCash)regCash.textContent=cash;
+
+  const regNote=$("registrationPaymentNote");
+  if(regNote){
+    regNote.textContent=
+      `${note} Admin will mark the team Paid after payment is verified.`;
+  }
+
+  const zelleInput=$("adminPaymentZelle");
+  if(zelleInput && document.activeElement!==zelleInput){
+    zelleInput.value=zelle;
+  }
+
+  const cashInput=$("adminPaymentCash");
+  if(cashInput && document.activeElement!==cashInput){
+    cashInput.value=cash;
+  }
+
+  const noteInput=$("adminPaymentNote");
+  if(noteInput && document.activeElement!==noteInput){
+    noteInput.value=note;
+  }
+}
+
+async function savePaymentInfo(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  const zelle=$("adminPaymentZelle").value.trim();
+  const cash=$("adminPaymentCash").value.trim();
+  const note=$("adminPaymentNote").value.trim();
+
+  if(!cash){
+    alert("Add the cash payment instructions.");
+    return;
+  }
+
+  if(!note){
+    alert("Add the captain payment note.");
+    return;
+  }
+
+  const btn=$("savePaymentInfoBtn");
+  const status=$("adminPaymentStatus");
+
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Saving payment information…");
+
+  const {data,error}=await sb.rpc("admin_update_payment_info",{
+    p_code:adminCodeSession,
+    p_zelle:zelle||null,
+    p_cash_text:cash,
+    p_note:note
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Payment settings failed to save.";
+    setSync("error","Payment settings failed");
+    alert(error.message||"Unable to save payment information.");
+    return;
+  }
+
+  state.settings.paymentZelle=data?.payment_zelle||"";
+  state.settings.paymentCashText=
+    data?.payment_cash_text||cash;
+  state.settings.paymentNote=
+    data?.payment_note||note;
+
+  renderPaymentInfo();
+  status.textContent="Payment information saved ✓";
+  setSync("live","Live sync connected");
+}
+
+async function clearPaymentZelle(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  if(!confirm("Clear the public Zelle information and show TBD?"))return;
+
+  $("adminPaymentZelle").value="";
+  await savePaymentInfo();
+}
+
 function formatPrizeAmount(amount){
   return Number(amount).toLocaleString("en-US",{
     style:"currency",
@@ -4246,6 +4483,7 @@ async function clearPrizeAmount(){
 function renderAll(){
   renderRuleSections();
   renderPrize();
+  renderPaymentInfo();
   document.body.classList.toggle("admin-mode",!!state.admin);
   $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
   renderTeams();renderSchedule();renderStandings();renderBracket();renderRegistrations();renderPoolBuilder();renderAdminContacts();refreshScoreOverlay();
@@ -4418,6 +4656,8 @@ $("ruleEditorSave").onclick=saveRuleEditor;
 $("ruleEditorRestore").onclick=restoreRuleDefault;
 $("ruleEditorCancel").onclick=closeRuleEditor;
 
+$("savePaymentInfoBtn").onclick=savePaymentInfo;
+$("clearPaymentZelleBtn").onclick=clearPaymentZelle;
 $("savePrizeBtn").onclick=savePrizeAmount;
 $("clearPrizeBtn").onclick=clearPrizeAmount;
 $("registrationSuccessDone").onclick=closeRegistrationComplete;
