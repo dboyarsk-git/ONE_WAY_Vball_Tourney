@@ -1583,6 +1583,12 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
     flex-direction:column;
     align-items:stretch;
     gap:0;
+    top:0;
+    /* Break out of .shell padding so the bar spans the full screen width. */
+    margin:14px calc(50% - 50vw);
+    padding:5px 12px;
+    border-width:0 0 1px;
+    border-radius:0;
   }
 
   .nav-bar{
@@ -1594,7 +1600,6 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   .nav-current{
     flex:1;
     min-width:0;
-    padding-left:8px;
     font-size:.78rem;
     font-weight:800;
     text-transform:uppercase;
@@ -1607,8 +1612,8 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 
   .nav-toggle{
     border:0;
-    border-radius:12px;
-    padding:10px 16px;
+    border-radius:10px;
+    padding:7px 14px;
     font-weight:800;
     background:var(--ink);
     color:#fff;
@@ -1618,7 +1623,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
     display:none;
     grid-template-columns:1fr 1fr;
     gap:8px;
-    margin-top:8px;
+    margin:6px 0 5px;
   }
 
   #nav.nav-open .nav-links{
