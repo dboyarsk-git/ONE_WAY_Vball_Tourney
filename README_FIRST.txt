@@ -1,22 +1,13 @@
-ONE WAY v39
+ONE WAY v41
 
-FIXES
-- Fixed the v38 Registration runtime variable error.
-- Fixed the v38 Pool Builder runtime variable error.
+CHANGE
+- Footer copyright now says:
+  © 2026 Your Mom.
 
-MOBILE MENU
-- Scroll down -> menu slides out of view.
-- Scroll up -> menu returns.
-- Near the top of the page -> menu stays visible.
-- Small iPhone bounce movements are ignored.
-- Desktop navigation is unchanged.
-
-DATABASE
-- v39 itself requires no new Supabase migration.
-- If v38 backend SQL has not yet been run, use the included supabase_v38_run_this.sql.
+No Supabase changes required.
 
 DEPLOY
-1. Replace GitHub index.html with this v39 index.html.
+1. Replace index.html with v41.
 2. Commit/deploy.
 3. Hard refresh.
-4. Footer should show Build FINAL v39.
+4. Footer should show Build FINAL v41.

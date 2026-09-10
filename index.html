@@ -1567,25 +1567,49 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 }
 
 
-/* ONE WAY v39 — mobile auto-hide navigation */
+/* ONE WAY v40 — mobile nav collapses completely when hidden */
 @media(max-width:900px){
   #nav{
+    overflow:hidden;
+    max-height:320px;
+    margin:18px 0;
+    padding:8px;
+    border-width:1px;
+    transform:none;
+    opacity:1;
     transition:
-      transform .22s ease,
-      opacity .18s ease,
+      max-height .22s ease,
+      margin .22s ease,
+      padding .22s ease,
+      opacity .15s ease,
+      border-width .22s ease,
       box-shadow .22s ease;
-    will-change:transform;
+    will-change:max-height,margin,padding,opacity;
   }
 
   #nav.mobile-nav-hidden{
-    transform:translateY(calc(-100% - 18px));
+    max-height:0!important;
+    margin-top:0!important;
+    margin-bottom:0!important;
+    padding-top:0!important;
+    padding-bottom:0!important;
+    border-top-width:0!important;
+    border-bottom-width:0!important;
     opacity:0;
     pointer-events:none;
+    box-shadow:none;
   }
 
   #nav.mobile-nav-visible{
-    transform:translateY(0);
+    max-height:320px;
+    margin-top:18px;
+    margin-bottom:18px;
+    padding-top:8px;
+    padding-bottom:8px;
+    border-top-width:1px;
+    border-bottom-width:1px;
     opacity:1;
+    pointer-events:auto;
   }
 }
 
@@ -1920,9 +1944,9 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v39</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v41</div>
 <div class="copyright-box">
-© 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
+© 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
 Church, conference, ministry, and third-party names, logos, trademarks, and brand assets remain the property of their respective owners.
 </div>
