@@ -1567,55 +1567,74 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 }
 
 
-/* ONE WAY v40 — mobile nav collapses completely when hidden */
-@media(max-width:900px){
-  #nav{
-    overflow:hidden;
-    max-height:320px;
-    margin:18px 0;
-    padding:8px;
-    border-width:1px;
-    transform:none;
-    opacity:1;
-    transition:
-      max-height .22s ease,
-      margin .22s ease,
-      padding .22s ease,
-      opacity .15s ease,
-      border-width .22s ease,
-      box-shadow .22s ease;
-    will-change:max-height,margin,padding,opacity;
-  }
-
-  #nav.mobile-nav-hidden{
-    max-height:0!important;
-    margin-top:0!important;
-    margin-bottom:0!important;
-    padding-top:0!important;
-    padding-bottom:0!important;
-    border-top-width:0!important;
-    border-bottom-width:0!important;
-    opacity:0;
-    pointer-events:none;
-    box-shadow:none;
-  }
-
-  #nav.mobile-nav-visible{
-    max-height:320px;
-    margin-top:18px;
-    margin-bottom:18px;
-    padding-top:8px;
-    padding-bottom:8px;
-    border-top-width:1px;
-    border-bottom-width:1px;
-    opacity:1;
-    pointer-events:auto;
-  }
+/* ONE WAY v40 — compact mobile navigation */
+.nav-links{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  flex:1;
+  min-width:0;
 }
 
-@media(prefers-reduced-motion:reduce){
+.nav-bar{display:none}
+
+@media(max-width:900px){
   #nav{
-    transition:none!important;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+  }
+
+  .nav-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .nav-current{
+    flex:1;
+    min-width:0;
+    padding-left:8px;
+    font-size:.78rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#687074;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .nav-toggle{
+    border:0;
+    border-radius:12px;
+    padding:10px 16px;
+    font-weight:800;
+    background:var(--ink);
+    color:#fff;
+  }
+
+  .nav-links{
+    display:none;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:8px;
+  }
+
+  #nav.nav-open .nav-links{
+    display:grid;
+  }
+
+  .nav-links button{
+    width:100%;
+  }
+
+  .nav-links button.active{
+    box-shadow:inset 0 -3px 0 var(--orange);
+  }
+
+  .nav .admin{
+    grid-column:1/-1;
   }
 }
 
@@ -1632,7 +1651,13 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </section>
 
 <nav class="nav" id="nav">
+<div class="nav-bar">
+<span class="nav-current" id="navCurrent">Home</span>
+<button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+</div>
+<div class="nav-links" id="navLinks">
 <button data-view="home" class="active">Home</button><button data-view="register">Register</button><button data-view="teams">Teams</button><button data-view="schedule">Schedule</button><button data-view="standings">Standings</button><button data-view="bracket">Bracket</button><button class="admin" id="adminBtn">Admin</button>
+</div>
 </nav>
 
 <div class="live-data-guard hidden" id="liveDataGuard">
@@ -2100,84 +2125,70 @@ let scoreSaving=false;
 let scorePendingSave=null;
 let scoreHeartbeatTimer=null;
 let scoreTournamentFrozen=false;
+let realtimeFirstSubscribe=true;
 const $=id=>document.getElementById(id);
 
-let mobileNavLastY=0;
-let mobileNavTicking=false;
+const VIEW_LABELS={
+  home:"Home",
+  register:"Register",
+  teams:"Teams",
+  schedule:"Schedule",
+  standings:"Standings",
+  bracket:"Bracket"
+};
 
 function mobileNavEnabled(){
   return window.matchMedia("(max-width: 900px)").matches;
 }
 
-function showMobileNav(){
+function setMobileNavOpen(open){
   const nav=$("nav");
-  if(!nav)return;
-  nav.classList.remove("mobile-nav-hidden");
-  nav.classList.add("mobile-nav-visible");
+  const toggle=$("navToggle");
+  if(!nav||!toggle)return;
+  nav.classList.toggle("nav-open",open);
+  toggle.setAttribute("aria-expanded",open?"true":"false");
+  toggle.textContent=open?"Close":"Menu";
 }
 
-function hideMobileNav(){
-  const nav=$("nav");
-  if(!nav)return;
-  if(window.scrollY<90)return;
-  nav.classList.remove("mobile-nav-visible");
-  nav.classList.add("mobile-nav-hidden");
+function closeMobileNav(){
+  setMobileNavOpen(false);
 }
 
-function updateMobileNavOnScroll(){
-  const nav=$("nav");
-  if(!nav)return;
-
-  if(!mobileNavEnabled()){
-    nav.classList.remove("mobile-nav-hidden","mobile-nav-visible");
-    mobileNavLastY=window.scrollY;
-    return;
-  }
-
-  const currentY=Math.max(0,window.scrollY||0);
-
-  // Always keep the menu visible near the top.
-  if(currentY<90){
-    showMobileNav();
-    mobileNavLastY=currentY;
-    return;
-  }
-
-  const delta=currentY-mobileNavLastY;
-
-  // Ignore tiny iOS scroll/bounce movements.
-  if(Math.abs(delta)<8)return;
-
-  if(delta>0){
-    hideMobileNav();
-  }else{
-    showMobileNav();
-  }
-
-  mobileNavLastY=currentY;
+function renderMobileNavLabel(){
+  const label=$("navCurrent");
+  if(!label)return;
+  label.textContent=VIEW_LABELS[state.activeView]||"Home";
 }
 
-function installMobileNavAutoHide(){
-  mobileNavLastY=Math.max(0,window.scrollY||0);
-  showMobileNav();
+function installMobileNav(){
+  const nav=$("nav");
+  const toggle=$("navToggle");
+  if(!nav||!toggle)return;
 
-  window.addEventListener("scroll",()=>{
-    if(mobileNavTicking)return;
-    mobileNavTicking=true;
+  renderMobileNavLabel();
 
-    requestAnimationFrame(()=>{
-      updateMobileNavOnScroll();
-      mobileNavTicking=false;
-    });
-  },{passive:true});
-
-  window.addEventListener("resize",()=>{
-    updateMobileNavOnScroll();
+  toggle.addEventListener("click",()=>{
+    setMobileNavOpen(!nav.classList.contains("nav-open"));
   });
 
-  // If the user taps within the nav or changes page, keep it available.
-  $("nav")?.addEventListener("click",()=>{
-    showMobileNav();
+  nav.querySelectorAll("[data-view]").forEach(button=>{
+    button.addEventListener("click",closeMobileNav);
+  });
+
+  $("adminBtn")?.addEventListener("click",closeMobileNav);
+
+  document.addEventListener("click",event=>{
+    if(!nav.classList.contains("nav-open"))return;
+    if(nav.contains(event.target))return;
+    closeMobileNav();
+  });
+
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape")closeMobileNav();
+  });
+
+  window.addEventListener("resize",()=>{
+    if(!mobileNavEnabled())closeMobileNav();
   });
 }
 
@@ -2324,8 +2335,8 @@ function renderLiveDataGuard(){
   const guard=$("liveDataGuard");
   if(!guard)return;
 
-  const ready=state.liveDataState==="ready";
-  guard.classList.toggle("hidden",ready);
+  const failed=state.liveDataState==="error";
+  guard.classList.toggle("hidden",!failed);
 
   const text=$("liveDataGuardText");
   if(text){
@@ -2345,11 +2356,24 @@ function liveDataUnavailableCard(){
   return box;
 }
 
+function liveDataLoadingCard(){
+  const box=document.createElement("div");
+  box.className="callout";
+  box.innerHTML=
+    "<b>Connecting live data…</b><br>"+
+    "Tournament tables appear as soon as the database answers.";
+  return box;
+}
+
 function requireLiveData(root){
   if(state.liveDataState==="ready")return true;
   if(root){
     root.innerHTML="";
-    root.appendChild(liveDataUnavailableCard());
+    root.appendChild(
+      state.liveDataState==="error"
+        ? liveDataUnavailableCard()
+        : liveDataLoadingCard()
+    );
   }
   return false;
 }
@@ -2874,8 +2898,15 @@ function subscribeRealtime(){
   })
   .subscribe(status=>{
     if(status==="SUBSCRIBED"){
-      setSync("live","Live sync connected");
-      loadAll();
+      // The startup load already ran, so the first subscribe must not repeat it.
+      const alreadyLoaded=realtimeFirstSubscribe&&state.liveDataState==="ready";
+      realtimeFirstSubscribe=false;
+
+      if(state.liveDataState==="ready"){
+        setSync("live","Live sync connected");
+      }
+
+      if(!alreadyLoaded)loadAll();
     }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
       setSync("error","Realtime reconnecting…");
     }
@@ -3327,6 +3358,7 @@ function showView(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
   $(`view-${view}`).classList.remove("hidden");
   document.querySelectorAll("#nav [data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  renderMobileNavLabel();
   renderAll();
 }
 function setAdmin(on){state.admin=on;if(!on)adminCodeSession="";document.body.classList.toggle("admin-mode",on);$("adminBtn").textContent=on?"Exit Admin":"Admin";renderAll();}
@@ -6073,7 +6105,7 @@ window.addEventListener("online",()=>{
 });
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
-installMobileNavAutoHide();
+installMobileNav();
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
 if(startupConfirmToken){
