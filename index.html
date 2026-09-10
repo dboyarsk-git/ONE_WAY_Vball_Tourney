@@ -1420,6 +1420,181 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* FINAL v37 — tournament-day reliability */
+.live-data-guard{
+  margin:12px 0 16px;
+  padding:14px 16px;
+  border-radius:15px;
+  border:2px solid #b84035;
+  background:#fff0ed;
+  color:#71231e;
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.live-data-guard strong{
+  display:block;
+  margin-bottom:3px;
+}
+
+.score-device-lock{
+  position:absolute;
+  z-index:22;
+  top:64px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(22,25,28,.88);
+  color:#fff;
+  font-size:.74rem;
+  font-weight:850;
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+.score-device-lock.hidden{
+  display:none!important;
+}
+
+.score-protection-overlay{
+  position:absolute;
+  inset:0;
+  z-index:35;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(12,15,17,.74);
+  backdrop-filter:blur(3px);
+}
+
+.score-protection-overlay.hidden{
+  display:none!important;
+}
+
+.score-protection-card{
+  width:min(520px,94vw);
+  border-radius:20px;
+  padding:22px;
+  background:#fffaf2;
+  color:var(--ink);
+  box-shadow:0 22px 70px rgba(0,0,0,.35);
+  text-align:center;
+}
+
+.score-protection-card h2{
+  margin:0 0 8px;
+}
+
+.score-protection-actions{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:15px;
+}
+
+.score-unsaved-card{
+  border:3px solid #e7a02f;
+}
+
+.score-freeze-card{
+  border:3px solid var(--orange);
+}
+
+.score-overlay.score-saving .score-side,
+.score-overlay.score-saving #undoBtn{
+  pointer-events:none!important;
+  opacity:.82;
+}
+
+.score-overlay.score-decision .score-side{
+  cursor:not-allowed;
+}
+
+.score-overlay.score-decision .minus{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+
+.score-save-indicator{
+  font-size:.75rem;
+  font-weight:800;
+  color:#ffdcae;
+  min-height:1em;
+  text-align:center;
+  padding-bottom:2px;
+}
+
+.bracket-eligibility-warning{
+  grid-column:1/-1;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid #e4b66b;
+  background:#fff5e5;
+  line-height:1.45;
+}
+
+.pill.ineligible{
+  background:#f7dddd;
+  color:#842d27;
+}
+
+@media(max-width:650px){
+  .live-data-guard{
+    margin:10px 0 12px;
+  }
+
+  .score-device-lock{
+    top:max(62px,calc(env(safe-area-inset-top) + 52px));
+    max-width:90vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .score-protection-card{
+    padding:18px;
+  }
+
+  .score-protection-actions button{
+    width:100%;
+  }
+}
+
+
+/* ONE WAY v39 — mobile auto-hide navigation */
+@media(max-width:900px){
+  #nav{
+    transition:
+      transform .22s ease,
+      opacity .18s ease,
+      box-shadow .22s ease;
+    will-change:transform;
+  }
+
+  #nav.mobile-nav-hidden{
+    transform:translateY(calc(-100% - 18px));
+    opacity:0;
+    pointer-events:none;
+  }
+
+  #nav.mobile-nav-visible{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #nav{
+    transition:none!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1435,6 +1610,14 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <nav class="nav" id="nav">
 <button data-view="home" class="active">Home</button><button data-view="register">Register</button><button data-view="teams">Teams</button><button data-view="schedule">Schedule</button><button data-view="standings">Standings</button><button data-view="bracket">Bracket</button><button class="admin" id="adminBtn">Admin</button>
 </nav>
+
+<div class="live-data-guard hidden" id="liveDataGuard">
+  <div>
+    <strong>⚠️ LIVE DATA UNAVAILABLE — DO NOT SCORE</strong>
+    <span id="liveDataGuardText">The tournament database could not be verified. The website will not use a fake backup schedule.</span>
+  </div>
+  <button class="danger" id="retryLiveDataBtn">Retry Live Data</button>
+</div>
 
 <main>
 <section id="view-home" class="view">
@@ -1737,7 +1920,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v36</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v39</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1817,12 +2000,36 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
 </div>
 
 <div class="score-overlay" id="scoreOverlay">
-<div class="score-top"><button class="ghost" id="closeScoreBtn">← Back</button><div class="center"><b id="scoreTitle">Match</b><span id="scoreSubtitle">Court</span><div class="set-history" id="setHistory"></div></div><button class="ghost" id="fullscreenBtn">Full Screen</button></div>
+<div class="score-top"><button class="ghost" id="closeScoreBtn">← Back</button><div class="center"><b id="scoreTitle">Match</b><span id="scoreSubtitle">Court</span><div class="set-history" id="setHistory"></div><div class="score-save-indicator" id="scoreSaveIndicator"></div></div><button class="ghost" id="fullscreenBtn">Full Screen</button></div>
+<div class="score-device-lock hidden" id="scoreDeviceLock">🔒 Match locked to this phone</div>
 <div class="score-layout">
 <div class="score-side blue" id="sideA"><div class="set-chip" id="setWinsA">0 sets</div><div class="score-number" id="scoreA">0</div><div class="score-name" id="nameA">Team A</div><button class="minus" id="minusA">−</button></div>
 <div class="score-side red" id="sideB"><div class="set-chip" id="setWinsB">0 sets</div><div class="score-number" id="scoreB">0</div><div class="score-name" id="nameB">Team B</div><button class="minus" id="minusB">−</button></div>
 </div>
 <div class="score-bottom"><button class="light" id="swapSidesBtn">⇄ Switch Sides</button><button class="light" id="undoBtn">↶ Undo</button><button class="redbtn admin-only hidden" id="unlockMatchBtn">Unlock Match</button></div>
+
+<div class="score-protection-overlay hidden" id="scoreUnsavedOverlay">
+  <div class="score-protection-card score-unsaved-card">
+    <h2>⚠️ Score Not Confirmed by Server</h2>
+    <p>The last score change may not have reached Supabase. Digital scoring is frozen until we verify it.</p>
+    <div class="score-protection-actions">
+      <button class="primary" id="retryScoreSaveBtn">Retry Save</button>
+      <button class="ghost" id="reloadScoreServerBtn">Reload Server Score</button>
+    </div>
+    <div class="muted" id="scoreUnsavedMessage" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<div class="score-protection-overlay hidden" id="scoreTournamentFreezeOverlay">
+  <div class="score-protection-card score-freeze-card">
+    <h2>Pool Setup Is Changing</h2>
+    <p><b>New team being added. Keep score by yourself or pause game.</b></p>
+    <p class="muted">The digital scoreboard is frozen because the pools/schedule may be rebuilt. This screen will not overwrite the changing tournament data.</p>
+    <div class="score-protection-actions">
+      <button class="primary" id="closeFrozenScoreBtn">Close Scoreboard</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <div class="modal" id="adminModal"><div class="modal-box"><h3>Admin mode</h3><input class="team-input" id="adminPin" type="password" placeholder="Admin code" autocomplete="off"><div class="modal-actions"><button class="ghost" id="cancelAdmin">Cancel</button><button class="primary" id="submitAdmin">Enter Admin</button></div></div></div>
@@ -1858,12 +2065,99 @@ let state={
   poolPreview:[],
   poolPreviewFormat:null,
   admin:false,
-  activeView:"home"
+  activeView:"home",
+  liveDataState:"loading",
+  liveDataMessage:"Connecting to tournament database…"
 };
 let adminCodeSession="";
 let activeConfirmationToken="";
 let activeScore=null, undoStack=[], swapped=false;
+let scoreSaving=false;
+let scorePendingSave=null;
+let scoreHeartbeatTimer=null;
+let scoreTournamentFrozen=false;
 const $=id=>document.getElementById(id);
+
+let mobileNavLastY=0;
+let mobileNavTicking=false;
+
+function mobileNavEnabled(){
+  return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function showMobileNav(){
+  const nav=$("nav");
+  if(!nav)return;
+  nav.classList.remove("mobile-nav-hidden");
+  nav.classList.add("mobile-nav-visible");
+}
+
+function hideMobileNav(){
+  const nav=$("nav");
+  if(!nav)return;
+  if(window.scrollY<90)return;
+  nav.classList.remove("mobile-nav-visible");
+  nav.classList.add("mobile-nav-hidden");
+}
+
+function updateMobileNavOnScroll(){
+  const nav=$("nav");
+  if(!nav)return;
+
+  if(!mobileNavEnabled()){
+    nav.classList.remove("mobile-nav-hidden","mobile-nav-visible");
+    mobileNavLastY=window.scrollY;
+    return;
+  }
+
+  const currentY=Math.max(0,window.scrollY||0);
+
+  // Always keep the menu visible near the top.
+  if(currentY<90){
+    showMobileNav();
+    mobileNavLastY=currentY;
+    return;
+  }
+
+  const delta=currentY-mobileNavLastY;
+
+  // Ignore tiny iOS scroll/bounce movements.
+  if(Math.abs(delta)<8)return;
+
+  if(delta>0){
+    hideMobileNav();
+  }else{
+    showMobileNav();
+  }
+
+  mobileNavLastY=currentY;
+}
+
+function installMobileNavAutoHide(){
+  mobileNavLastY=Math.max(0,window.scrollY||0);
+  showMobileNav();
+
+  window.addEventListener("scroll",()=>{
+    if(mobileNavTicking)return;
+    mobileNavTicking=true;
+
+    requestAnimationFrame(()=>{
+      updateMobileNavOnScroll();
+      mobileNavTicking=false;
+    });
+  },{passive:true});
+
+  window.addEventListener("resize",()=>{
+    updateMobileNavOnScroll();
+  });
+
+  // If the user taps within the nav or changes page, keep it available.
+  $("nav")?.addEventListener("click",()=>{
+    showMobileNav();
+  });
+}
+
+
 
 function setSync(kind,text){
   const box=$("syncStatus");
@@ -1872,9 +2166,9 @@ function setSync(kind,text){
   box.title="Tap to retry live sync";
   box.style.cursor="pointer";
 }
-function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,paid:r.paid,checkedIn:r.checked_in,registrationId:r.registration_id||null}}
-function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
-function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
+function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,paid:!!r.paid,checkedIn:!!r.checked_in,registrationId:r.registration_id||null}}
+function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:Number(r.score_a||0),scoreB:Number(r.score_b||0),final:!!r.final,locked:!!r.locked,refTeam:r.ref_team??null,scoreRevision:Number(r.score_revision||0)}}
+function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:Number(r.current_a||0),currentB:Number(r.current_b||0),final:!!r.final,locked:!!r.locked,refTeam:r.ref_team??null,scoreRevision:Number(r.score_revision||0)}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
 function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),secondPrizeAmount:r?.second_prize_amount==null?null:Number(r.second_prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
@@ -2001,6 +2295,61 @@ function fitScoreViewport(){
 
 
 
+
+function renderLiveDataGuard(){
+  const guard=$("liveDataGuard");
+  if(!guard)return;
+
+  const ready=state.liveDataState==="ready";
+  guard.classList.toggle("hidden",ready);
+
+  const text=$("liveDataGuardText");
+  if(text){
+    text.textContent=
+      state.liveDataMessage||
+      "The tournament database could not be verified. The website will not use a fake backup schedule.";
+  }
+}
+
+function liveDataUnavailableCard(){
+  const box=document.createElement("div");
+  box.className="callout";
+  box.innerHTML=
+    "<b>⚠️ LIVE DATA UNAVAILABLE.</b><br>"+
+    "This view is intentionally not showing backup/fake tournament data. "+
+    "Use <b>Retry Live Data</b> above before making tournament decisions.";
+  return box;
+}
+
+function requireLiveData(root){
+  if(state.liveDataState==="ready")return true;
+  if(root){
+    root.innerHTML="";
+    root.appendChild(liveDataUnavailableCard());
+  }
+  return false;
+}
+
+function markLiveDataError(message){
+  state.liveDataState="error";
+  state.liveDataMessage=
+    message||
+    "The tournament database could not be verified. Do not score until live data reconnects.";
+  setSync("error","Live data unavailable");
+  renderAll();
+
+  if(activeScore && $("scoreOverlay")?.classList.contains("open")){
+    freezeScoreForDataLoss();
+  }
+}
+
+function markLiveDataReady(){
+  state.liveDataState="ready";
+  state.liveDataMessage="";
+  setSync("live","Live sync connected");
+  renderAll();
+}
+
 function buildFallbackCore(){
   const teams=[];
   for(let i=1;i<=16;i++){
@@ -2054,11 +2403,9 @@ function buildFallbackCore(){
 }
 
 function ensureFallbackCore(){
-  if(state.teams.length && state.poolMatches.length && state.bracketMatches.length)return;
-  const fallback=buildFallbackCore();
-  if(!state.teams.length)state.teams=fallback.teams;
-  if(!state.poolMatches.length)state.poolMatches=fallback.poolMatches;
-  if(!state.bracketMatches.length)state.bracketMatches=fallback.bracketMatches;
+  // FINAL v37: intentionally disabled.
+  // Tournament views never substitute fake match/team data when Supabase is unavailable.
+  return false;
 }
 
 function promiseTimeout(promise,ms,label){
@@ -2319,77 +2666,100 @@ function qualifiedBracketSeeds(){
 }
 
 async function loadAll(){
-  // Never let a slow live connection leave the schedule empty.
-  ensureFallbackCore();
-  renderAll();
-  setSync("", "Connecting live data…");
+  const previouslyFinalized=!!state.settings?.poolsFinalized;
+
+  state.liveDataState="loading";
+  state.liveDataMessage="Connecting to tournament database…";
+  renderLiveDataGuard();
+  setSync("","Connecting live data…");
 
   try{
-    const s=await promiseTimeout(
-      sb.from("tournament_settings").select("*").eq("id",1).maybeSingle(),
-      5000,
-      "Tournament settings"
-    );
-    if(!s.error && s.data)state.settings=mapSettings(s.data);
-  }catch(error){
-    console.error("Tournament settings load:",error);
-  }
-
-  let coreLoaded=false;
-
-  try{
-    const [t,p,b]=await promiseTimeout(
+    const [s,t,p,b]=await promiseTimeout(
       Promise.all([
+        sb.from("tournament_settings").select("*").eq("id",1).maybeSingle(),
         sb.from("teams").select("*").order("id"),
         sb.from("pool_matches").select("*").order("round").order("court"),
         sb.from("bracket_matches").select("*")
       ]),
-      8000,
-      "Tournament data"
+      9000,
+      "Tournament live data"
     );
 
-    if(!t.error && t.data?.length) state.teams=t.data.map(mapTeam);
-    if(!p.error && p.data?.length) state.poolMatches=p.data.map(mapPool);
-
-    if(!b.error && b.data?.length){
-      const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
-      state.bracketMatches=b.data.map(mapBracket).sort((x,y)=>order[x.id]-order[y.id]);
+    const errors=[s.error,t.error,p.error,b.error].filter(Boolean);
+    if(errors.length){
+      throw errors[0];
     }
 
-    coreLoaded=!(t.error||p.error||b.error);
-    renderAll();
-  }catch(error){
-    console.error("Core live-data load:",error);
-    ensureFallbackCore();
-    renderAll();
-  }
+    if(!s.data){
+      throw new Error("Tournament settings are missing.");
+    }
 
-  // Registration data is useful, but it must never block schedule/scoring.
-  try{
-    const [r,rp]=await promiseTimeout(
-      Promise.all([
-        sb.from("team_registrations")
-          .select("id,team_name,status,reserved_slot,created_at,confirmed_at,paid,checked_in")
-          .order("created_at"),
-        sb.from("registration_players")
-          .select("id,registration_id,player_number,full_name,confirmed,confirmed_at")
-          .order("player_number")
-      ]),
-      8000,
-      "Registration data"
+    if(!Array.isArray(t.data)||t.data.length===0){
+      throw new Error("Team table could not be verified.");
+    }
+
+    const nextSettings=mapSettings(s.data);
+
+    if(nextSettings.poolsFinalized && (!Array.isArray(p.data)||p.data.length===0)){
+      throw new Error("Pools are finalized, but the official pool schedule is unavailable.");
+    }
+
+    if(nextSettings.poolsFinalized && (!Array.isArray(b.data)||b.data.length===0)){
+      throw new Error("Pools are finalized, but the championship bracket is unavailable.");
+    }
+
+    state.settings=nextSettings;
+    state.teams=(t.data||[]).map(mapTeam);
+    state.poolMatches=(p.data||[]).map(mapPool);
+
+    const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
+    state.bracketMatches=(b.data||[])
+      .map(mapBracket)
+      .sort((x,y)=>(order[x.id]||99)-(order[y.id]||99));
+
+    if(
+      activeScore &&
+      $("scoreOverlay")?.classList.contains("open") &&
+      previouslyFinalized &&
+      !nextSettings.poolsFinalized
+    ){
+      freezeActiveScoreForPoolChange();
+    }
+
+    state.liveDataState="ready";
+    state.liveDataMessage="";
+    renderAll();
+    setSync("live","Live sync connected");
+  }catch(error){
+    console.error("Live tournament data load:",error);
+    markLiveDataError(
+      "Could not verify the live tournament database. Do not score from the website until Retry Live Data succeeds."
     );
-
-    if(!r.error) state.registrations=(r.data||[]).map(mapRegistration);
-    if(!rp.error) state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
-    renderAll();
-  }catch(error){
-    console.error("Registration live-data load:",error);
   }
 
-  setSync(
-    coreLoaded?"live":"error",
-    coreLoaded?"Live sync connected":"Schedule ready • retrying live sync"
-  );
+  // Registration data is secondary. Its failure does not replace tournament data.
+  if(state.liveDataState==="ready"){
+    try{
+      const [r,rp]=await promiseTimeout(
+        Promise.all([
+          sb.from("team_registrations")
+            .select("id,team_name,status,reserved_slot,created_at,confirmed_at,paid,checked_in")
+            .order("created_at"),
+          sb.from("registration_players")
+            .select("id,registration_id,player_number,full_name,confirmed,confirmed_at")
+            .order("player_number")
+        ]),
+        8000,
+        "Registration data"
+      );
+
+      if(!r.error)state.registrations=(r.data||[]).map(mapRegistration);
+      if(!rp.error)state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
+      renderAll();
+    }catch(error){
+      console.error("Registration live-data load:",error);
+    }
+  }
 
   try{
     await loadConfirmationFromURL();
@@ -2456,17 +2826,34 @@ function subscribeRealtime(){
     if(activeConfirmationToken)await loadConfirmationFromURL();
   })
   .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},async payload=>{
+    const wasFinalized=!!state.settings?.poolsFinalized;
+
     if(payload.eventType==="DELETE"){
-      state.settings={registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{}};
-    }else if(payload.new){
-      state.settings=mapSettings(payload.new);
+      markLiveDataError("Tournament settings were removed. Do not score until the database is restored.");
+      return;
     }
+
+    if(payload.new){
+      state.settings=mapSettings(payload.new);
+
+      if(
+        activeScore &&
+        $("scoreOverlay")?.classList.contains("open") &&
+        wasFinalized &&
+        !state.settings.poolsFinalized
+      ){
+        freezeActiveScoreForPoolChange();
+      }
+    }
+
     renderAll();
   })
   .subscribe(status=>{
     if(status==="SUBSCRIBED"){
       setSync("live","Live sync connected");
       loadAll();
+    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
+      setSync("error","Realtime reconnecting…");
     }
   });
 }
@@ -2574,14 +2961,342 @@ async function updateMatchRef(m,value){
   return true;
 }
 
-async function updatePool(m){
-  const {error}=await sb.from("pool_matches").update({score_a:m.scoreA,score_b:m.scoreB,final:m.final,locked:m.locked,updated_at:new Date().toISOString()}).eq("id",m.id);
-  if(error){console.error(error);setSync("error","Sync error");}
+function scoreOperationId(){
+  if(crypto?.randomUUID)return crypto.randomUUID();
+  return `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
-async function updateBracket(m){
-  const {error}=await sb.from("bracket_matches").update({sets:m.sets,current_a:m.currentA||0,current_b:m.currentB||0,final:m.final,locked:m.locked,updated_at:new Date().toISOString()}).eq("id",m.id);
-  if(error){console.error(error);setSync("error","Sync error");}
+
+function scoreLockToken(){
+  let token=sessionStorage.getItem("oneway_score_lock_token");
+  if(!token){
+    token=crypto?.randomUUID
+      ?crypto.randomUUID()
+      :`lock-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    sessionStorage.setItem("oneway_score_lock_token",token);
+  }
+  return token;
 }
+
+function scorePayload(m){
+  if(m.type==="pool"){
+    return {
+      score_a:Number(m.scoreA||0),
+      score_b:Number(m.scoreB||0),
+      final:!!m.final,
+      locked:!!m.locked
+    };
+  }
+
+  return {
+    sets:Array.isArray(m.sets)?m.sets:[],
+    current_a:Number(m.currentA||0),
+    current_b:Number(m.currentB||0),
+    final:!!m.final,
+    locked:!!m.locked
+  };
+}
+
+function scoreArrayFor(type){
+  return type==="pool"?state.poolMatches:state.bracketMatches;
+}
+
+function replaceScoreMatch(type,id,next){
+  const arr=scoreArrayFor(type);
+  const i=arr.findIndex(x=>x.id===id);
+  if(i>=0)arr[i]=next;
+}
+
+function setScoreSaving(on,text=""){
+  scoreSaving=!!on;
+  $("scoreOverlay")?.classList.toggle("score-saving",scoreSaving);
+  const indicator=$("scoreSaveIndicator");
+  if(indicator)indicator.textContent=text;
+}
+
+function showUnsavedScore(message){
+  const overlay=$("scoreUnsavedOverlay");
+  if(overlay)overlay.classList.remove("hidden");
+  const msg=$("scoreUnsavedMessage");
+  if(msg)msg.textContent=message||"Tap Retry Save when the connection is available.";
+  setScoreSaving(false,"UNSAVED — retry required");
+}
+
+function hideUnsavedScore(){
+  $("scoreUnsavedOverlay")?.classList.add("hidden");
+  const msg=$("scoreUnsavedMessage");
+  if(msg)msg.textContent="";
+  scorePendingSave=null;
+  setScoreSaving(false,"");
+}
+
+async function acquireScoreLock(type,id,{silent=false}={}){
+  const token=scoreLockToken();
+
+  try{
+    const {data,error}=await sb.rpc("score_acquire_match_lock",{
+      p_match_type:type,
+      p_match_id:id,
+      p_lock_token:token
+    });
+
+    if(error)throw error;
+
+    if(!data?.acquired){
+      if(!silent){
+        alert(
+          "This match is already open for scoring on another phone.\n\n"+
+          "Only one phone can control a match at a time. If that phone was closed unexpectedly, the lock expires automatically in about 90 seconds."
+        );
+      }
+      return false;
+    }
+
+    if(activeScore && activeScore.type===type && activeScore.id===id){
+      activeScore.lockToken=token;
+      activeScore.hasLock=true;
+    }
+
+    return true;
+  }catch(error){
+    console.error("Acquire score lock:",error);
+
+    if(!silent){
+      alert(
+        "The match could not be locked to this phone because the live database could not be reached. Try again before scoring."
+      );
+    }
+
+    return false;
+  }
+}
+
+async function releaseScoreLock(){
+  if(!activeScore?.hasLock||!activeScore?.lockToken)return;
+
+  const releasing={...activeScore};
+
+  try{
+    await sb.rpc("score_release_match_lock",{
+      p_match_type:releasing.type,
+      p_match_id:releasing.id,
+      p_lock_token:releasing.lockToken
+    });
+  }catch(error){
+    console.warn("Score lock will expire automatically:",error);
+  }
+}
+
+function stopScoreHeartbeat(){
+  if(scoreHeartbeatTimer){
+    clearInterval(scoreHeartbeatTimer);
+    scoreHeartbeatTimer=null;
+  }
+}
+
+function startScoreHeartbeat(){
+  stopScoreHeartbeat();
+
+  if(!activeScore?.hasLock)return;
+
+  scoreHeartbeatTimer=setInterval(async()=>{
+    if(!activeScore?.hasLock||scoreTournamentFrozen)return;
+
+    try{
+      const {data,error}=await sb.rpc("score_match_heartbeat",{
+        p_match_type:activeScore.type,
+        p_match_id:activeScore.id,
+        p_lock_token:activeScore.lockToken
+      });
+
+      if(error)throw error;
+
+      if(!data?.acquired){
+        scoreTournamentFrozen=true;
+        $("scoreTournamentFreezeOverlay")?.classList.remove("hidden");
+        const card=$("scoreTournamentFreezeOverlay")?.querySelector(".score-protection-card p b");
+        if(card)card.textContent="This match lock was lost. Pause scoring and close/reopen the match.";
+      }
+    }catch(error){
+      // A heartbeat failure alone does not change the visible score.
+      // The next score save will verify/reacquire the lock before writing.
+      console.warn("Score lock heartbeat delayed:",error);
+    }
+  },20000);
+}
+
+async function persistScoreState(m,previousState=null,pending=null){
+  if(!activeScore||activeScore.type!==m.type||activeScore.id!==m.id){
+    return false;
+  }
+
+  if(scoreTournamentFrozen){
+    return false;
+  }
+
+  if(state.liveDataState!=="ready"){
+    freezeScoreForDataLoss();
+    return false;
+  }
+
+  const operationId=pending?.operationId||scoreOperationId();
+  const expectedRevision=Number(
+    pending?.expectedRevision ??
+    m.scoreRevision ??
+    0
+  );
+  const payload=pending?.payload||scorePayload(m);
+
+  setScoreSaving(true,"Saving…");
+
+  try{
+    let {data,error}=await sb.rpc("score_save_match_state",{
+      p_match_type:m.type,
+      p_match_id:m.id,
+      p_lock_token:activeScore.lockToken,
+      p_operation_id:operationId,
+      p_expected_revision:expectedRevision,
+      p_payload:payload
+    });
+
+    // If the phone was temporarily offline long enough for its lock to expire,
+    // safely reacquire only if nobody else has taken the match.
+    if(error && String(error.message||"").includes("MATCH_LOCK_REQUIRED")){
+      const reacquired=await acquireScoreLock(m.type,m.id,{silent:true});
+
+      if(reacquired){
+        ({data,error}=await sb.rpc("score_save_match_state",{
+          p_match_type:m.type,
+          p_match_id:m.id,
+          p_lock_token:activeScore.lockToken,
+          p_operation_id:operationId,
+          p_expected_revision:expectedRevision,
+          p_payload:payload
+        }));
+      }
+    }
+
+    if(error)throw error;
+
+    m.scoreRevision=Number(data?.score_revision ?? expectedRevision+1);
+    hideUnsavedScore();
+    setSync("live","Live sync connected");
+    return true;
+  }catch(error){
+    console.error("Protected score save:",error);
+
+    scorePendingSave={
+      type:m.type,
+      id:m.id,
+      operationId,
+      expectedRevision,
+      payload,
+      previousState:previousState?JSON.parse(JSON.stringify(previousState)):null
+    };
+
+    const lockLost=String(error?.message||"").includes("MATCH_LOCK_REQUIRED");
+    const conflict=String(error?.message||"").includes("SCORE_REVISION_CONFLICT");
+    const frozen=String(error?.message||"").includes("TOURNAMENT_FROZEN");
+
+    if(frozen){
+      freezeActiveScoreForPoolChange();
+      return false;
+    }
+
+    showUnsavedScore(
+      lockLost
+        ?"This phone no longer owns the match lock. Retry will attempt to reclaim it only if no other phone has taken the match."
+        :conflict
+          ?"The server score changed unexpectedly. Use Reload Server Score before continuing."
+          :"The last change is still shown on this phone, but the server did not confirm it. Retry before continuing."
+    );
+
+    setSync("error","Score save needs retry");
+    return false;
+  }
+}
+
+async function updatePool(m,previousState=null,pending=null){
+  return persistScoreState(m,previousState,pending);
+}
+
+async function updateBracket(m,previousState=null,pending=null){
+  return persistScoreState(m,previousState,pending);
+}
+
+async function retryPendingScoreSave(){
+  if(!scorePendingSave||!activeScore)return;
+
+  const m=scoreMatch();
+  if(!m)return;
+
+  $("scoreUnsavedMessage").textContent="Retrying…";
+
+  const ok=await persistScoreState(
+    m,
+    scorePendingSave.previousState,
+    {...scorePendingSave}
+  );
+
+  if(ok){
+    renderAll();
+    refreshScoreOverlay();
+
+    if(isSetComplete(m)&&!m.final){
+      promptSetConfirm();
+    }
+  }
+}
+
+async function reloadActiveScoreFromServer(){
+  if(!activeScore)return;
+
+  const table=activeScore.type==="pool"?"pool_matches":"bracket_matches";
+
+  try{
+    $("scoreUnsavedMessage").textContent="Reloading the server score…";
+
+    const {data,error}=await sb
+      .from(table)
+      .select("*")
+      .eq("id",activeScore.id)
+      .maybeSingle();
+
+    if(error||!data)throw error||new Error("Match not found");
+
+    const mapped=activeScore.type==="pool"?mapPool(data):mapBracket(data);
+    replaceScoreMatch(activeScore.type,activeScore.id,mapped);
+    undoStack=[];
+    hideUnsavedScore();
+    renderAll();
+    refreshScoreOverlay();
+    setSync("live","Live sync connected");
+  }catch(error){
+    console.error("Reload score:",error);
+    $("scoreUnsavedMessage").textContent=
+      "Still unable to verify the server score. Keep this screen open and retry when the connection returns.";
+  }
+}
+
+function freezeScoreForDataLoss(){
+  if(!activeScore)return;
+  scoreTournamentFrozen=true;
+  $("scoreTournamentFreezeOverlay")?.classList.remove("hidden");
+  const bold=$("scoreTournamentFreezeOverlay")?.querySelector(".score-protection-card p b");
+  if(bold){
+    bold.textContent="Live tournament data is unavailable. Pause the game or keep score separately until the database reconnects.";
+  }
+}
+
+function freezeActiveScoreForPoolChange(){
+  if(!activeScore)return;
+  scoreTournamentFrozen=true;
+  stopScoreHeartbeat();
+  $("confirmModal")?.classList.remove("open");
+  $("scoreUnsavedOverlay")?.classList.add("hidden");
+  $("scoreTournamentFreezeOverlay")?.classList.remove("hidden");
+  setScoreSaving(false,"FROZEN — pool setup is changing");
+}
+
 
 function showView(view){
   state.activeView=view;
@@ -2826,6 +3541,7 @@ function resultRankingCompare(a,b){
     String(a.neutralTieKey||"").localeCompare(String(b.neutralTieKey||""));
 }
 
+
 function qualifiedBracketSeeds(){
   if(!state.settings.poolsFinalized)return [];
 
@@ -2919,7 +3635,8 @@ function bracketKeyMap(){
 
   // Backward compatibility for older pool-key bracket rows.
   activePools().forEach(p=>{
-    poolStandings(p).forEach(r=>map[`${p}-${r.seed}`]=r.teamId);
+    poolStandings(p)
+      .forEach((r,i)=>map[`${p}-${i+1}`]=r.teamId);
   });
 
   return map;
@@ -2965,6 +3682,7 @@ function rosterForTeam(t){
 function renderTeams(){
   const grid=$("teamGrid");
   grid.innerHTML="";
+  if(!requireLiveData(grid))return;
 
   if(!state.settings.poolsFinalized){
     const banner=document.createElement("div");
@@ -3178,6 +3896,7 @@ function renderTeams(){
 function renderSchedule(){
   const root=$("scheduleGrid");
   root.innerHTML="";
+  if(!requireLiveData(root))return;
 
   if(!state.settings.poolsFinalized){
     const banner=document.createElement("div");
@@ -3291,6 +4010,7 @@ function renderSchedule(){
 function renderStandings(){
   const root=$("standingsGrid");
   root.innerHTML="";
+  if(!requireLiveData(root))return;
 
   if(!state.settings.poolsFinalized){
     const note=$("standingsNote");
@@ -3349,7 +4069,7 @@ function renderStandings(){
         ?"Top 2 from each pool advance. Cross-pool bracket placement uses win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
         :poolCount===3
           ?"Top 2 from each pool advance plus 2 wildcards. Wildcards and bracket placement use win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
-          :"All 8 teams advance; pool play determines bracket placement using win % → point differential/game → points/game. Exact statistical ties use a neutral draw key.";
+          :"All 8 pool teams advance; pool play determines bracket placement using win % → point differential/game → points/game. Exact statistical ties use a neutral draw key.";
   }
 
   const qualified=allPoolsFinal()?qualifiedBracketSeeds():[];
@@ -3375,15 +4095,17 @@ function renderStandings(){
       const q=qualifiedMap.get(r.teamId);
       let status="";
 
-      if(poolCount===2){
-        status='<span class="pill green">Advances</span>';
-      }else if(r.seed<=2){
-        status='<span class="pill green">Auto Bid</span>';
-      }else if(q?.wildcard){
-        status='<span class="pill orange">Wildcard</span>';
+      if(q){
+        if(poolCount===2){
+          status='<span class="pill green">Advances</span>';
+        }else if(q.wildcard){
+          status='<span class="pill orange">Wildcard</span>';
+        }else{
+          status='<span class="pill green">Auto Bid</span>';
+        }
       }
 
-      if(status)tr.style.background="#eef8f2";
+      if(q)tr.style.background="#eef8f2";
 
       tr.innerHTML=
         `<td><b>${r.seed}</b></td>`+
@@ -3415,6 +4137,7 @@ function bracketStatus(m){
 function renderBracket(){
   const root=$("bracketGrid");
   root.innerHTML="";
+  if(!requireLiveData(root))return;
 
   if(!state.settings.poolsFinalized){
     const note=$("bracketNote");
@@ -3482,9 +4205,10 @@ function renderBracket(){
   }
 
   const note=$("bracketNote");
+
   if(note){
     note.textContent=
-      "Skill level is not used here. Bracket placement is determined only by pool-play results. Reffing teams are assigned automatically and Admin can override them.";
+      "Every bracket team already earned entry by playing in the official pools. Skill level is not used here; bracket placement is determined only by pool-play results.";
   }
 
   [
@@ -3549,13 +4273,25 @@ function renderRegistrations(){
   const countEl=$("registrationCount");
   if(!countEl)return;
 
+  if(state.liveDataState!=="ready"){
+    countEl.textContent="Live data unavailable";
+    const ids=["regTeamName","regSkillLevel","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4","regAgreement","submitRegistration"];
+    ids.forEach(id=>{const el=$(id);if(el)el.disabled=true;});
+    const root=$("registrationPublicList");
+    if(root)root.innerHTML='<div class="callout"><b>Registration paused:</b> live tournament data must reconnect first.</div>';
+    return;
+  }
+
   const reserved=state.registrations.filter(r=>["pending","registered"].includes(r.status)&&r.reservedSlot).length;
-  const registered=state.registrations.filter(r=>r.status==="registered").length;
+  const fullyRegistered=state.registrations.filter(r=>r.status==="registered").length;
+  const poolEligible=state.registrations.filter(
+    r=>r.status==="registered" && r.paid && r.checkedIn
+  ).length;
 
   if(state.settings.registrationOpen){
-    countEl.textContent=`${reserved}/16 spots reserved • ${registered} fully registered`;
+    countEl.textContent=`${reserved}/16 spots reserved • ${fullyRegistered} fully registered`;
   }else{
-    countEl.textContent=`Registration Closed • ${registered} fully registered`;
+    countEl.textContent=`Registration Closed • ${fullyRegistered} fully registered`;
   }
 
   $("registrationProgress").style.width=`${Math.min(100,(reserved/16)*100)}%`;
@@ -3946,7 +4682,24 @@ function renderPoolBuilder(){
 
   if(!status||!grid)return;
 
-  const registered=state.registrations.filter(r=>r.status==="registered").length;
+  if(state.liveDataState!=="ready"){
+    status.innerHTML="<b>Live data unavailable.</b> Pool controls are paused until the tournament database reconnects.";
+    previewBtn.disabled=true;
+    regenBtn.classList.add("hidden");
+    lockBtn.classList.add("hidden");
+    reopenBtn.classList.add("hidden");
+    grid.innerHTML="";
+    msg.textContent="Use Retry Live Data before changing pools.";
+    return;
+  }
+
+  const fullyRegistered=state.registrations.filter(
+    r=>r.status==="registered"
+  ).length;
+
+  const poolEligible=state.registrations.filter(
+    r=>r.status==="registered" && r.paid && r.checkedIn
+  ).length;
 
   if(state.settings.poolsFinalized){
     status.innerHTML=`<b>Pools locked.</b> ${state.settings.teamCount} teams are assigned across ${state.settings.poolCount} pools. Registration is closed.`;
@@ -3955,7 +4708,7 @@ function renderPoolBuilder(){
     lockBtn.classList.add("hidden");
     reopenBtn.classList.remove("hidden");
     grid.innerHTML="";
-    msg.textContent="Skill ratings are no longer used. From this point forward, only match results determine standings and bracket seeds.";
+    msg.textContent="Pool eligibility was verified when the pools were locked. From this point forward, only match results determine standings and bracket seeds.";
     return;
   }
 
@@ -3963,23 +4716,33 @@ function renderPoolBuilder(){
   previewBtn.classList.remove("hidden");
 
   if(!state.settings.registrationOpen){
-    status.innerHTML=`<b>Registration is closed, but pools need to be finalized again.</b> ${registered} fully registered teams are currently eligible.`;
-  }else if(registered<8){
-    status.innerHTML=`<b>${registered} fully registered team${registered===1?"":"s"}.</b> A minimum of 8 is required to generate the tournament.`;
+    status.innerHTML=
+      `<b>Registration is closed, but pools need to be finalized again.</b> `+
+      `${poolEligible} pool-eligible team${poolEligible===1?"":"s"} `+
+      `(${fullyRegistered} fully registered total).`;
+  }else if(poolEligible<8){
+    status.innerHTML=
+      `<b>${poolEligible} pool-eligible team${poolEligible===1?"":"s"}.</b> `+
+      `${fullyRegistered} fully registered total. `+
+      `A team must be <b>fully registered + paid + checked in</b> before it can enter a pool. `+
+      `A minimum of 8 pool-eligible teams is required.`;
   }else{
-    const format=formatForTeamCount(registered);
-    status.innerHTML=`<b>${registered} fully registered teams.</b> Current format: ${format.poolCount} pools (${format.sizes.join(" / ")} teams).`;
+    const format=formatForTeamCount(poolEligible);
+    status.innerHTML=
+      `<b>${poolEligible} pool-eligible teams.</b> `+
+      `${fullyRegistered} fully registered total. `+
+      `Current format: ${format.poolCount} pools (${format.sizes.join(" / ")} teams).`;
   }
 
-  previewBtn.disabled=registered<8||registered>16;
+  previewBtn.disabled=poolEligible<8||poolEligible>16;
 
   if(!state.poolPreview.length){
     regenBtn.classList.add("hidden");
     lockBtn.classList.add("hidden");
     grid.innerHTML="";
-    msg.textContent=registered>=8
-      ?"Preview creates balanced pools by spreading Competitive, Intermediate, Recreational, and Not Sure teams. You can adjust them before locking."
-      :"Complete at least 8 team confirmations before finalizing.";
+    msg.textContent=poolEligible>=8
+      ?"Preview uses only teams that are fully registered, paid, and checked in. Skill level then balances those eligible teams across the starting pools."
+      :"Mark at least 8 fully registered teams Paid and Checked In before finalizing.";
     return;
   }
 
@@ -4068,7 +4831,7 @@ async function lockPoolPreview(){
 
   const yes=confirm(
     "Lock these pools and close registration?\n\n"+
-    "This will generate the official pool schedule and reset any old pool/bracket results."
+    "Only fully registered + paid + checked-in teams are included. This will generate the official pool schedule and reset any old pool/bracket results."
   );
   if(!yes)return;
 
@@ -4752,6 +5515,7 @@ async function clearPrizeAmount(){
 }
 
 function renderAll(){
+  renderLiveDataGuard();
   renderRuleSections();
   renderPrize();
   renderSecondPrize();
@@ -4762,24 +5526,61 @@ function renderAll(){
 }
 function scoreMatch(){return !activeScore?null:(activeScore.type==="pool"?state.poolMatches.find(m=>m.id===activeScore.id):state.bracketMatches.find(m=>m.id===activeScore.id))}
 async function openScore(type,id){
-  activeScore={type,id};
+  if(state.liveDataState!=="ready"){
+    alert("Live tournament data is unavailable. Retry the connection before opening a scorer.");
+    return;
+  }
+
+  const candidate=
+    type==="pool"
+      ?state.poolMatches.find(m=>m.id===id)
+      :state.bracketMatches.find(m=>m.id===id);
+
+  if(!candidate)return;
+
+  activeScore={
+    type,
+    id,
+    lockToken:null,
+    hasLock:false,
+    viewOnly:!!candidate.final
+  };
+
   undoStack=[];
   swapped=false;
+  scorePendingSave=null;
+  scoreTournamentFrozen=false;
+  setScoreSaving(false,"");
+  $("scoreUnsavedOverlay")?.classList.add("hidden");
+  $("scoreTournamentFreezeOverlay")?.classList.add("hidden");
+
+  // Completed scores are view-only and do not need to claim the scoring lock.
+  if(!candidate.final){
+    const acquired=await acquireScoreLock(type,id);
+
+    if(!acquired){
+      activeScore=null;
+      return;
+    }
+  }
 
   const overlay=$("scoreOverlay");
   document.documentElement.classList.add("score-active");
   document.body.classList.add("score-open");
 
   overlay.classList.add("open");
+  $("scoreDeviceLock")?.classList.toggle("hidden",!activeScore.hasLock);
   refreshScoreOverlay();
 
-  // Force the score view to the exact live viewport.
+  if(activeScore.hasLock){
+    startScoreHeartbeat();
+  }
+
   fitScoreViewport();
   requestAnimationFrame(fitScoreViewport);
   setTimeout(fitScoreViewport,50);
   setTimeout(fitScoreViewport,250);
 
-  // Attempt true browser fullscreen as well.
   await enterTrueFullscreen();
 
   try{
@@ -4790,27 +5591,215 @@ async function openScore(type,id){
 
   fitScoreViewport();
 }
+
 async function closeScore(){
+  if(scorePendingSave){
+    alert(
+      "There is an unverified score change on this phone. Use Retry Save or Reload Server Score before closing."
+    );
+    return;
+  }
+
+  stopScoreHeartbeat();
+  await releaseScoreLock();
+
   const overlay=$("scoreOverlay");
   overlay.classList.remove("open");
   overlay.removeAttribute("style");
+  overlay.classList.remove("score-saving","score-decision");
   document.documentElement.classList.remove("score-active");
   document.body.classList.remove("score-open");
+
+  $("scoreDeviceLock")?.classList.add("hidden");
+  $("scoreUnsavedOverlay")?.classList.add("hidden");
+  $("scoreTournamentFreezeOverlay")?.classList.add("hidden");
+
   activeScore=null;
+  scoreTournamentFrozen=false;
+  scorePendingSave=null;
+  setScoreSaving(false,"");
   await exitTrueFullscreen();
 }
-function snapshot(){const m=scoreMatch();if(m)undoStack.push(JSON.stringify(m));if(undoStack.length>30)undoStack.shift()}
-async function restoreLast(){if(!activeScore||!undoStack.length)return;const restored=JSON.parse(undoStack.pop()),arr=activeScore.type==="pool"?state.poolMatches:state.bracketMatches,idx=arr.findIndex(m=>m.id===activeScore.id);arr[idx]=restored;renderAll();activeScore.type==="pool"?await updatePool(restored):await updateBracket(restored)}
-function currentScores(m){return m.type==="pool"?[m.scoreA,m.scoreB]:[m.currentA||0,m.currentB||0]}
-function isSetComplete(m){const[a,b]=currentScores(m);if(m.type==="pool")return a===25||b===25;const target=(m.sets.length+1)===3?15:21;return(a>=target||b>=target)&&Math.abs(a-b)>=2}
-async function increment(side,delta){
-  const m=scoreMatch();if(!m||m.locked)return;if(m.type==="bracket"&&bracketStatus(m)!=="Ready"&&!m.final)return;snapshot();
-  if(m.type==="pool"){if(m.final)return;if(side==="A")m.scoreA=Math.max(0,m.scoreA+delta);else m.scoreB=Math.max(0,m.scoreB+delta);m.scoreA=Math.min(25,m.scoreA);m.scoreB=Math.min(25,m.scoreB);await updatePool(m)}
-  else{if(m.final)return;if(side==="A")m.currentA=Math.max(0,(m.currentA||0)+delta);else m.currentB=Math.max(0,(m.currentB||0)+delta);await updateBracket(m)}
-  renderAll();if(isSetComplete(m))promptSetConfirm();
+
+function snapshot(){
+  const m=scoreMatch();
+  if(m)undoStack.push(JSON.stringify(m));
+  if(undoStack.length>30)undoStack.shift();
 }
-function promptSetConfirm(){const m=scoreMatch();if(!m)return;const[a,b]=currentScores(m),ids=m.type==="pool"?[m.teamA,m.teamB]:bracketTeamIds(m),winner=a>b?nameOf(ids[0]):nameOf(ids[1]);$("confirmTitle").textContent=m.type==="pool"?"Confirm Match":"Confirm Set";$("confirmText").textContent=`${winner} wins ${a}–${b}. Lock this ${m.type==="pool"?"match":"set"}?`;$("confirmModal").classList.add("open")}
-async function confirmSet(){const m=scoreMatch();if(!m)return;if(m.type==="pool"){m.final=true;m.locked=true;await updatePool(m)}else{m.sets.push({a:m.currentA||0,b:m.currentB||0});m.currentA=0;m.currentB=0;const w=bracketSetWins(m);if(w.a>=2||w.b>=2){m.final=true;m.locked=true}await updateBracket(m)}$("confirmModal").classList.remove("open");renderAll()}
+
+async function restoreLast(){
+  if(
+    !activeScore ||
+    !undoStack.length ||
+    scoreSaving ||
+    scorePendingSave ||
+    scoreTournamentFrozen
+  )return;
+
+  const current=scoreMatch();
+  if(!current||current.locked)return;
+
+  const restored=JSON.parse(undoStack.pop());
+  const before=JSON.parse(JSON.stringify(current));
+
+  // Revision belongs to the current server row, not the historical snapshot.
+  restored.scoreRevision=Number(current.scoreRevision||0);
+  replaceScoreMatch(activeScore.type,activeScore.id,restored);
+
+  const ok=
+    activeScore.type==="pool"
+      ?await updatePool(restored,before)
+      :await updateBracket(restored,before);
+
+  renderAll();
+  refreshScoreOverlay();
+
+  if(!ok)return;
+}
+
+function currentScores(m){
+  return m.type==="pool"
+    ?[m.scoreA,m.scoreB]
+    :[m.currentA||0,m.currentB||0];
+}
+
+function isSetComplete(m){
+  const[a,b]=currentScores(m);
+
+  if(m.type==="pool"){
+    return (a===25||b===25) && a!==b;
+  }
+
+  const target=(m.sets.length+1)===3?15:21;
+  return (a>=target||b>=target) && Math.abs(a-b)>=2;
+}
+
+async function increment(side,delta){
+  const m=scoreMatch();
+
+  if(
+    !m ||
+    m.locked ||
+    m.final ||
+    scoreSaving ||
+    scorePendingSave ||
+    scoreTournamentFrozen
+  )return;
+
+  if(m.type==="bracket"&&bracketStatus(m)!=="Ready")return;
+
+  // Once a set/match reaches a legal winning score, +1 is frozen.
+  // Confirm, minus, and Undo remain available.
+  if(delta>0 && isSetComplete(m)){
+    promptSetConfirm();
+    return;
+  }
+
+  const before=JSON.parse(JSON.stringify(m));
+  snapshot();
+
+  if(m.type==="pool"){
+    if(side==="A"){
+      m.scoreA=Math.max(0,Math.min(25,m.scoreA+delta));
+    }else{
+      m.scoreB=Math.max(0,Math.min(25,m.scoreB+delta));
+    }
+  }else{
+    if(side==="A"){
+      m.currentA=Math.max(0,(m.currentA||0)+delta);
+    }else{
+      m.currentB=Math.max(0,(m.currentB||0)+delta);
+    }
+  }
+
+  renderAll();
+  refreshScoreOverlay();
+
+  const ok=
+    m.type==="pool"
+      ?await updatePool(m,before)
+      :await updateBracket(m,before);
+
+  renderAll();
+  refreshScoreOverlay();
+
+  if(ok && isSetComplete(m)){
+    promptSetConfirm();
+  }
+}
+
+function promptSetConfirm(){
+  const m=scoreMatch();
+  if(!m||scorePendingSave||scoreTournamentFrozen)return;
+
+  const[a,b]=currentScores(m);
+  const ids=m.type==="pool"?[m.teamA,m.teamB]:bracketTeamIds(m);
+  const winner=a>b?nameOf(ids[0]):nameOf(ids[1]);
+
+  $("confirmTitle").textContent=
+    m.type==="pool"?"Confirm Match":"Confirm Set";
+
+  $("confirmText").textContent=
+    `${winner} wins ${a}–${b}. Lock this ${m.type==="pool"?"match":"set"}? `+
+    "If the score is wrong, choose Keep Scoring and use minus or Undo.";
+
+  $("confirmModal").classList.add("open");
+}
+
+async function confirmSet(){
+  const m=scoreMatch();
+  if(!m||scoreSaving||scorePendingSave||scoreTournamentFrozen)return;
+
+  if(!isSetComplete(m)){
+    $("confirmModal").classList.remove("open");
+    return;
+  }
+
+  const before=JSON.parse(JSON.stringify(m));
+
+  if(m.type==="pool"){
+    m.final=true;
+    m.locked=true;
+
+    const ok=await updatePool(m,before);
+    if(!ok)return;
+  }else{
+    m.sets.push({
+      a:m.currentA||0,
+      b:m.currentB||0
+    });
+
+    m.currentA=0;
+    m.currentB=0;
+
+    const w=bracketSetWins(m);
+
+    if(w.a>=2||w.b>=2){
+      m.final=true;
+      m.locked=true;
+    }
+
+    const ok=await updateBracket(m,before);
+    if(!ok)return;
+  }
+
+  $("confirmModal").classList.remove("open");
+
+  // A finalized match no longer needs an active writer lock.
+  if(m.final){
+    stopScoreHeartbeat();
+    await releaseScoreLock();
+    if(activeScore){
+      activeScore.hasLock=false;
+      activeScore.viewOnly=true;
+    }
+    $("scoreDeviceLock")?.classList.add("hidden");
+  }
+
+  renderAll();
+  refreshScoreOverlay();
+}
+
 async function unlockMatch(){
   if(!state.admin||!adminCodeSession){
     alert("Admin access required.");
@@ -4848,9 +5837,72 @@ async function unlockMatch(){
   renderAll();
 }
 function refreshScoreOverlay(){
-  if(!activeScore||!$("scoreOverlay").classList.contains("open"))return;const m=scoreMatch();if(!m)return;const ids=m.type==="pool"?[m.teamA,m.teamB]:bracketTeamIds(m),names=[nameOf(ids[0]),nameOf(ids[1])],scores=currentScores(m),wins=m.type==="bracket"?bracketSetWins(m):{a:m.final&&m.scoreA>m.scoreB?1:0,b:m.final&&m.scoreB>m.scoreA?1:0},left=swapped?1:0,right=swapped?0:1;
-  $("nameA").textContent=names[left];$("nameB").textContent=names[right];$("scoreA").textContent=scores[left];$("scoreB").textContent=scores[right];$("setWinsA").textContent=`${left===0?wins.a:wins.b} set${(left===0?wins.a:wins.b)===1?"":"s"}`;$("setWinsB").textContent=`${right===0?wins.a:wins.b} set${(right===0?wins.a:wins.b)===1?"":"s"}`;$("scoreTitle").textContent=m.type==="pool"?`Pool ${m.pool} • ${m.id}`:`${m.round} • ${m.id}`;$("scoreSubtitle").textContent=`Court ${m.court} • ${m.time} • Ref: ${refNameForMatch(m)}`;$("sideA").classList.toggle("locked-side",m.locked);$("sideB").classList.toggle("locked-side",m.locked);$("unlockMatchBtn").classList.toggle("hidden",!state.admin||!m.locked);$("setHistory").innerHTML="";if(m.type==="bracket")m.sets.forEach((s,i)=>{const p=document.createElement("span");p.className="pill";p.textContent=`S${i+1}: ${s.a}-${s.b}`;$("setHistory").appendChild(p)})
+  if(!activeScore||!$("scoreOverlay").classList.contains("open"))return;
+
+  const m=scoreMatch();
+  if(!m)return;
+
+  const ids=
+    m.type==="pool"
+      ?[m.teamA,m.teamB]
+      :bracketTeamIds(m);
+
+  const names=[nameOf(ids[0]),nameOf(ids[1])];
+  const scores=currentScores(m);
+
+  const wins=
+    m.type==="bracket"
+      ?bracketSetWins(m)
+      :{
+          a:m.final&&m.scoreA>m.scoreB?1:0,
+          b:m.final&&m.scoreB>m.scoreA?1:0
+        };
+
+  const left=swapped?1:0;
+  const right=swapped?0:1;
+
+  $("nameA").textContent=names[left];
+  $("nameB").textContent=names[right];
+  $("scoreA").textContent=scores[left];
+  $("scoreB").textContent=scores[right];
+
+  const leftWins=left===0?wins.a:wins.b;
+  const rightWins=right===0?wins.a:wins.b;
+
+  $("setWinsA").textContent=
+    `${leftWins} set${leftWins===1?"":"s"}`;
+
+  $("setWinsB").textContent=
+    `${rightWins} set${rightWins===1?"":"s"}`;
+
+  $("scoreTitle").textContent=
+    m.type==="pool"
+      ?`Pool ${m.pool} • ${m.id}`
+      :`${m.round} • ${m.id}`;
+
+  $("scoreSubtitle").textContent=
+    `Court ${m.court} • ${m.time} • Ref: ${refNameForMatch(m)}`;
+
+  $("sideA").classList.toggle("locked-side",m.locked);
+  $("sideB").classList.toggle("locked-side",m.locked);
+  $("unlockMatchBtn").classList.toggle("hidden",!state.admin||!m.locked);
+
+  $("setHistory").innerHTML="";
+
+  if(m.type==="bracket"){
+    m.sets.forEach((s,i)=>{
+      const p=document.createElement("span");
+      p.className="pill";
+      p.textContent=`S${i+1}: ${s.a}-${s.b}`;
+      $("setHistory").appendChild(p);
+    });
+  }
+
+  const decision=isSetComplete(m)&&!m.final;
+  $("scoreOverlay")?.classList.toggle("score-decision",decision);
+  $("scoreDeviceLock")?.classList.toggle("hidden",!activeScore?.hasLock);
 }
+
 async function resetDemo(){
   if(!state.admin||!adminCodeSession){
     alert("Admin access required.");
@@ -4981,9 +6033,23 @@ if(window.visualViewport){
   window.visualViewport.addEventListener("scroll",fitScoreViewport);
 }
 
+$("retryLiveDataBtn").onclick=()=>loadAll();
+$("retryScoreSaveBtn").onclick=retryPendingScoreSave;
+$("reloadScoreServerBtn").onclick=reloadActiveScoreFromServer;
+$("closeFrozenScoreBtn").onclick=async()=>{
+  scorePendingSave=null;
+  await closeScore();
+};
+window.addEventListener("online",()=>{
+  if(scorePendingSave){
+    retryPendingScoreSave();
+  }else{
+    loadAll();
+  }
+});
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
-ensureFallbackCore();
+installMobileNavAutoHide();
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
 if(startupConfirmToken){
@@ -5002,3 +6068,4 @@ loadAll().finally(subscribeRealtime);
 </script>
 </body>
 </html>
+<style>.score-overlay{z-index:2147483000!important}.modal{z-index:2147483646!important}</style>

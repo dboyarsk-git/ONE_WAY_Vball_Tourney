@@ -1,48 +1,22 @@
-ONE WAY Grass 4s — FINAL v36
+ONE WAY v39
 
-DESKTOP ORDER
+FIXES
+- Fixed the v38 Registration runtime variable error.
+- Fixed the v38 Pool Builder runtime variable error.
 
-LEFT COLUMN
-1. First Place Prize
-2. Second Place Prize
-3. Payments
-4. Registration & Tournament Format
-5. Non-Negotiables
+MOBILE MENU
+- Scroll down -> menu slides out of view.
+- Scroll up -> menu returns.
+- Near the top of the page -> menu stays visible.
+- Small iPhone bounce movements are ignored.
+- Desktop navigation is unchanged.
 
-RIGHT COLUMN
-1. Location & Schedule
-2. Scoring Format
-3. Game Rules
-4. Conduct & Sportsmanship
-
-The two desktop columns remain independent:
-- boxes stop at their own content
-- a taller left card does not force empty space on the right
-- a taller right card does not force empty space on the left
-
-PHONE / TABLET ORDER
-1. First Place Prize
-2. Second Place Prize
-3. Payments
-4. Location & Schedule
-5. Registration & Tournament Format
-6. Scoring Format
-7. Game Rules
-8. Non-Negotiables
-9. Conduct & Sportsmanship
-
-NON-NEGOTIABLES
-- slightly tighter padding, font size, and line spacing
-
-SECOND PLACE PRIZE
-- public card shows TBD until Admin sets it
-- Admin can enter a dollar amount
-- Admin can return it to TBD
-- stored in Supabase, so no recoding is needed to change it later
+DATABASE
+- v39 itself requires no new Supabase migration.
+- If v38 backend SQL has not yet been run, use the included supabase_v38_run_this.sql.
 
 DEPLOY
-1. Run supabase_v36_second_prize.sql in Supabase SQL Editor.
-2. Replace GitHub index.html with v36 index.html.
-3. Commit / redeploy.
-4. Hard refresh.
-5. Footer should say Build FINAL v36.
+1. Replace GitHub index.html with this v39 index.html.
+2. Commit/deploy.
+3. Hard refresh.
+4. Footer should show Build FINAL v39.
