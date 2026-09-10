@@ -87,6 +87,8 @@ footer{padding:28px 6px 50px;color:#5d6468;text-align:center;font-size:.88rem}
 .rules-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .rule-card{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}
 .rule-card h3{margin:0 0 10px;font-size:1.05rem}
+#paymentCard{grid-column:1;}
+@media(max-width:900px){#paymentCard{grid-column:auto;}}
 .rule-list{margin:0;padding-left:20px;line-height:1.65}
 .rule-list li+li{margin-top:4px}
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -1304,59 +1306,58 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   </div>
   <div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
 </div>
+</div>
 
-<div class="payment-public-box" id="paymentPublicBox">
-  <h4>💵 Payments</h4>
-  <div class="payment-line"><b>Team Fee:</b> $60</div>
-  <div class="payment-line"><b>Zelle:</b> <span id="paymentZellePublic">TBD</span></div>
-  <div class="payment-line" id="paymentCashPublic">Cash can be paid at conference check-in.</div>
-  <div class="payment-line muted" id="paymentNotePublic">Captain is responsible for the full team payment.</div>
+<div class="rule-card" id="paymentCard">
+<h3>💵 Payments</h3>
+<div class="payment-line"><b>Team Fee:</b> $60</div>
+<div class="payment-line"><b>Zelle:</b> <span id="paymentZellePublic">TBD</span></div>
+<div class="payment-line" id="paymentCashPublic">Cash can be paid at conference check-in.</div>
+<div class="payment-line muted" id="paymentNotePublic">Captain is responsible for the full team payment.</div>
 
-  <div class="admin-only payment-admin">
-    <div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
+<div class="admin-only payment-admin">
+  <div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
 
-    <div class="payment-admin-grid">
-      <label>
-        Zelle phone number or email
-        <input
-          id="adminPaymentZelle"
-          class="team-input"
-          maxlength="120"
-          placeholder="Example: 980-555-1234"
-        >
-      </label>
+  <div class="payment-admin-grid">
+    <label>
+      Zelle phone number or email
+      <input
+        id="adminPaymentZelle"
+        class="team-input"
+        maxlength="120"
+        placeholder="Example: 980-555-1234"
+      >
+    </label>
 
-      <label>
-        Cash instructions
-        <input
-          id="adminPaymentCash"
-          class="team-input"
-          maxlength="220"
-          placeholder="Cash can be paid at conference check-in."
-        >
-      </label>
+    <label>
+      Cash instructions
+      <input
+        id="adminPaymentCash"
+        class="team-input"
+        maxlength="220"
+        placeholder="Cash can be paid at conference check-in."
+      >
+    </label>
 
-      <label>
-        Payment note
-        <input
-          id="adminPaymentNote"
-          class="team-input"
-          maxlength="220"
-          placeholder="Captain is responsible for the full team payment."
-        >
-      </label>
-    </div>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <button class="small-btn" id="savePaymentInfoBtn">Save Payment Info</button>
-      <button class="small-btn" id="clearPaymentZelleBtn">Clear Zelle</button>
-    </div>
-
-    <div class="muted" id="adminPaymentStatus" style="margin-top:7px"></div>
+    <label>
+      Payment note
+      <input
+        id="adminPaymentNote"
+        class="team-input"
+        maxlength="220"
+        placeholder="Captain is responsible for the full team payment."
+      >
+    </label>
   </div>
-</div>
-</div>
 
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="small-btn" id="savePaymentInfoBtn">Save Payment Info</button>
+    <button class="small-btn" id="clearPaymentZelleBtn">Clear Zelle</button>
+  </div>
+
+  <div class="muted" id="adminPaymentStatus" style="margin-top:7px"></div>
+</div>
+</div>
 <div class="rule-card editable-rule-card" data-rule-key="location">
 <div class="rule-card-head">
 <h3 class="rule-card-title">📍 Location & Schedule</h3>
