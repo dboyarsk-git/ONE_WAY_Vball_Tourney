@@ -1,38 +1,28 @@
-ONE WAY Grass 4s — FINAL v32 CAPTAIN PAYMENT
+ONE WAY Grass 4s — FINAL v34
 
-PAYMENT MODEL
-- Captain is responsible for the full $60 team fee.
-- Players do not manage individual payment statuses.
-- Admin remains the only person who marks a team Paid / Unpaid.
+FIXED HOME LAYOUT
 
-HOME PAGE
-Inside the First Place Prize card there is now a Payments section:
-- Team Fee: $60
-- Zelle: Admin-editable
-- Cash instructions: Admin-editable
-- Captain payment note: Admin-editable
+Top section is now forced into this structure:
 
-CAPTAIN REGISTRATION COMPLETE SCREEN
-After submitting a team, the captain sees:
-- the teammate confirmation link
-- $60 team fee
-- current Zelle information
-- current cash instructions
-- reminder that Admin verifies payment
+LEFT:
+- First Place Prize
+- Payments
 
-PLAYER CONFIRMATION PAGE
-No payment controls were added. Players only confirm their roster spot and rules.
+RIGHT:
+- Location & Schedule
 
-ADMIN
-Home -> First Place Prize / Payments:
-- edit Zelle phone/email
-- edit cash instructions
-- edit payment note
-- Clear Zelle -> public display returns to TBD
+Payments is a completely separate rule-card styled like the other Home-page boxes.
+It is no longer nested inside the First Place Prize card.
 
-DEPLOY
-1. Supabase -> SQL Editor -> run supabase_v32_captain_payment.sql.
-2. Replace GitHub index.html with v32 index.html.
-3. Commit / redeploy.
-4. Hard refresh.
-5. Footer should show Build FINAL v32.
+The remaining cards continue below the top group.
+
+IMPORTANT:
+- Footer now correctly says Build FINAL v34.
+- No new Supabase SQL is required if v32 captain-payment SQL was already run.
+- Payment editing / Zelle / cash instructions still work exactly the same.
+
+DEPLOY:
+1. Replace the GitHub index.html with this v34 index.html.
+2. Commit.
+3. Hard refresh.
+4. Confirm footer says Build FINAL v34.
