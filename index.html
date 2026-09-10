@@ -1349,6 +1349,77 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* FINAL v36 — prizes/payment order + balanced independent columns */
+#secondPrizeCard{
+  width:100%;
+  height:auto!important;
+  min-height:0!important;
+}
+
+[data-rule-key="nonnegotiables"]{
+  padding:13px!important;
+}
+
+[data-rule-key="nonnegotiables"] .rule-list{
+  line-height:1.42!important;
+  font-size:.92rem;
+}
+
+[data-rule-key="nonnegotiables"] .rule-list li+li{
+  margin-top:2px!important;
+}
+
+/* Desktop: independent equal-width columns */
+.rules-columns{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:14px!important;
+  align-items:start!important;
+}
+
+.rules-column{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:14px!important;
+  min-width:0!important;
+  align-self:start!important;
+}
+
+.rules-column > .rule-card{
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+}
+
+/* Mobile/tablet: flatten both columns and use the exact requested order */
+@media(max-width:900px){
+  .rules-columns{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:14px!important;
+  }
+
+  .rules-column{
+    display:contents!important;
+  }
+
+  #prizeCard{order:1}
+  #secondPrizeCard{order:2}
+  #paymentCard{order:3}
+  [data-rule-key="location"]{order:4}
+  [data-rule-key="format"]{order:5}
+  [data-rule-key="scoring"]{order:6}
+  [data-rule-key="game"]{order:7}
+  [data-rule-key="nonnegotiables"]{order:8}
+  [data-rule-key="conduct"]{order:9}
+
+  .rules-columns > .rule-card,
+  .rules-column > .rule-card{
+    width:100%!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1395,6 +1466,23 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </div>
 </div>
 
+<div class="rule-card" id="secondPrizeCard">
+<h3>🥈 Second Place Prize</h3>
+<p id="secondPrizePublicText"><b>Prize: TBD.</b> Final prize details will be announced once confirmed.</p>
+<div class="admin-only" style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ded2">
+<div class="muted" style="margin-bottom:6px">Admin Second Place Prize Settings</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<div style="display:flex;align-items:center;gap:5px">
+<strong>$</strong>
+<input class="team-input" id="adminSecondPrizeAmount" inputmode="numeric" min="0" placeholder="TBD" step="1" style="width:130px" type="number"/>
+</div>
+<button class="small-btn" id="saveSecondPrizeBtn">Save Prize</button>
+<button class="small-btn" id="clearSecondPrizeBtn">Set to TBD</button>
+</div>
+<div class="muted" id="adminSecondPrizeStatus" style="margin-top:7px"></div>
+</div>
+</div>
+
 <div class="rule-card" id="paymentCard">
 <h3>💵 Payments</h3>
 <div class="payment-line"><b>Team Fee:</b> $60</div>
@@ -1406,8 +1494,8 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <div class="payment-admin-grid">
 <label>
       Zelle phone number or email
-      <input class="team-input" id="adminPaymentZelle" maxlength="120" placeholder="Example: 980-555-1234"/>
-</label>
+      <input class="team-input" id="adminPaymentZelle" maxlength="120" placeholder="Example: 980-555-1234">
+</input></label>
 <label>
       Cash instructions
       <input class="team-input" id="adminPaymentCash" maxlength="220" placeholder="Cash can be paid at conference check-in."/>
@@ -1444,16 +1532,19 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
-<div class="rule-card editable-rule-card" data-rule-key="conduct">
+<div class="rule-card editable-rule-card" data-rule-key="nonnegotiables">
 <div class="rule-card-head">
-<h3 class="rule-card-title">Conduct &amp; Sportsmanship</h3>
-<button class="small-btn admin-only rule-edit-btn" data-edit-rule="conduct" type="button">Edit</button>
+<h3 class="rule-card-title">⚠️ Non-Negotiables</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="nonnegotiables" type="button">Edit</button>
 </div>
 <ul class="rule-list">
-<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
-<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
-<li>Disrespectful comments toward women or other players will not be tolerated.</li>
-<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
+<li>Modest shorts.</li>
+<li>Shirts must fully cover the stomach, including when arms are raised.</li>
+<li>Shirts must remain on at all times.</li>
+<li>No sleeveless shirts.</li>
+<li>No alcohol, smoking, vaping, or drugs.</li>
+<li>No cursing or inappropriate language.</li>
+<li><b>Violations WILL result in disqualification.</b></li>
 </ul>
 </div>
   </div>
@@ -1472,22 +1563,6 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <li><b>Match pacing:</b> approximately <b>30-minute match windows</b> with a strict turnaround so pool play stays on schedule.</li>
 <li><b>Sunday, October 4:</b> Championship bracket begins <b>after 2:00 PM</b>.</li>
 <li>Teams more than <b>10 minutes late</b> for a scheduled match forfeit that match.</li>
-</ul>
-</div>
-
-<div class="rule-card editable-rule-card" data-rule-key="nonnegotiables">
-<div class="rule-card-head">
-<h3 class="rule-card-title">⚠️ Non-Negotiables</h3>
-<button class="small-btn admin-only rule-edit-btn" data-edit-rule="nonnegotiables" type="button">Edit</button>
-</div>
-<ul class="rule-list">
-<li>Modest shorts.</li>
-<li>Shirts must fully cover the stomach, including when arms are raised.</li>
-<li>Shirts must remain on at all times.</li>
-<li>No sleeveless shirts.</li>
-<li>No alcohol, smoking, vaping, or drugs.</li>
-<li>No cursing or inappropriate language.</li>
-<li><b>Violations WILL result in disqualification.</b></li>
 </ul>
 </div>
 
@@ -1522,6 +1597,19 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <li>Overhand and underhand serves are allowed.</li>
 <li>No blocking or attacking a serve above the net.</li>
 <li>If a call cannot be clearly determined, the point is replayed.</li>
+</ul>
+</div>
+
+<div class="rule-card editable-rule-card" data-rule-key="conduct">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Conduct &amp; Sportsmanship</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="conduct" type="button">Edit</button>
+</div>
+<ul class="rule-list">
+<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
+<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
+<li>Disrespectful comments toward women or other players will not be tolerated.</li>
+<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
 </ul>
 </div>
   </div>
@@ -1649,7 +1737,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v35</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v36</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1788,7 +1876,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:r.score_a,scoreB:r.score_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:r.current_a,currentB:r.current_b,final:r.final,locked:r.locked,refTeam:r.ref_team??null}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
-function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),secondPrizeAmount:r?.second_prize_amount==null?null:Number(r.second_prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
@@ -4438,6 +4526,119 @@ function formatPrizeAmount(amount){
   });
 }
 
+
+function renderSecondPrize(){
+  const text=$("secondPrizePublicText");
+  if(!text)return;
+
+  const amount=state.settings?.secondPrizeAmount;
+
+  if(amount===null || amount===undefined || Number.isNaN(Number(amount))){
+    text.innerHTML=
+      "<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
+  }else{
+    text.innerHTML=
+      `<b>Second Place Prize: ${formatPrizeAmount(amount)}</b>`;
+  }
+
+  const input=$("adminSecondPrizeAmount");
+  if(input && document.activeElement!==input){
+    input.value=
+      amount===null || amount===undefined
+        ?""
+        :String(Math.round(Number(amount)));
+  }
+}
+
+async function saveSecondPrizeAmount(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  const input=$("adminSecondPrizeAmount");
+  const raw=input.value.trim();
+
+  if(raw===""){
+    alert("Enter a second-place prize amount, or use Set to TBD.");
+    return;
+  }
+
+  const amount=Number(raw);
+
+  if(!Number.isFinite(amount)||amount<0){
+    alert("Enter a valid second-place prize amount.");
+    return;
+  }
+
+  const btn=$("saveSecondPrizeBtn");
+  const status=$("adminSecondPrizeStatus");
+
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Saving second-place prize…");
+
+  const {data,error}=await sb.rpc("admin_update_second_prize",{
+    p_code:adminCodeSession,
+    p_prize_amount:Math.round(amount)
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Second-place prize update failed.";
+    setSync("error","Second-place prize update failed");
+    alert(error.message||"Unable to update second-place prize.");
+    return;
+  }
+
+  state.settings.secondPrizeAmount=
+    data?.second_prize_amount==null
+      ?Math.round(amount)
+      :Number(data.second_prize_amount);
+
+  renderSecondPrize();
+  status.textContent=`Saved: ${formatPrizeAmount(state.settings.secondPrizeAmount)}`;
+  setSync("live","Live sync connected");
+}
+
+async function clearSecondPrizeAmount(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  if(!confirm("Set the public second-place prize back to TBD?"))return;
+
+  const btn=$("clearSecondPrizeBtn");
+  const status=$("adminSecondPrizeStatus");
+
+  btn.disabled=true;
+  status.textContent="Saving…";
+  setSync("","Updating second-place prize…");
+
+  const {error}=await sb.rpc("admin_update_second_prize",{
+    p_code:adminCodeSession,
+    p_prize_amount:null
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Second-place prize update failed.";
+    setSync("error","Second-place prize update failed");
+    alert(error.message||"Unable to update second-place prize.");
+    return;
+  }
+
+  state.settings.secondPrizeAmount=null;
+  renderSecondPrize();
+  status.textContent="Second-place prize is now TBD.";
+  setSync("live","Live sync connected");
+}
+
 function renderPrize(){
   const text=$("prizePublicText");
   if(!text)return;
@@ -4553,6 +4754,7 @@ async function clearPrizeAmount(){
 function renderAll(){
   renderRuleSections();
   renderPrize();
+  renderSecondPrize();
   renderPaymentInfo();
   document.body.classList.toggle("admin-mode",!!state.admin);
   $("adminBtn").textContent=state.admin?"Exit Admin":"Admin";
@@ -4728,6 +4930,8 @@ $("ruleEditorCancel").onclick=closeRuleEditor;
 
 $("savePaymentInfoBtn").onclick=savePaymentInfo;
 $("clearPaymentZelleBtn").onclick=clearPaymentZelle;
+$("saveSecondPrizeBtn").onclick=saveSecondPrizeAmount;
+$("clearSecondPrizeBtn").onclick=clearSecondPrizeAmount;
 $("savePrizeBtn").onclick=savePrizeAmount;
 $("clearPrizeBtn").onclick=clearPrizeAmount;
 $("registrationSuccessDone").onclick=closeRegistrationComplete;

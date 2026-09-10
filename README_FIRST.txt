@@ -1,34 +1,48 @@
-ONE WAY Grass 4s — FINAL v35
+ONE WAY Grass 4s — FINAL v36
 
-HOME INFORMATION LAYOUT FIX
-
-The 8 Home-page information cards are now split into TWO INDEPENDENT columns.
+DESKTOP ORDER
 
 LEFT COLUMN
 1. First Place Prize
-2. Payments
-3. Registration & Tournament Format
-4. Conduct & Sportsmanship
+2. Second Place Prize
+3. Payments
+4. Registration & Tournament Format
+5. Non-Negotiables
 
 RIGHT COLUMN
 1. Location & Schedule
-2. Non-Negotiables
-3. Scoring Format
-4. Game Rules
+2. Scoring Format
+3. Game Rules
+4. Conduct & Sportsmanship
 
-BEHAVIOR
-- Both columns start at the exact same top position.
-- Both columns are equal width.
-- Every card is only as tall as its own content.
-- A tall card on the left does NOT force blank space on the right.
-- A tall card on the right does NOT force blank space on the left.
-- Editing text automatically changes only that card's height.
-- On phones/tablets, the cards collapse to one clean column.
+The two desktop columns remain independent:
+- boxes stop at their own content
+- a taller left card does not force empty space on the right
+- a taller right card does not force empty space on the left
 
-No Supabase update is required for this layout change.
+PHONE / TABLET ORDER
+1. First Place Prize
+2. Second Place Prize
+3. Payments
+4. Location & Schedule
+5. Registration & Tournament Format
+6. Scoring Format
+7. Game Rules
+8. Non-Negotiables
+9. Conduct & Sportsmanship
+
+NON-NEGOTIABLES
+- slightly tighter padding, font size, and line spacing
+
+SECOND PLACE PRIZE
+- public card shows TBD until Admin sets it
+- Admin can enter a dollar amount
+- Admin can return it to TBD
+- stored in Supabase, so no recoding is needed to change it later
 
 DEPLOY
-1. Replace GitHub index.html with the v35 index.html.
-2. Commit / redeploy.
-3. Hard refresh.
-4. Footer should show Build FINAL v35.
+1. Run supabase_v36_second_prize.sql in Supabase SQL Editor.
+2. Replace GitHub index.html with v36 index.html.
+3. Commit / redeploy.
+4. Hard refresh.
+5. Footer should say Build FINAL v36.
