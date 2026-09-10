@@ -1,28 +1,34 @@
-ONE WAY Grass 4s — FINAL v34
+ONE WAY Grass 4s — FINAL v35
 
-FIXED HOME LAYOUT
+HOME INFORMATION LAYOUT FIX
 
-Top section is now forced into this structure:
+The 8 Home-page information cards are now split into TWO INDEPENDENT columns.
 
-LEFT:
-- First Place Prize
-- Payments
+LEFT COLUMN
+1. First Place Prize
+2. Payments
+3. Registration & Tournament Format
+4. Conduct & Sportsmanship
 
-RIGHT:
-- Location & Schedule
+RIGHT COLUMN
+1. Location & Schedule
+2. Non-Negotiables
+3. Scoring Format
+4. Game Rules
 
-Payments is a completely separate rule-card styled like the other Home-page boxes.
-It is no longer nested inside the First Place Prize card.
+BEHAVIOR
+- Both columns start at the exact same top position.
+- Both columns are equal width.
+- Every card is only as tall as its own content.
+- A tall card on the left does NOT force blank space on the right.
+- A tall card on the right does NOT force blank space on the left.
+- Editing text automatically changes only that card's height.
+- On phones/tablets, the cards collapse to one clean column.
 
-The remaining cards continue below the top group.
+No Supabase update is required for this layout change.
 
-IMPORTANT:
-- Footer now correctly says Build FINAL v34.
-- No new Supabase SQL is required if v32 captain-payment SQL was already run.
-- Payment editing / Zelle / cash instructions still work exactly the same.
-
-DEPLOY:
-1. Replace the GitHub index.html with this v34 index.html.
-2. Commit.
+DEPLOY
+1. Replace GitHub index.html with the v35 index.html.
+2. Commit / redeploy.
 3. Hard refresh.
-4. Confirm footer says Build FINAL v34.
+4. Footer should show Build FINAL v35.

@@ -1306,6 +1306,49 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* FINAL v35 — independent auto-height Home information columns */
+.rules-columns{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+}
+
+.rules-column{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-width:0;
+  align-self:start;
+}
+
+.rules-column > .rule-card{
+  width:100%;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  align-self:stretch;
+}
+
+#prizeCard,
+#paymentCard,
+.rules-column [data-rule-key]{
+  grid-column:auto!important;
+  height:auto!important;
+  min-height:0!important;
+}
+
+@media(max-width:900px){
+  .rules-columns{
+    grid-template-columns:1fr;
+  }
+
+  .rules-column{
+    width:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1333,34 +1376,22 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 
 <div class="panel">
 <div class="section-title"><h2>Everything You Need to Know</h2><span class="pill orange">ONE WAY Conference</span></div>
-<div class="rules-grid">
-
-<div class="home-top-grid">
-  <div class="home-top-left">
+<div class="rules-columns">
+  <div class="rules-column rules-column-left">
 <div class="rule-card" id="prizeCard">
 <h3>🏆 First Place Prize</h3>
 <p id="prizePublicText"><b>Prize: TBD.</b> Final prize details will be announced once confirmed.</p>
-
 <div class="admin-only" style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ded2">
-  <div class="muted" style="margin-bottom:6px">Admin Prize Settings</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <div style="display:flex;align-items:center;gap:5px">
-      <strong>$</strong>
-      <input
-        id="adminPrizeAmount"
-        type="number"
-        min="0"
-        step="1"
-        inputmode="numeric"
-        placeholder="800"
-        class="team-input"
-        style="width:130px"
-      >
-    </div>
-    <button class="small-btn" id="savePrizeBtn">Save Prize</button>
-    <button class="small-btn" id="clearPrizeBtn">Set to TBD</button>
-  </div>
-  <div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
+<div class="muted" style="margin-bottom:6px">Admin Prize Settings</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<div style="display:flex;align-items:center;gap:5px">
+<strong>$</strong>
+<input class="team-input" id="adminPrizeAmount" inputmode="numeric" min="0" placeholder="800" step="1" style="width:130px" type="number"/>
+</div>
+<button class="small-btn" id="savePrizeBtn">Save Prize</button>
+<button class="small-btn" id="clearPrizeBtn">Set to TBD</button>
+</div>
+<div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
 </div>
 </div>
 
@@ -1370,73 +1401,34 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <div class="payment-line"><b>Zelle:</b> <span id="paymentZellePublic">TBD</span></div>
 <div class="payment-line" id="paymentCashPublic">Cash can be paid at conference check-in.</div>
 <div class="payment-line muted" id="paymentNotePublic">Captain is responsible for the full team payment.</div>
-
 <div class="admin-only payment-admin">
-  <div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
-
-  <div class="payment-admin-grid">
-    <label>
+<div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
+<div class="payment-admin-grid">
+<label>
       Zelle phone number or email
-      <input
-        id="adminPaymentZelle"
-        class="team-input"
-        maxlength="120"
-        placeholder="Example: 980-555-1234"
-      >
-    </label>
-
-    <label>
+      <input class="team-input" id="adminPaymentZelle" maxlength="120" placeholder="Example: 980-555-1234"/>
+</label>
+<label>
       Cash instructions
-      <input
-        id="adminPaymentCash"
-        class="team-input"
-        maxlength="220"
-        placeholder="Cash can be paid at conference check-in."
-      >
-    </label>
-
-    <label>
+      <input class="team-input" id="adminPaymentCash" maxlength="220" placeholder="Cash can be paid at conference check-in."/>
+</label>
+<label>
       Payment note
-      <input
-        id="adminPaymentNote"
-        class="team-input"
-        maxlength="220"
-        placeholder="Captain is responsible for the full team payment."
-      >
-    </label>
-  </div>
-
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-    <button class="small-btn" id="savePaymentInfoBtn">Save Payment Info</button>
-    <button class="small-btn" id="clearPaymentZelleBtn">Clear Zelle</button>
-  </div>
-
-  <div class="muted" id="adminPaymentStatus" style="margin-top:7px"></div>
+      <input class="team-input" id="adminPaymentNote" maxlength="220" placeholder="Captain is responsible for the full team payment."/>
+</label>
 </div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+<button class="small-btn" id="savePaymentInfoBtn">Save Payment Info</button>
+<button class="small-btn" id="clearPaymentZelleBtn">Clear Zelle</button>
 </div>
-  </div>
-
-<div class="rule-card editable-rule-card" data-rule-key="location">
-<div class="rule-card-head">
-<h3 class="rule-card-title">📍 Location & Schedule</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="location">Edit</button>
-</div>
-<ul class="rule-list">
-<li><b>Location:</b> Church of New Hope</li>
-<li><b>Saturday Registration & Check-In:</b> during the morning conference break at the clothing spot.</li>
-<li><b>Eligibility:</b> every player must be <b>fully registered, paid, and checked in before 1:00 PM</b> in order to play.</li>
-<li><b>Pool Play:</b> starts <b>exactly at 1:00 PM on Saturday, October 3</b>. Teams should be ready to play as soon as their court slot opens.</li>
-<li><b>Match pacing:</b> approximately <b>30-minute match windows</b> with a strict turnaround so pool play stays on schedule.</li>
-<li><b>Sunday, October 4:</b> Championship bracket begins <b>after 2:00 PM</b>.</li>
-<li>Teams more than <b>10 minutes late</b> for a scheduled match forfeit that match.</li>
-</ul>
+<div class="muted" id="adminPaymentStatus" style="margin-top:7px"></div>
 </div>
 </div>
 
 <div class="rule-card editable-rule-card" data-rule-key="format">
 <div class="rule-card-head">
-<h3 class="rule-card-title">Registration & Tournament Format</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="format">Edit</button>
+<h3 class="rule-card-title">Registration &amp; Tournament Format</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="format" type="button">Edit</button>
 </div>
 <ul class="rule-list">
 <li>Registration is capped at <b>16 teams</b>.</li>
@@ -1452,10 +1444,41 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
+<div class="rule-card editable-rule-card" data-rule-key="conduct">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Conduct &amp; Sportsmanship</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="conduct" type="button">Edit</button>
+</div>
+<ul class="rule-list">
+<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
+<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
+<li>Disrespectful comments toward women or other players will not be tolerated.</li>
+<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
+</ul>
+</div>
+  </div>
+
+  <div class="rules-column rules-column-right">
+<div class="rule-card editable-rule-card" data-rule-key="location">
+<div class="rule-card-head">
+<h3 class="rule-card-title">📍 Location &amp; Schedule</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="location" type="button">Edit</button>
+</div>
+<ul class="rule-list">
+<li><b>Location:</b> Church of New Hope</li>
+<li><b>Saturday Registration &amp; Check-In:</b> during the morning conference break at the clothing spot.</li>
+<li><b>Eligibility:</b> every player must be <b>fully registered, paid, and checked in before 1:00 PM</b> in order to play.</li>
+<li><b>Pool Play:</b> starts <b>exactly at 1:00 PM on Saturday, October 3</b>. Teams should be ready to play as soon as their court slot opens.</li>
+<li><b>Match pacing:</b> approximately <b>30-minute match windows</b> with a strict turnaround so pool play stays on schedule.</li>
+<li><b>Sunday, October 4:</b> Championship bracket begins <b>after 2:00 PM</b>.</li>
+<li>Teams more than <b>10 minutes late</b> for a scheduled match forfeit that match.</li>
+</ul>
+</div>
+
 <div class="rule-card editable-rule-card" data-rule-key="nonnegotiables">
 <div class="rule-card-head">
 <h3 class="rule-card-title">⚠️ Non-Negotiables</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="nonnegotiables">Edit</button>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="nonnegotiables" type="button">Edit</button>
 </div>
 <ul class="rule-list">
 <li>Modest shorts.</li>
@@ -1468,29 +1491,16 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
-<div class="rule-card editable-rule-card" data-rule-key="conduct">
-<div class="rule-card-head">
-<h3 class="rule-card-title">Conduct & Sportsmanship</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="conduct">Edit</button>
-</div>
-<ul class="rule-list">
-<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
-<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
-<li>Disrespectful comments toward women or other players will not be tolerated.</li>
-<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
-</ul>
-</div>
-
 <div class="rule-card editable-rule-card" data-rule-key="scoring">
 <div class="rule-card-head">
 <h3 class="rule-card-title">Scoring Format</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="scoring">Edit</button>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="scoring" type="button">Edit</button>
 </div>
 <ul class="rule-list">
 <li><b>Pool Play:</b> 1 set to 25.</li>
 <li><b>25-point hard cap:</b> first team to 25 wins.</li>
 <li><b>Bracket Play:</b> best 2 out of 3 sets.</li>
-<li>Sets 1 & 2 are played to <b>21</b>.</li>
+<li>Sets 1 &amp; 2 are played to <b>21</b>.</li>
 <li>Set 3 is played to <b>15</b>.</li>
 <li>Completed sets and matches lock automatically.</li>
 </ul>
@@ -1499,7 +1509,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <div class="rule-card editable-rule-card" data-rule-key="game">
 <div class="rule-card-head">
 <h3 class="rule-card-title">Game Rules</h3>
-<button class="small-btn admin-only rule-edit-btn" type="button" data-edit-rule="game">Edit</button>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="game" type="button">Edit</button>
 </div>
 <ul class="rule-list">
 <li>4 players on the court.</li>
@@ -1514,7 +1524,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <li>If a call cannot be clearly determined, the point is replayed.</li>
 </ul>
 </div>
-
+  </div>
 </div>
 </div>
 </section>
@@ -1639,7 +1649,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v34</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v35</div>
 <div class="copyright-box">
 © 2026 Dashia Boyarskiy. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
