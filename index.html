@@ -1567,55 +1567,23 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 }
 
 
-/* ONE WAY v40 — mobile nav collapses completely when hidden */
+/* ONE WAY v40 — two-row mobile navigation, every section always visible */
 @media(max-width:900px){
   #nav{
-    overflow:hidden;
-    max-height:320px;
-    margin:18px 0;
-    padding:8px;
-    border-width:1px;
-    transform:none;
-    opacity:1;
-    transition:
-      max-height .22s ease,
-      margin .22s ease,
-      padding .22s ease,
-      opacity .15s ease,
-      border-width .22s ease,
-      box-shadow .22s ease;
-    will-change:max-height,margin,padding,opacity;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
   }
 
-  #nav.mobile-nav-hidden{
-    max-height:0!important;
-    margin-top:0!important;
-    margin-bottom:0!important;
-    padding-top:0!important;
-    padding-bottom:0!important;
-    border-top-width:0!important;
-    border-bottom-width:0!important;
-    opacity:0;
-    pointer-events:none;
-    box-shadow:none;
+  .nav button{
+    padding:8px 4px;
+    min-width:0;
+    font-size:clamp(.7rem,3.2vw,.8rem);
+    text-align:center;
   }
 
-  #nav.mobile-nav-visible{
-    max-height:320px;
-    margin-top:18px;
-    margin-bottom:18px;
-    padding-top:8px;
-    padding-bottom:8px;
-    border-top-width:1px;
-    border-bottom-width:1px;
-    opacity:1;
-    pointer-events:auto;
-  }
-}
-
-@media(prefers-reduced-motion:reduce){
-  #nav{
-    transition:none!important;
+  .nav .admin{
+    grid-column:span 2;
   }
 }
 
@@ -2100,87 +2068,13 @@ let scoreSaving=false;
 let scorePendingSave=null;
 let scoreHeartbeatTimer=null;
 let scoreTournamentFrozen=false;
+let liveDataLoadGeneration=0;
+let realtimeEventSequence=0;
+let appliedSnapshotSequence=0;
+let realtimeCatchUpGeneration=0;
+let realtimeCatchUpQueue=[];
+let realtimeCatchUpPromise=Promise.resolve();
 const $=id=>document.getElementById(id);
-
-let mobileNavLastY=0;
-let mobileNavTicking=false;
-
-function mobileNavEnabled(){
-  return window.matchMedia("(max-width: 900px)").matches;
-}
-
-function showMobileNav(){
-  const nav=$("nav");
-  if(!nav)return;
-  nav.classList.remove("mobile-nav-hidden");
-  nav.classList.add("mobile-nav-visible");
-}
-
-function hideMobileNav(){
-  const nav=$("nav");
-  if(!nav)return;
-  if(window.scrollY<90)return;
-  nav.classList.remove("mobile-nav-visible");
-  nav.classList.add("mobile-nav-hidden");
-}
-
-function updateMobileNavOnScroll(){
-  const nav=$("nav");
-  if(!nav)return;
-
-  if(!mobileNavEnabled()){
-    nav.classList.remove("mobile-nav-hidden","mobile-nav-visible");
-    mobileNavLastY=window.scrollY;
-    return;
-  }
-
-  const currentY=Math.max(0,window.scrollY||0);
-
-  // Always keep the menu visible near the top.
-  if(currentY<90){
-    showMobileNav();
-    mobileNavLastY=currentY;
-    return;
-  }
-
-  const delta=currentY-mobileNavLastY;
-
-  // Ignore tiny iOS scroll/bounce movements.
-  if(Math.abs(delta)<8)return;
-
-  if(delta>0){
-    hideMobileNav();
-  }else{
-    showMobileNav();
-  }
-
-  mobileNavLastY=currentY;
-}
-
-function installMobileNavAutoHide(){
-  mobileNavLastY=Math.max(0,window.scrollY||0);
-  showMobileNav();
-
-  window.addEventListener("scroll",()=>{
-    if(mobileNavTicking)return;
-    mobileNavTicking=true;
-
-    requestAnimationFrame(()=>{
-      updateMobileNavOnScroll();
-      mobileNavTicking=false;
-    });
-  },{passive:true});
-
-  window.addEventListener("resize",()=>{
-    updateMobileNavOnScroll();
-  });
-
-  // If the user taps within the nav or changes page, keep it available.
-  $("nav")?.addEventListener("click",()=>{
-    showMobileNav();
-  });
-}
-
 
 
 function setSync(kind,text){
@@ -2324,8 +2218,8 @@ function renderLiveDataGuard(){
   const guard=$("liveDataGuard");
   if(!guard)return;
 
-  const ready=state.liveDataState==="ready";
-  guard.classList.toggle("hidden",ready);
+  const failed=state.liveDataState==="error";
+  guard.classList.toggle("hidden",!failed);
 
   const text=$("liveDataGuardText");
   if(text){
@@ -2345,11 +2239,24 @@ function liveDataUnavailableCard(){
   return box;
 }
 
+function liveDataLoadingCard(){
+  const box=document.createElement("div");
+  box.className="callout";
+  box.innerHTML=
+    "<b>Connecting live data…</b><br>"+
+    "Tournament tables appear as soon as the database answers.";
+  return box;
+}
+
 function requireLiveData(root){
   if(state.liveDataState==="ready")return true;
   if(root){
     root.innerHTML="";
-    root.appendChild(liveDataUnavailableCard());
+    root.appendChild(
+      state.liveDataState==="error"
+        ? liveDataUnavailableCard()
+        : liveDataLoadingCard()
+    );
   }
   return false;
 }
@@ -2689,13 +2596,17 @@ function qualifiedBracketSeeds(){
   return qualifiers.slice(0,8).map((r,i)=>({...r,bracketSeed:i+1}));
 }
 
-async function loadAll(){
+async function loadAll({silent=false}={}){
+  const loadGeneration=++liveDataLoadGeneration;
+  const loadStartSequence=realtimeEventSequence;
   const previouslyFinalized=!!state.settings?.poolsFinalized;
 
-  state.liveDataState="loading";
-  state.liveDataMessage="Connecting to tournament database…";
-  renderLiveDataGuard();
-  setSync("","Connecting live data…");
+  if(!silent){
+    state.liveDataState="loading";
+    state.liveDataMessage="Connecting to tournament database…";
+    renderLiveDataGuard();
+    setSync("","Connecting live data…");
+  }
 
   try{
     const [s,t,p,b]=await promiseTimeout(
@@ -2708,6 +2619,8 @@ async function loadAll(){
       9000,
       "Tournament live data"
     );
+
+    if(loadGeneration!==liveDataLoadGeneration)return;
 
     const errors=[s.error,t.error,p.error,b.error].filter(Boolean);
     if(errors.length){
@@ -2732,6 +2645,7 @@ async function loadAll(){
       throw new Error("Pools are finalized, but the championship bracket is unavailable.");
     }
 
+    appliedSnapshotSequence=Math.max(appliedSnapshotSequence,loadStartSequence);
     state.settings=nextSettings;
     state.teams=(t.data||[]).map(mapTeam);
     state.poolMatches=(p.data||[]).map(mapPool);
@@ -2755,6 +2669,7 @@ async function loadAll(){
     renderAll();
     setSync("live","Live sync connected");
   }catch(error){
+    if(loadGeneration!==liveDataLoadGeneration)return;
     console.error("Live tournament data load:",error);
     markLiveDataError(
       "Could not verify the live tournament database. Do not score from the website until Retry Live Data succeeds."
@@ -2762,7 +2677,7 @@ async function loadAll(){
   }
 
   // Registration data is secondary. Its failure does not replace tournament data.
-  if(state.liveDataState==="ready"){
+  if(loadGeneration===liveDataLoadGeneration && state.liveDataState==="ready"){
     try{
       const [r,rp]=await promiseTimeout(
         Promise.all([
@@ -2777,23 +2692,70 @@ async function loadAll(){
         "Registration data"
       );
 
+      if(loadGeneration!==liveDataLoadGeneration)return;
+
       if(!r.error)state.registrations=(r.data||[]).map(mapRegistration);
       if(!rp.error)state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
       renderAll();
     }catch(error){
+      if(loadGeneration!==liveDataLoadGeneration)return;
       console.error("Registration live-data load:",error);
     }
   }
 
+  if(loadGeneration!==liveDataLoadGeneration)return;
   try{
     await loadConfirmationFromURL();
   }catch(error){
     console.error("Confirmation link load:",error);
   }
 }
+function runRealtimeUpdate(update){
+  const sequence=++realtimeEventSequence;
+  if(realtimeCatchUpGeneration){
+    realtimeCatchUpQueue.push({sequence,update});
+    return;
+  }
+  return update();
+}
+async function finishRealtimeCatchUp(generation){
+  if(generation!==realtimeCatchUpGeneration)return;
+
+  while(realtimeCatchUpQueue.length){
+    const queued=realtimeCatchUpQueue.splice(0);
+    for(const entry of queued){
+      // Anything the applied snapshot already contains would rewind newer state.
+      if(entry.sequence<=appliedSnapshotSequence)continue;
+      try{
+        await entry.update();
+      }catch(error){
+        console.error("Queued Realtime update:",error);
+      }
+    }
+  }
+
+  if(generation===realtimeCatchUpGeneration){
+    realtimeCatchUpGeneration=0;
+  }
+}
+async function withRealtimeCatchUp(refresh){
+  const run=async()=>{
+    const generation=++realtimeCatchUpGeneration;
+    realtimeCatchUpQueue=[];
+    try{
+      await refresh();
+    }finally{
+      await finishRealtimeCatchUp(generation);
+    }
+  };
+  realtimeCatchUpPromise=realtimeCatchUpGeneration===0
+    ?run()
+    :realtimeCatchUpPromise.then(run,run);
+  return realtimeCatchUpPromise;
+}
 function subscribeRealtime(){
   sb.channel("oneway-live")
-  .on("postgres_changes",{event:"*",schema:"public",table:"teams"},payload=>{
+  .on("postgres_changes",{event:"*",schema:"public",table:"teams"},payload=>runRealtimeUpdate(()=>{
     if(payload.eventType==="DELETE"){
       const id=payload.old?.id;
       if(id!=null)state.teams=state.teams.filter(x=>x.id!==id);
@@ -2808,8 +2770,8 @@ function subscribeRealtime(){
       state.teams.sort((a,b)=>a.id-b.id);
       renderAll();
     }
-  })
-  .on("postgres_changes",{event:"*",schema:"public",table:"pool_matches"},payload=>{
+  }))
+  .on("postgres_changes",{event:"*",schema:"public",table:"pool_matches"},payload=>runRealtimeUpdate(()=>{
     if(payload.eventType==="DELETE"){
       const id=payload.old?.id;
       if(id!=null)state.poolMatches=state.poolMatches.filter(x=>x.id!==id);
@@ -2824,8 +2786,8 @@ function subscribeRealtime(){
       state.poolMatches.sort((a,b)=>a.round-b.round||a.court-b.court);
       renderAll();
     }
-  })
-  .on("postgres_changes",{event:"*",schema:"public",table:"bracket_matches"},payload=>{
+  }))
+  .on("postgres_changes",{event:"*",schema:"public",table:"bracket_matches"},payload=>runRealtimeUpdate(()=>{
     if(payload.eventType==="DELETE"){
       const id=payload.old?.id;
       if(id!=null)state.bracketMatches=state.bracketMatches.filter(x=>x.id!==id);
@@ -2839,17 +2801,34 @@ function subscribeRealtime(){
       if(i>=0)state.bracketMatches[i]=v; else state.bracketMatches.push(v);
       renderAll();
     }
-  })
-  .on("postgres_changes",{event:"*",schema:"public",table:"team_registrations"},async()=>{
-    await refreshRegistrations();
+  }))
+  .on("postgres_changes",{event:"*",schema:"public",table:"team_registrations"},payload=>runRealtimeUpdate(()=>{
+    if(payload.eventType==="DELETE"){
+      const id=payload.old?.id;
+      if(id!=null)state.registrations=state.registrations.filter(x=>x.id!==id);
+    }else if(payload.new?.id){
+      const value=mapRegistration(payload.new);
+      const index=state.registrations.findIndex(x=>x.id===value.id);
+      if(index>=0)state.registrations[index]=value; else state.registrations.push(value);
+      state.registrations.sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+    }
     renderAll();
-  })
-  .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},async()=>{
-    await refreshRegistrations();
+  }))
+  .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},payload=>runRealtimeUpdate(()=>{
+    if(payload.eventType==="DELETE"){
+      const id=payload.old?.id;
+      if(id!=null)state.registrationPlayers=state.registrationPlayers.filter(x=>x.id!==id);
+    }else if(payload.new?.id){
+      const value=mapRegPlayer(payload.new);
+      const index=state.registrationPlayers.findIndex(x=>x.id===value.id);
+      if(index>=0)state.registrationPlayers[index]=value; else state.registrationPlayers.push(value);
+    }
     renderAll();
-    if(activeConfirmationToken)await loadConfirmationFromURL();
-  })
-  .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},async payload=>{
+    if(activeConfirmationToken){
+      loadConfirmationFromURL().catch(error=>console.error("Confirmation link refresh:",error));
+    }
+  }))
+  .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},payload=>runRealtimeUpdate(()=>{
     const wasFinalized=!!state.settings?.poolsFinalized;
 
     if(payload.eventType==="DELETE"){
@@ -2871,11 +2850,15 @@ function subscribeRealtime(){
     }
 
     renderAll();
-  })
+  }))
   .subscribe(status=>{
     if(status==="SUBSCRIBED"){
-      setSync("live","Live sync connected");
-      loadAll();
+      const alreadyReady=state.liveDataState==="ready";
+      if(alreadyReady){
+        setSync("live","Live sync connected");
+      }
+      // Refetch after the stream is live to close the snapshot-to-subscribe gap.
+      return withRealtimeCatchUp(()=>loadAll({silent:alreadyReady}));
     }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
       setSync("error","Realtime reconnecting…");
     }
@@ -4298,11 +4281,16 @@ function renderRegistrations(){
   if(!countEl)return;
 
   if(state.liveDataState!=="ready"){
-    countEl.textContent="Live data unavailable";
+    const failed=state.liveDataState==="error";
+    countEl.textContent=failed?"Live data unavailable":"Connecting live data…";
     const ids=["regTeamName","regSkillLevel","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4","regAgreement","submitRegistration"];
     ids.forEach(id=>{const el=$(id);if(el)el.disabled=true;});
     const root=$("registrationPublicList");
-    if(root)root.innerHTML='<div class="callout"><b>Registration paused:</b> live tournament data must reconnect first.</div>';
+    if(root){
+      root.innerHTML=failed
+        ?'<div class="callout"><b>Registration paused:</b> live tournament data must reconnect first.</div>'
+        :'<div class="callout"><b>Connecting live data…</b> Registration will be available shortly.</div>';
+    }
     return;
   }
 
@@ -4707,13 +4695,18 @@ function renderPoolBuilder(){
   if(!status||!grid)return;
 
   if(state.liveDataState!=="ready"){
-    status.innerHTML="<b>Live data unavailable.</b> Pool controls are paused until the tournament database reconnects.";
+    const failed=state.liveDataState==="error";
+    status.innerHTML=failed
+      ?"<b>Live data unavailable.</b> Pool controls are paused until the tournament database reconnects."
+      :"<b>Connecting live data…</b> Pool controls will be available shortly.";
     previewBtn.disabled=true;
     regenBtn.classList.add("hidden");
     lockBtn.classList.add("hidden");
     reopenBtn.classList.add("hidden");
     grid.innerHTML="";
-    msg.textContent="Use Retry Live Data before changing pools.";
+    msg.textContent=failed
+      ?"Use Retry Live Data before changing pools."
+      :"Waiting for tournament data.";
     return;
   }
 
@@ -6073,7 +6066,6 @@ window.addEventListener("online",()=>{
 });
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
-installMobileNavAutoHide();
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
 if(startupConfirmToken){
