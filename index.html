@@ -1673,6 +1673,27 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
+
+/* ONE WAY v46 — Free/Paid mode + desktop information balance */
+#paymentCard.payment-disabled-public{
+  display:none!important;
+}
+body.admin-mode #paymentCard.payment-disabled-public{
+  display:block!important;
+  opacity:.92;
+  border-style:dashed;
+}
+@media(min-width:901px){
+  .rules-columns{
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  }
+}
+@media(max-width:900px){
+  .rules-columns{
+    grid-template-columns:1fr!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1700,7 +1721,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <main>
 <section id="view-home" class="view">
 <div class="grid cards">
-<div class="card"><div class="label">Team cap</div><div class="metric">16</div><div class="muted">$15/player • $60/team</div></div>
+<div class="card"><div class="label">Team cap</div><div class="metric">16</div><div class="muted" id="teamCapPaymentText">Loading entry details…</div></div>
 <div class="card"><div class="label">Courts</div><div class="metric">4</div><div class="muted">4 pools of 4</div></div>
 <div class="card"><div class="label">Pool games</div><div class="metric">3</div><div class="muted">Guaranteed per team</div></div>
 <div class="card"><div class="label">Advance</div><div class="metric">8</div><div class="muted">Top 2 from each pool</div></div>
@@ -1714,15 +1735,13 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <h3>🏆 First Place Prize</h3>
 <p id="prizePublicText"><b>Prize: TBD.</b> Final prize details will be announced once confirmed.</p>
 <div class="admin-only" style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ded2">
-<div class="muted" style="margin-bottom:6px">Admin Prize Settings</div>
+<div class="muted" style="margin-bottom:6px">Admin First Place Prize Settings</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-<div style="display:flex;align-items:center;gap:5px">
-<strong>$</strong>
-<input class="team-input" id="adminPrizeAmount" inputmode="numeric" min="0" placeholder="800" step="1" style="width:130px" type="number"/>
-</div>
+<input class="team-input" id="adminPrizeText" maxlength="200" placeholder="Example: Champion T-Shirts + Trophy" style="min-width:260px;flex:1"/>
 <button class="small-btn" id="savePrizeBtn">Save Prize</button>
 <button class="small-btn" id="clearPrizeBtn">Set to TBD</button>
 </div>
+<div class="muted" style="margin-top:6px">Type the actual prize, not just a dollar amount. Example: Champion T-Shirts + Trophy.</div>
 <div class="muted" id="adminPrizeStatus" style="margin-top:7px"></div>
 </div>
 </div>
@@ -1733,30 +1752,44 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <div class="admin-only" style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ded2">
 <div class="muted" style="margin-bottom:6px">Admin Second Place Prize Settings</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-<div style="display:flex;align-items:center;gap:5px">
-<strong>$</strong>
-<input class="team-input" id="adminSecondPrizeAmount" inputmode="numeric" min="0" placeholder="TBD" step="1" style="width:130px" type="number"/>
-</div>
+<input class="team-input" id="adminSecondPrizeText" maxlength="200" placeholder="Example: Runner-Up T-Shirts" style="min-width:260px;flex:1"/>
 <button class="small-btn" id="saveSecondPrizeBtn">Save Prize</button>
 <button class="small-btn" id="clearSecondPrizeBtn">Set to TBD</button>
 </div>
+<div class="muted" style="margin-top:6px">This can be any prize description, including shirts, medals, trophies, gift cards, or TBD.</div>
 <div class="muted" id="adminSecondPrizeStatus" style="margin-top:7px"></div>
 </div>
 </div>
 
 <div class="rule-card" id="paymentCard">
-<h3>💵 Payments</h3>
-<div class="payment-line"><b>Team Fee:</b> $60</div>
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+<h3 style="margin:0">💵 Payments</h3>
+<span class="pill admin-only" id="paymentModeBadge">Loading…</span>
+</div>
+
+<div id="paymentPublicContent" style="margin-top:12px">
+<div class="payment-line"><b>Team Fee:</b> <span id="paymentTeamFeePublic">$60</span></div>
 <div class="payment-line"><b>Zelle:</b> <span id="paymentZellePublic">TBD</span></div>
 <div class="payment-line" id="paymentCashPublic">Cash can be paid at conference check-in.</div>
 <div class="payment-line muted" id="paymentNotePublic">Captain is responsible for the full team payment.</div>
+</div>
+
 <div class="admin-only payment-admin">
+<div class="muted" id="paymentVisibilityAdminText" style="margin-bottom:8px"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<button class="small-btn" id="togglePaymentVisibilityBtn" type="button">Hide Payment Box / Make Free</button>
+</div>
+
 <div class="muted" style="margin-bottom:8px">Admin Payment Settings</div>
 <div class="payment-admin-grid">
 <label>
+      Team fee
+      <input class="team-input" id="adminPaymentTeamFee" type="number" inputmode="numeric" min="0" step="1" placeholder="60">
+</label>
+<label>
       Zelle phone number or email
       <input class="team-input" id="adminPaymentZelle" maxlength="120" placeholder="Example: 980-555-1234">
-</input></label>
+</label>
 <label>
       Cash instructions
       <input class="team-input" id="adminPaymentCash" maxlength="220" placeholder="Cash can be paid at conference check-in."/>
@@ -1806,6 +1839,19 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <li>No alcohol, smoking, vaping, or drugs.</li>
 <li>No cursing or inappropriate language.</li>
 <li><b>Violations WILL result in disqualification.</b></li>
+</ul>
+</div>
+
+<div class="rule-card editable-rule-card" data-rule-key="conduct">
+<div class="rule-card-head">
+<h3 class="rule-card-title">Conduct &amp; Sportsmanship</h3>
+<button class="small-btn admin-only rule-edit-btn" data-edit-rule="conduct" type="button">Edit</button>
+</div>
+<ul class="rule-list">
+<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
+<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
+<li>Disrespectful comments toward women or other players will not be tolerated.</li>
+<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
 </ul>
 </div>
   </div>
@@ -1861,18 +1907,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </ul>
 </div>
 
-<div class="rule-card editable-rule-card" data-rule-key="conduct">
-<div class="rule-card-head">
-<h3 class="rule-card-title">Conduct &amp; Sportsmanship</h3>
-<button class="small-btn admin-only rule-edit-btn" data-edit-rule="conduct" type="button">Edit</button>
-</div>
-<ul class="rule-list">
-<li>This is an official Christian church event hosted for the ONE WAY Conference at CNH.</li>
-<li>Players are expected to represent that through appropriate clothing, language, conduct, and sportsmanship.</li>
-<li>Disrespectful comments toward women or other players will not be tolerated.</li>
-<li>No excessive arguing, trash talking, or inappropriate behavior.</li>
-</ul>
-</div>
+
   </div>
 </div>
 </div>
@@ -1998,7 +2033,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v44</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v47</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2019,8 +2054,8 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
       Your team is registered. No teammate confirmation link is required.
     </p>
 
-    <div class="registration-payment-box">
-      <h3>💵 Team Payment — $60</h3>
+    <div class="registration-payment-box" id="registrationPaymentBox">
+      <h3>💵 Team Payment — <span id="registrationPaymentFee">$60</span></h3>
       <div class="payment-line"><b>The captain is responsible for submitting the full team payment.</b></div>
       <div class="payment-line"><b>Zelle:</b> <span id="registrationPaymentZelle">TBD</span></div>
       <div class="payment-line" id="registrationPaymentCash">Cash can be paid at conference check-in.</div>
@@ -2129,7 +2164,7 @@ let state={
   registrations:[],
   registrationPlayers:[],
   publicCaptains:[],
-  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{},paymentZelle:"",paymentCashText:"Cash can be paid at conference check-in.",paymentNote:"Captain is responsible for the full team payment."},
+  settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,secondPrizeAmount:null,prizeText:"TBD",secondPrizeText:"TBD",ruleSections:{},paymentEnabled:false,paymentTeamFee:60,paymentZelle:"",paymentCashText:"Cash can be paid at conference check-in.",paymentNote:"Captain is responsible for the full team payment."},
   poolCandidates:[],
   poolPreview:[],
   poolPreviewFormat:null,
@@ -2296,7 +2331,7 @@ function mapTeam(r){return {id:r.id,name:r.name||"",pool:r.pool,court:r.court,pa
 function mapPool(r){return {id:r.id,type:"pool",round:r.round,time:r.time_label,court:r.court,pool:r.pool,teamA:r.team_a,teamB:r.team_b,scoreA:Number(r.score_a||0),scoreB:Number(r.score_b||0),final:!!r.final,locked:!!r.locked,refTeam:r.ref_team??null,scoreRevision:Number(r.score_revision||0)}}
 function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.time_label,court:r.court,keyA:r.key_a,keyB:r.key_b,fromA:r.from_a,fromB:r.from_b,sets:Array.isArray(r.sets)?r.sets:[],currentA:Number(r.current_a||0),currentB:Number(r.current_b||0),final:!!r.final,locked:!!r.locked,refTeam:r.ref_team??null,scoreRevision:Number(r.score_revision||0)}}
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
-function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),secondPrizeAmount:r?.second_prize_amount==null?null:Number(r.second_prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
+function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),secondPrizeAmount:r?.second_prize_amount==null?null:Number(r.second_prize_amount),prizeText:String(r?.prize_text??"TBD").trim()||"TBD",secondPrizeText:String(r?.second_prize_text??"TBD").trim()||"TBD",ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentEnabled:r?.payment_enabled!==false,paymentTeamFee:Number(r?.payment_team_fee??60),paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
 function mapPublicCaptain(r){return {teamId:Number(r.team_id),registrationId:r.registration_id,teamName:r.team_name,captainName:String(r.captain_name||"").trim()}}
 
@@ -3213,9 +3248,30 @@ async function acquireScoreLock(type,id,{silent=false}={}){
     console.error("Acquire score lock:",error);
 
     if(!silent){
-      alert(
-        "The match could not be locked to this phone because the live database could not be reached. Try again before scoring."
-      );
+      const message=String(error?.message||"");
+      const code=String(error?.code||"");
+
+      if(
+        code==="PGRST202" ||
+        message.includes("Could not find the function") ||
+        message.includes("score_acquire_match_lock")
+      ){
+        alert(
+          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v45 scoring repair SQL in Supabase, then reload this page."
+        );
+      }else if(
+        code==="42501" ||
+        message.toLowerCase().includes("permission denied")
+      ){
+        alert(
+          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v45 scoring repair SQL in Supabase, then reload this page."
+        );
+      }else{
+        alert(
+          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v45 scoring repair SQL in Supabase.\n\nError: "+
+          (message||code||"Unknown scoring-lock error")
+        );
+      }
     }
 
     return false;
@@ -3853,7 +3909,9 @@ function renderTeams(){
     banner.innerHTML=
       '<strong>NOT FINALIZED — team names only.</strong><br>'+
       'Captain and player names stay private until Admin locks the official pools. '+
-      'Payment and check-in status still follow each team.';
+      (state.settings.paymentEnabled
+        ?'Payment and check-in status still follow each team.'
+        :'Check-in status follows each team. This tournament is currently free.');
     grid.appendChild(banner);
 
     POOLS.forEach(p=>{
@@ -3881,15 +3939,18 @@ function renderTeams(){
           registrationState.className=`pill ${reg.status==="registered"?"green":"blue"}`;
           registrationState.textContent=reg.status==="registered"?"Registered":"Processing";
 
-          const paid=document.createElement("span");
-          paid.className=`pill ${reg.paid?"green":"orange"}`;
-          paid.textContent=reg.paid?"Paid":"Unpaid";
-
           const checked=document.createElement("span");
           checked.className=`pill ${reg.checkedIn?"green":"blue"}`;
           checked.textContent=reg.checkedIn?"Checked In":"Not Checked In";
 
-          status.append(registrationState,paid,checked);
+          status.appendChild(registrationState);
+          if(state.settings.paymentEnabled){
+            const paid=document.createElement("span");
+            paid.className=`pill ${reg.paid?"green":"orange"}`;
+            paid.textContent=reg.paid?"Paid":"Unpaid";
+            status.appendChild(paid);
+          }
+          status.appendChild(checked);
         }else{
           const open=document.createElement("span");
           open.className="pill blue";
@@ -3917,7 +3978,8 @@ function renderTeams(){
           checkBtn.textContent=reg.checkedIn?"Undo Check-In":"Check In";
           checkBtn.onclick=()=>updateRegistrationStatus(reg,{checkedIn:!reg.checkedIn});
 
-          controls.append(paidBtn,checkBtn);
+          if(state.settings.paymentEnabled)controls.appendChild(paidBtn);
+          controls.appendChild(checkBtn);
           row.appendChild(controls);
         }
 
@@ -3975,15 +4037,17 @@ function renderTeams(){
         const status=document.createElement("div");
         status.className="team-status-row";
 
-        const paidStatus=document.createElement("span");
-        paidStatus.className=`pill ${t.paid?"green":"orange"}`;
-        paidStatus.textContent=t.paid?"Paid":"Unpaid";
-
         const checkStatus=document.createElement("span");
         checkStatus.className=`pill ${t.checkedIn?"green":"blue"}`;
         checkStatus.textContent=t.checkedIn?"Checked In":"Not Checked In";
 
-        status.append(paidStatus,checkStatus);
+        if(state.settings.paymentEnabled){
+          const paidStatus=document.createElement("span");
+          paidStatus.className=`pill ${t.paid?"green":"orange"}`;
+          paidStatus.textContent=t.paid?"Paid":"Unpaid";
+          status.appendChild(paidStatus);
+        }
+        status.appendChild(checkStatus);
         row.appendChild(status);
 
         const controls=document.createElement("div");
@@ -4018,7 +4082,8 @@ function renderTeams(){
           await updateTeam(t,{name:""});
         };
 
-        controls.append(paid,check,clear);
+        if(state.settings.paymentEnabled)controls.appendChild(paid);
+        controls.append(check,clear);
         row.appendChild(controls);
         card.appendChild(row);
       });
@@ -4471,7 +4536,9 @@ function renderRegistrations(){
     const statusLine=document.createElement("div");
     statusLine.className="team-status-row";
     statusLine.innerHTML=
-      `<span class="pill ${r.paid?"green":"orange"}">${r.paid?"Paid":"Unpaid"}</span>`+
+      (state.settings.paymentEnabled
+        ?`<span class="pill ${r.paid?"green":"orange"}">${r.paid?"Paid":"Unpaid"}</span>`
+        :"")+
       `<span class="pill ${r.checkedIn?"green":"blue"}">${r.checkedIn?"Checked In":"Not Checked In"}</span>`;
 
     box.append(title,statusLine);
@@ -4785,13 +4852,15 @@ function renderPoolBuilder(){
     return;
   }
 
-  const fullyRegistered=state.registrations.filter(
-    r=>r.status==="registered"
+  const paymentRequired=state.settings.paymentEnabled!==false;
+  const fullyRegistered=state.registrations.filter(r=>r.status==="registered").length;
+  const poolEligible=state.registrations.filter(
+    r=>r.status==="registered" && (!paymentRequired || r.paid) && r.checkedIn
   ).length;
 
-  const poolEligible=state.registrations.filter(
-    r=>r.status==="registered" && r.paid && r.checkedIn
-  ).length;
+  const eligibilityLabel=paymentRequired
+    ?"registered + paid + checked in"
+    :"registered + checked in";
 
   if(state.settings.poolsFinalized){
     status.innerHTML=`<b>Pools locked.</b> ${state.settings.teamCount} teams are assigned across ${state.settings.poolCount} pools. Registration is closed.`;
@@ -4816,7 +4885,7 @@ function renderPoolBuilder(){
     status.innerHTML=
       `<b>${poolEligible} pool-eligible team${poolEligible===1?"":"s"}.</b> `+
       `${fullyRegistered} registered total. `+
-      `A team must be <b>registered + paid + checked in</b> before it can enter a pool. `+
+      `A team must be <b>${eligibilityLabel}</b> before it can enter a pool. `+
       `A minimum of 8 pool-eligible teams is required.`;
   }else{
     const format=formatForTeamCount(poolEligible);
@@ -4833,8 +4902,10 @@ function renderPoolBuilder(){
     lockBtn.classList.add("hidden");
     grid.innerHTML="";
     msg.textContent=poolEligible>=8
-      ?"Preview uses only teams that are registered, paid, and checked in. Skill level then balances those eligible teams across the starting pools."
-      :"Mark at least 8 registered teams Paid and Checked In before finalizing.";
+      ?`Preview uses only teams that are ${eligibilityLabel}. Skill level then balances those eligible teams across the starting pools.`
+      :paymentRequired
+        ?"Mark at least 8 registered teams Paid and Checked In before finalizing."
+        :"Check in at least 8 registered teams before finalizing.";
     return;
   }
 
@@ -4854,54 +4925,51 @@ function renderPoolBuilder(){
   POOLS.slice(0,format.poolCount).forEach((poolLetter,poolIndex)=>{
     const card=document.createElement("div");
     card.className="pool-preview-card";
-
     const count=validation.counts[poolLetter]||0;
     const needed=format.sizes[poolIndex];
     card.innerHTML=`<h3><span class="pool-badge">Pool ${poolLetter}</span> <span class="${count===needed?"pool-count-good":"pool-count-bad"}">${count}/${needed}</span></h3>`;
 
-    state.poolPreview
-      .filter(t=>t.pool===poolLetter)
-      .forEach(team=>{
-        const row=document.createElement("div");
-        row.className="pool-preview-team";
+    state.poolPreview.filter(t=>t.pool===poolLetter).forEach(team=>{
+      const row=document.createElement("div");
+      row.className="pool-preview-team";
 
-        const name=document.createElement("div");
-        name.className="pool-preview-name";
-        name.textContent=team.teamName;
+      const name=document.createElement("div");
+      name.className="pool-preview-name";
+      name.textContent=team.teamName;
 
-        const controls=document.createElement("div");
-        controls.className="pool-preview-controls";
+      const controls=document.createElement("div");
+      controls.className="pool-preview-controls";
 
-        const skill=document.createElement("select");
-        skill.className="pool-builder-select";
-        ["competitive","intermediate","recreational","not_sure"].forEach(level=>{
-          const op=document.createElement("option");
-          op.value=level;
-          op.textContent=skillLabel(level);
-          op.selected=team.skillLevel===level;
-          skill.appendChild(op);
-        });
-        skill.title="Private team level — used only for initial pool balance";
-        skill.onchange=()=>updatePreviewSkill(team,skill.value);
-
-        const poolSelect=document.createElement("select");
-        poolSelect.className="pool-builder-select";
-        POOLS.slice(0,format.poolCount).forEach(p=>{
-          const op=document.createElement("option");
-          op.value=p;
-          op.textContent=`Pool ${p}`;
-          op.selected=team.pool===p;
-          poolSelect.appendChild(op);
-        });
-        poolSelect.onchange=()=>{
-          team.pool=poolSelect.value;
-          renderPoolBuilder();
-        };
-
-        controls.append(skill,poolSelect);
-        row.append(name,controls);
-        card.appendChild(row);
+      const skill=document.createElement("select");
+      skill.className="pool-builder-select";
+      ["competitive","intermediate","recreational","not_sure"].forEach(level=>{
+        const op=document.createElement("option");
+        op.value=level;
+        op.textContent=skillLabel(level);
+        op.selected=team.skillLevel===level;
+        skill.appendChild(op);
       });
+      skill.title="Private team level — used only for initial pool balance";
+      skill.onchange=()=>updatePreviewSkill(team,skill.value);
+
+      const poolSelect=document.createElement("select");
+      poolSelect.className="pool-builder-select";
+      POOLS.slice(0,format.poolCount).forEach(p=>{
+        const op=document.createElement("option");
+        op.value=p;
+        op.textContent=`Pool ${p}`;
+        op.selected=team.pool===p;
+        poolSelect.appendChild(op);
+      });
+      poolSelect.onchange=()=>{
+        team.pool=poolSelect.value;
+        renderPoolBuilder();
+      };
+
+      controls.append(skill,poolSelect);
+      row.append(name,controls);
+      card.appendChild(row);
+    });
 
     grid.appendChild(card);
   });
@@ -4921,9 +4989,15 @@ async function lockPoolPreview(){
     return;
   }
 
+  const paymentRequired=state.settings.paymentEnabled!==false;
+  const eligibilityText=paymentRequired
+    ?"Only registered + paid + checked-in teams are included."
+    :"This tournament is FREE. Only registered + checked-in teams are included.";
+
   const yes=confirm(
     "Lock these pools and close registration?\n\n"+
-    "Only fully registered + paid + checked-in teams are included. This will generate the official pool schedule and reset any old pool/bracket results."
+    eligibilityText+
+    " This will generate the official pool schedule and reset any old pool/bracket results."
   );
   if(!yes)return;
 
@@ -5021,7 +5095,9 @@ async function renderAdminContacts(){
       `<b>${escapeHTML(c.team_name)}</b> `+
       `<span class="pill">${escapeHTML(c.status)}</span>`+
       `<div class="admin-contact-status">`+
-        `<span class="pill ${c.paid?"green":"orange"}">${c.paid?"Paid":"Unpaid"}</span>`+
+        (state.settings.paymentEnabled
+          ?`<span class="pill ${c.paid?"green":"orange"}">${c.paid?"Paid":"Unpaid"}</span>`
+          :`<span class="pill green">FREE — Payment Not Required</span>`)+
         `<span class="pill ${c.checked_in?"green":"blue"}">${c.checked_in?"Checked In":"Not Checked In"}</span>`+
       `</div>`;
     box.appendChild(head);
@@ -5139,10 +5215,51 @@ function renderRuleSections(){
     const title=card.querySelector(".rule-card-title");
     if(title)title.textContent=section.title;
 
+    let items=[...section.items];
+
+    if(key==="format"){
+      items=items.filter(item=>!/first place prize\s*:/i.test(item));
+    }
+
+    if(!state.settings.paymentEnabled){
+      if(key==="format"){
+        items=items
+          .filter(item=>
+            !(/\$\s*\d|per player|per team|team fee|zelle|cash payment/i.test(item))
+          )
+          .map(item=>
+            item
+              .replace(/registered,\s*paid,\s*and\s*checked in/gi,"registered and checked in")
+              .replace(/registered\s*\+\s*paid\s*\+\s*checked in/gi,"registered + checked in")
+          );
+      }
+
+      if(key==="location"){
+        items=items.map(item=>
+          item
+            .replace(/registered,\s*paid,\s*and\s*checked in/gi,"registered and checked in")
+            .replace(/registered\s*\+\s*paid\s*\+\s*checked in/gi,"registered + checked in")
+        );
+      }
+    }else if(key==="format"){
+      const fee=Math.max(0,Number(state.settings.paymentTeamFee||0));
+      const perPlayer=fee/4;
+      const perPlayerText=Number.isInteger(perPlayer)
+        ?`$${perPlayer}`
+        :`$${perPlayer.toFixed(2)}`;
+
+      items=items.map(item=>{
+        if(/\$\s*15\s*per player\s*\/\s*\$\s*60\s*per team/i.test(item)){
+          return `${perPlayerText} per player / $${fee} per team.`;
+        }
+        return item;
+      });
+    }
+
     const list=card.querySelector(".rule-list");
     if(list){
       list.innerHTML="";
-      section.items.forEach(item=>{
+      items.forEach(item=>{
         const li=document.createElement("li");
         li.textContent=item;
         list.appendChild(li);
@@ -5283,51 +5400,68 @@ async function restoreRuleDefault(){
 
 
 function renderPaymentInfo(){
+  const enabled=state.settings?.paymentEnabled!==false;
+  const fee=Math.max(0,Number(state.settings?.paymentTeamFee??60));
   const zelle=String(state.settings?.paymentZelle||"").trim();
-  const cash=String(
-    state.settings?.paymentCashText||
-    "Cash can be paid at conference check-in."
-  ).trim();
-  const note=String(
-    state.settings?.paymentNote||
-    "Captain is responsible for the full team payment."
-  ).trim();
+  const cash=String(state.settings?.paymentCashText||"Cash can be paid at conference check-in.").trim();
+  const note=String(state.settings?.paymentNote||"Captain is responsible for the full team payment.").trim();
 
-  const zellePublic=$("paymentZellePublic");
-  if(zellePublic)zellePublic.textContent=zelle||"TBD";
+  const card=$("paymentCard");
+  if(card)card.classList.toggle("payment-disabled-public",!enabled);
 
-  const cashPublic=$("paymentCashPublic");
-  if(cashPublic)cashPublic.textContent=cash;
+  const publicContent=$("paymentPublicContent");
+  if(publicContent)publicContent.style.display=enabled?"block":(state.admin?"block":"none");
 
-  const notePublic=$("paymentNotePublic");
-  if(notePublic)notePublic.textContent=note;
-
-  const regZelle=$("registrationPaymentZelle");
-  if(regZelle)regZelle.textContent=zelle||"TBD";
-
-  const regCash=$("registrationPaymentCash");
-  if(regCash)regCash.textContent=cash;
-
-  const regNote=$("registrationPaymentNote");
-  if(regNote){
-    regNote.textContent=
-      `${note} Admin will mark the team Paid after payment is verified.`;
+  const modeBadge=$("paymentModeBadge");
+  if(modeBadge){
+    modeBadge.textContent=enabled?"PAYMENTS ON":"FREE — PAYMENTS OFF";
+    modeBadge.className=`pill admin-only ${enabled?"orange":"green"}`;
   }
 
-  const zelleInput=$("adminPaymentZelle");
-  if(zelleInput && document.activeElement!==zelleInput){
-    zelleInput.value=zelle;
+  const visibilityText=$("paymentVisibilityAdminText");
+  if(visibilityText){
+    visibilityText.textContent=enabled
+      ?"Payment box is public. Paid status is required before a team can enter pools."
+      :"Payment box is hidden from the public. This tournament is currently FREE, so Paid status is not required for pool eligibility.";
   }
 
-  const cashInput=$("adminPaymentCash");
-  if(cashInput && document.activeElement!==cashInput){
-    cashInput.value=cash;
+  const toggleBtn=$("togglePaymentVisibilityBtn");
+  if(toggleBtn){
+    toggleBtn.textContent=enabled
+      ?"Hide Payment Box / Make Tournament Free"
+      :"Show Payment Box / Require Payment";
   }
 
-  const noteInput=$("adminPaymentNote");
-  if(noteInput && document.activeElement!==noteInput){
-    noteInput.value=note;
+  if($("paymentTeamFeePublic"))$("paymentTeamFeePublic").textContent=`$${fee}`;
+  if($("paymentZellePublic"))$("paymentZellePublic").textContent=zelle||"TBD";
+  if($("paymentCashPublic"))$("paymentCashPublic").textContent=cash;
+  if($("paymentNotePublic"))$("paymentNotePublic").textContent=note;
+
+  if($("registrationPaymentBox"))$("registrationPaymentBox").style.display=enabled?"block":"none";
+  if($("registrationPaymentFee"))$("registrationPaymentFee").textContent=`$${fee}`;
+  if($("registrationPaymentZelle"))$("registrationPaymentZelle").textContent=zelle||"TBD";
+  if($("registrationPaymentCash"))$("registrationPaymentCash").textContent=cash;
+  if($("registrationPaymentNote")){
+    $("registrationPaymentNote").textContent=`${note} Admin will mark the team Paid after payment is verified.`;
   }
+
+  const teamCapText=$("teamCapPaymentText");
+  if(teamCapText){
+    if(enabled){
+      const perPlayer=fee/4;
+      const perPlayerText=Number.isInteger(perPlayer)?`$${perPlayer}`:`$${perPlayer.toFixed(2)}`;
+      teamCapText.textContent=`${perPlayerText}/player • $${fee}/team`;
+    }else{
+      teamCapText.textContent="FREE ENTRY • 4 players/team";
+    }
+  }
+
+  if($("adminPaymentTeamFee") && document.activeElement!==$("adminPaymentTeamFee")){
+    $("adminPaymentTeamFee").value=String(fee);
+  }
+  if($("adminPaymentZelle") && document.activeElement!==$("adminPaymentZelle"))$("adminPaymentZelle").value=zelle;
+  if($("adminPaymentCash") && document.activeElement!==$("adminPaymentCash"))$("adminPaymentCash").value=cash;
+  if($("adminPaymentNote") && document.activeElement!==$("adminPaymentNote"))$("adminPaymentNote").value=note;
 }
 
 async function savePaymentInfo(){
@@ -5336,29 +5470,27 @@ async function savePaymentInfo(){
     return;
   }
 
+  const fee=Number($("adminPaymentTeamFee").value.trim());
   const zelle=$("adminPaymentZelle").value.trim();
   const cash=$("adminPaymentCash").value.trim();
   const note=$("adminPaymentNote").value.trim();
 
-  if(!cash){
-    alert("Add the cash payment instructions.");
+  if(!Number.isFinite(fee)||fee<0||!Number.isInteger(fee)){
+    alert("Team fee must be a whole number of dollars, such as 60 or 0.");
     return;
   }
-
-  if(!note){
-    alert("Add the captain payment note.");
-    return;
-  }
+  if(!cash){alert("Add the cash payment instructions.");return;}
+  if(!note){alert("Add the captain payment note.");return;}
 
   const btn=$("savePaymentInfoBtn");
   const status=$("adminPaymentStatus");
-
   btn.disabled=true;
   status.textContent="Saving…";
   setSync("","Saving payment information…");
 
-  const {data,error}=await sb.rpc("admin_update_payment_info",{
+  const {data,error}=await sb.rpc("admin_update_payment_settings",{
     p_code:adminCodeSession,
+    p_team_fee:fee,
     p_zelle:zelle||null,
     p_cash_text:cash,
     p_note:note
@@ -5374,14 +5506,60 @@ async function savePaymentInfo(){
     return;
   }
 
+  state.settings.paymentTeamFee=Number(data?.payment_team_fee??fee);
   state.settings.paymentZelle=data?.payment_zelle||"";
-  state.settings.paymentCashText=
-    data?.payment_cash_text||cash;
-  state.settings.paymentNote=
-    data?.payment_note||note;
+  state.settings.paymentCashText=data?.payment_cash_text||cash;
+  state.settings.paymentNote=data?.payment_note||note;
 
+  renderRuleSections();
   renderPaymentInfo();
   status.textContent="Payment information saved ✓";
+  setSync("live","Live sync connected");
+}
+
+async function togglePaymentVisibility(){
+  if(!state.admin||!adminCodeSession){
+    alert("Admin access required.");
+    return;
+  }
+
+  const next=!(state.settings.paymentEnabled!==false);
+  const message=next
+    ?"Turn payments ON?\n\nThe payment box will be public again and teams will need to be marked Paid + Checked In before pools can be locked."
+    :"Make this tournament FREE?\n\nThe public payment box will disappear and teams will only need to be Registered + Checked In for pool eligibility.";
+
+  if(!confirm(message))return;
+
+  const btn=$("togglePaymentVisibilityBtn");
+  const status=$("adminPaymentStatus");
+  btn.disabled=true;
+  status.textContent="Updating tournament payment mode…";
+  setSync("","Updating payment mode…");
+
+  const {data,error}=await sb.rpc("admin_set_payment_enabled",{
+    p_code:adminCodeSession,
+    p_enabled:next
+  });
+
+  btn.disabled=false;
+
+  if(error){
+    console.error(error);
+    status.textContent="Unable to change payment mode.";
+    setSync("error","Payment mode failed");
+    alert(error.message||"Unable to change payment mode.");
+    return;
+  }
+
+  state.settings.paymentEnabled=data?.payment_enabled!==false;
+  state.poolPreview=[];
+  state.poolCandidates=[];
+  state.poolPreviewFormat=null;
+
+  renderAll();
+  $("adminPaymentStatus").textContent=state.settings.paymentEnabled
+    ?"Payments are ON ✓"
+    :"Tournament is FREE — payment box hidden ✓";
   setSync("live","Live sync connected");
 }
 
@@ -5410,22 +5588,17 @@ function renderSecondPrize(){
   const text=$("secondPrizePublicText");
   if(!text)return;
 
-  const amount=state.settings?.secondPrizeAmount;
+  const prize=String(state.settings?.secondPrizeText||"").trim();
 
-  if(amount===null || amount===undefined || Number.isNaN(Number(amount))){
-    text.innerHTML=
-      "<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
+  if(!prize || prize.toUpperCase()==="TBD"){
+    text.innerHTML="<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
   }else{
-    text.innerHTML=
-      `<b>Second Place Prize: ${formatPrizeAmount(amount)}</b>`;
+    text.textContent=`Second Place Prize: ${prize}`;
   }
 
-  const input=$("adminSecondPrizeAmount");
+  const input=$("adminSecondPrizeText");
   if(input && document.activeElement!==input){
-    input.value=
-      amount===null || amount===undefined
-        ?""
-        :String(Math.round(Number(amount)));
+    input.value=prize && prize.toUpperCase()!=="TBD" ? prize : "";
   }
 }
 
@@ -5435,18 +5608,11 @@ async function saveSecondPrizeAmount(){
     return;
   }
 
-  const input=$("adminSecondPrizeAmount");
-  const raw=input.value.trim();
+  const input=$("adminSecondPrizeText");
+  const prize=input.value.trim();
 
-  if(raw===""){
-    alert("Enter a second-place prize amount, or use Set to TBD.");
-    return;
-  }
-
-  const amount=Number(raw);
-
-  if(!Number.isFinite(amount)||amount<0){
-    alert("Enter a valid second-place prize amount.");
+  if(!prize){
+    alert("Enter the second-place prize, or use Set to TBD.");
     return;
   }
 
@@ -5457,9 +5623,9 @@ async function saveSecondPrizeAmount(){
   status.textContent="Saving…";
   setSync("","Saving second-place prize…");
 
-  const {data,error}=await sb.rpc("admin_update_second_prize",{
+  const {data,error}=await sb.rpc("admin_update_second_prize_text",{
     p_code:adminCodeSession,
-    p_prize_amount:Math.round(amount)
+    p_prize_text:prize
   });
 
   btn.disabled=false;
@@ -5472,13 +5638,10 @@ async function saveSecondPrizeAmount(){
     return;
   }
 
-  state.settings.secondPrizeAmount=
-    data?.second_prize_amount==null
-      ?Math.round(amount)
-      :Number(data.second_prize_amount);
+  state.settings.secondPrizeText=String(data?.second_prize_text||prize).trim()||"TBD";
 
   renderSecondPrize();
-  status.textContent=`Saved: ${formatPrizeAmount(state.settings.secondPrizeAmount)}`;
+  status.textContent=`Saved: ${state.settings.secondPrizeText}`;
   setSync("live","Live sync connected");
 }
 
@@ -5497,9 +5660,9 @@ async function clearSecondPrizeAmount(){
   status.textContent="Saving…";
   setSync("","Updating second-place prize…");
 
-  const {error}=await sb.rpc("admin_update_second_prize",{
+  const {data,error}=await sb.rpc("admin_update_second_prize_text",{
     p_code:adminCodeSession,
-    p_prize_amount:null
+    p_prize_text:null
   });
 
   btn.disabled=false;
@@ -5512,7 +5675,7 @@ async function clearSecondPrizeAmount(){
     return;
   }
 
-  state.settings.secondPrizeAmount=null;
+  state.settings.secondPrizeText=String(data?.second_prize_text||"TBD").trim()||"TBD";
   renderSecondPrize();
   status.textContent="Second-place prize is now TBD.";
   setSync("live","Live sync connected");
@@ -5522,22 +5685,17 @@ function renderPrize(){
   const text=$("prizePublicText");
   if(!text)return;
 
-  const amount=state.settings?.prizeAmount;
+  const prize=String(state.settings?.prizeText||"").trim();
 
-  if(amount===null || amount===undefined || Number.isNaN(Number(amount))){
-    text.innerHTML=
-      "<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
+  if(!prize || prize.toUpperCase()==="TBD"){
+    text.innerHTML="<b>Prize: TBD.</b> Final prize details will be announced once confirmed.";
   }else{
-    text.innerHTML=
-      `<b>First Place Prize: ${formatPrizeAmount(amount)}</b>`;
+    text.textContent=`First Place Prize: ${prize}`;
   }
 
-  const input=$("adminPrizeAmount");
+  const input=$("adminPrizeText");
   if(input && document.activeElement!==input){
-    input.value=
-      amount===null || amount===undefined
-        ?""
-        :String(Math.round(Number(amount)));
+    input.value=prize && prize.toUpperCase()!=="TBD" ? prize : "";
   }
 }
 
@@ -5547,18 +5705,11 @@ async function savePrizeAmount(){
     return;
   }
 
-  const input=$("adminPrizeAmount");
-  const raw=input.value.trim();
+  const input=$("adminPrizeText");
+  const prize=input.value.trim();
 
-  if(raw===""){
-    alert("Enter a prize amount, or use Set to TBD.");
-    return;
-  }
-
-  const amount=Number(raw);
-
-  if(!Number.isFinite(amount)||amount<0){
-    alert("Enter a valid prize amount.");
+  if(!prize){
+    alert("Enter the first-place prize, or use Set to TBD.");
     return;
   }
 
@@ -5567,11 +5718,11 @@ async function savePrizeAmount(){
 
   btn.disabled=true;
   status.textContent="Saving…";
-  setSync("","Saving prize…");
+  setSync("","Saving first-place prize…");
 
-  const {data,error}=await sb.rpc("admin_update_prize",{
+  const {data,error}=await sb.rpc("admin_update_prize_text",{
     p_code:adminCodeSession,
-    p_prize_amount:Math.round(amount)
+    p_prize_text:prize
   });
 
   btn.disabled=false;
@@ -5580,17 +5731,14 @@ async function savePrizeAmount(){
     console.error(error);
     status.textContent="Prize update failed.";
     setSync("error","Prize update failed");
-    alert(error.message||"Unable to update prize.");
+    alert(error.message||"Unable to update first-place prize.");
     return;
   }
 
-  state.settings.prizeAmount=
-    data?.prize_amount==null
-      ?Math.round(amount)
-      :Number(data.prize_amount);
+  state.settings.prizeText=String(data?.prize_text||prize).trim()||"TBD";
 
   renderPrize();
-  status.textContent=`Saved: ${formatPrizeAmount(state.settings.prizeAmount)}`;
+  status.textContent=`Saved: ${state.settings.prizeText}`;
   setSync("live","Live sync connected");
 }
 
@@ -5607,11 +5755,11 @@ async function clearPrizeAmount(){
 
   btn.disabled=true;
   status.textContent="Saving…";
-  setSync("","Updating prize…");
+  setSync("","Updating first-place prize…");
 
-  const {error}=await sb.rpc("admin_update_prize",{
+  const {data,error}=await sb.rpc("admin_update_prize_text",{
     p_code:adminCodeSession,
-    p_prize_amount:null
+    p_prize_text:null
   });
 
   btn.disabled=false;
@@ -5620,13 +5768,13 @@ async function clearPrizeAmount(){
     console.error(error);
     status.textContent="Prize update failed.";
     setSync("error","Prize update failed");
-    alert(error.message||"Unable to update prize.");
+    alert(error.message||"Unable to update first-place prize.");
     return;
   }
 
-  state.settings.prizeAmount=null;
+  state.settings.prizeText=String(data?.prize_text||"TBD").trim()||"TBD";
   renderPrize();
-  status.textContent="Prize is now TBD.";
+  status.textContent="First-place prize is now TBD.";
   setSync("live","Live sync connected");
 }
 
@@ -6097,6 +6245,7 @@ $("ruleEditorRestore").onclick=restoreRuleDefault;
 $("ruleEditorCancel").onclick=closeRuleEditor;
 
 $("savePaymentInfoBtn").onclick=savePaymentInfo;
+$("togglePaymentVisibilityBtn").onclick=togglePaymentVisibility;
 $("clearPaymentZelleBtn").onclick=clearPaymentZelle;
 $("saveSecondPrizeBtn").onclick=saveSecondPrizeAmount;
 $("clearSecondPrizeBtn").onclick=clearSecondPrizeAmount;
