@@ -2033,7 +2033,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v48</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v49</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2886,7 +2886,7 @@ async function checkScoreBackend(){
     console.error("Score backend health check:",error);
     state.scoreBackendState="error";
     state.scoreBackendMessage=
-      "Live tournament data is connected, but protected scoring is not ready. Run the v48 scoring repair SQL in Supabase, then reload.";
+      "Live tournament data is connected, but protected scoring is not ready. Run the v49 Confirm Score Fix SQL in Supabase, then reload.";
     return false;
   }
 }
@@ -3290,18 +3290,18 @@ async function acquireScoreLock(type,id,{silent=false}={}){
         message.includes("score_acquire_match_lock")
       ){
         alert(
-          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
+          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
         );
       }else if(
         code==="42501" ||
         message.toLowerCase().includes("permission denied")
       ){
         alert(
-          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
+          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
         );
       }else{
         alert(
-          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v48 scoring repair SQL in Supabase.\n\nError: "+
+          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v49 Confirm Score Fix SQL in Supabase.\n\nError: "+
           (message||code||"Unknown scoring-lock error")
         );
       }
@@ -5849,7 +5849,7 @@ async function openScore(type,id){
 
   if(state.scoreBackendState!=="ready"){
     alert(
-      "Tournament data is connected, but protected scoring is not ready yet. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
+      "Tournament data is connected, but protected scoring is not ready yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
     );
     return;
   }
@@ -6078,49 +6078,114 @@ async function confirmSet(){
     return;
   }
 
-  const before=JSON.parse(JSON.stringify(m));
+  const btn=$("submitConfirm");
+  const originalText=btn.textContent;
+  btn.disabled=true;
+  btn.textContent="Confirming…";
+  setScoreSaving(true,"Finalizing…");
 
-  if(m.type==="pool"){
-    m.final=true;
-    m.locked=true;
+  const operationId=scoreOperationId();
 
-    const ok=await updatePool(m,before);
-    if(!ok)return;
-  }else{
-    m.sets.push({
-      a:m.currentA||0,
-      b:m.currentB||0
-    });
+  const callConfirm=()=>sb.rpc("score_confirm_set_state",{
+    p_match_type:m.type,
+    p_match_id:m.id,
+    p_lock_token:activeScore?.lockToken||"",
+    p_operation_id:operationId
+  });
 
-    m.currentA=0;
-    m.currentB=0;
+  try{
+    let {data,error}=await callConfirm();
 
-    const w=bracketSetWins(m);
-
-    if(w.a>=2||w.b>=2){
-      m.final=true;
-      m.locked=true;
+    // If the scorer lock expired during the confirmation dialog, safely
+    // reacquire it only if another device has not taken the match.
+    if(error && String(error.message||"").includes("MATCH_LOCK_REQUIRED")){
+      const reacquired=await acquireScoreLock(m.type,m.id,{silent:true});
+      if(reacquired){
+        ({data,error}=await callConfirm());
+      }
     }
 
-    const ok=await updateBracket(m,before);
-    if(!ok)return;
-  }
-
-  $("confirmModal").classList.remove("open");
-
-  // A finalized match no longer needs an active writer lock.
-  if(m.final){
-    stopScoreHeartbeat();
-    await releaseScoreLock();
-    if(activeScore){
-      activeScore.hasLock=false;
-      activeScore.viewOnly=true;
+    // One retry with the SAME operation ID makes an uncertain network response
+    // safe: if the first request actually committed, the backend returns the
+    // already-confirmed state instead of applying the confirmation twice.
+    if(error && !String(error.message||"").includes("MATCH_LOCK_REQUIRED")){
+      await new Promise(resolve=>setTimeout(resolve,250));
+      ({data,error}=await callConfirm());
     }
-    $("scoreDeviceLock")?.classList.add("hidden");
-  }
 
-  renderAll();
-  refreshScoreOverlay();
+    if(error)throw error;
+
+    if(m.type==="pool"){
+      m.scoreA=Number(data?.score_a ?? m.scoreA ?? 0);
+      m.scoreB=Number(data?.score_b ?? m.scoreB ?? 0);
+      m.final=!!data?.final;
+      m.locked=!!data?.locked;
+      m.scoreRevision=Number(data?.score_revision ?? m.scoreRevision ?? 0);
+    }else{
+      m.sets=Array.isArray(data?.sets)?data.sets:m.sets;
+      m.currentA=Number(data?.current_a ?? 0);
+      m.currentB=Number(data?.current_b ?? 0);
+      m.final=!!data?.final;
+      m.locked=!!data?.locked;
+      m.scoreRevision=Number(data?.score_revision ?? m.scoreRevision ?? 0);
+    }
+
+    $("confirmModal").classList.remove("open");
+    hideUnsavedScore();
+    setScoreSaving(false,"");
+    setSync("live","Live sync connected");
+
+    if(m.final){
+      stopScoreHeartbeat();
+      await releaseScoreLock();
+
+      if(activeScore){
+        activeScore.hasLock=false;
+        activeScore.viewOnly=true;
+      }
+
+      $("scoreDeviceLock")?.classList.add("hidden");
+    }
+
+    renderAll();
+    refreshScoreOverlay();
+
+  }catch(error){
+    console.error("Confirm score:",error);
+
+    setScoreSaving(false,"");
+    btn.disabled=false;
+    btn.textContent=originalText;
+
+    const message=String(error?.message||"");
+
+    if(message.includes("MATCH_LOCK_REQUIRED")){
+      alert(
+        "This iPad no longer owns the scoring lock. Close this message and tap Confirm again. If another device took the match, wait for that scorer to close it."
+      );
+    }else if(message.includes("SCORE_NOT_READY")){
+      alert(
+        "The server does not see a legal winning score yet. The score was not finalized. Close this message, verify the score, and try Confirm again."
+      );
+    }else if(
+      message.includes("Could not find the function") ||
+      message.includes("score_confirm_set_state")
+    ){
+      alert(
+        "The new score-confirm function is not installed yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, reload the page, and try again."
+      );
+    }else{
+      alert(
+        "The score is still saved, but the match could not be finalized yet. Nothing was erased.\n\n"+
+        "Error: "+(message||"Unknown confirmation error")
+      );
+    }
+
+    return;
+  }finally{
+    btn.disabled=false;
+    btn.textContent=originalText;
+  }
 }
 
 async function unlockMatch(){
