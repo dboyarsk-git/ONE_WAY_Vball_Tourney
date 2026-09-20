@@ -14,7 +14,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ONE WAY Grass 4s</title>
+<title>ONE WAY Grass 4s — v51</title>
+<meta name="oneway-build" content="v51">
 <script>
 /* ONE WAY v42:
    Player-by-player confirmation is intentionally disabled for this tournament.
@@ -1704,6 +1705,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <p>ONE WAY Conference volleyball at Church of New Hope. Pool play, live standings, bracket play, and a full-screen courtside scorer — all in one place.</p>
 <div class="verse">“I am the way, the truth, and the life.” — John 14:6 <span class="arrow">→</span></div>
 <div class="sync" id="syncStatus"><span class="dot"></span><span id="syncText">Connecting live sync…</span></div>
+<div class="pill blue" id="liveBuildBadge" style="margin-top:8px">LIVE BUILD v51</div>
 </section>
 
 <nav class="nav" id="nav">
@@ -1884,7 +1886,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <li><b>Bracket Play:</b> best 2 out of 3 sets.</li>
 <li>Sets 1 &amp; 2 are played to <b>21</b>.</li>
 <li>Set 3 is played to <b>15</b>.</li>
-<li>Completed sets and matches lock automatically.</li>
+<li>Pool matches lock automatically as soon as a team reaches 25. Bracket sets advance through the scorekeeper.</li>
 </ul>
 </div>
 
@@ -2033,7 +2035,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v49</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v51</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2155,6 +2157,7 @@ const SUPABASE_KEY = "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
+const LIVE_BUILD="v51";
 const POOLS=["A","B","C","D"];
 const ONE_WAY_CONFIRMATIONS_ENABLED=false;
 let state={
@@ -3482,8 +3485,10 @@ async function retryPendingScoreSave(){
     renderAll();
     refreshScoreOverlay();
 
-    if(isSetComplete(m)&&!m.final){
+    if(m.type==="bracket" && isSetComplete(m) && !m.final){
       promptSetConfirm();
+    }else if(m.type==="pool"){
+      $("confirmModal")?.classList.remove("open");
     }
   }
 }
@@ -4191,7 +4196,7 @@ function renderSchedule(){
     scoringNotice.className="scoring-readiness ready";
     scoringNotice.innerHTML=
       '<strong>✓ Live scoring is ready.</strong>'+
-      'Tap <b>Keep Score</b> on any scheduled match to open the full-screen scorekeeper. Completed matches show <b>View Score</b>.';
+      'Pool matches <b>automatically lock at 25</b> — there is <b>NO Confirm Match popup</b> for pool play. If a final score needs correction, Admin can unlock it. Completed matches show <b>View Score</b>.';
   }else if(state.scoreBackendState==="checking"){
     scoringNotice.className="scoring-readiness locked";
     scoringNotice.innerHTML=
@@ -6011,10 +6016,13 @@ async function increment(side,delta){
 
   if(m.type==="bracket"&&bracketStatus(m)!=="Ready")return;
 
-  // Once a set/match reaches a legal winning score, +1 is frozen.
-  // Confirm, minus, and Undo remain available.
+  // If a pool match somehow reloads at a legal 25-point winning score without
+  // being finalized, do not add another point. The next normal save/finalize
+  // path will protect the hard cap.
   if(delta>0 && isSetComplete(m)){
-    promptSetConfirm();
+    if(m.type==="bracket"){
+      promptSetConfirm();
+    }
     return;
   }
 
@@ -6026,6 +6034,15 @@ async function increment(side,delta){
       m.scoreA=Math.max(0,Math.min(25,m.scoreA+delta));
     }else{
       m.scoreB=Math.max(0,Math.min(25,m.scoreB+delta));
+    }
+
+    // ONE WAY v50:
+    // Pool play is first to 25 with a hard cap. The final point is written
+    // together with final=true + locked=true in the SAME protected save.
+    // There is no separate confirmation step.
+    if(isSetComplete(m)){
+      m.final=true;
+      m.locked=true;
     }
   }else{
     if(side==="A"){
@@ -6046,7 +6063,28 @@ async function increment(side,delta){
   renderAll();
   refreshScoreOverlay();
 
-  if(ok && isSetComplete(m)){
+  if(!ok)return;
+
+  // Pool match is finished immediately on the 25th point.
+  if(m.type==="pool" && m.final){
+    stopScoreHeartbeat();
+    await releaseScoreLock();
+
+    if(activeScore){
+      activeScore.hasLock=false;
+      activeScore.viewOnly=true;
+    }
+
+    $("scoreDeviceLock")?.classList.add("hidden");
+    setScoreSaving(false,"FINAL — match locked");
+    renderAll();
+    refreshScoreOverlay();
+    return;
+  }
+
+  // Bracket still confirms completed sets because the scorer must advance
+  // from Set 1 to Set 2 (and possibly Set 3).
+  if(m.type==="bracket" && isSetComplete(m)){
     promptSetConfirm();
   }
 }
@@ -6054,6 +6092,12 @@ async function increment(side,delta){
 function promptSetConfirm(){
   const m=scoreMatch();
   if(!m||scorePendingSave||scoreTournamentFrozen)return;
+
+  // Pool matches auto-finalize at 25. They NEVER use this modal.
+  if(m.type==="pool"){
+    $("confirmModal")?.classList.remove("open");
+    return;
+  }
 
   const[a,b]=currentScores(m);
   const ids=m.type==="pool"?[m.teamA,m.teamB]:bracketTeamIds(m);
@@ -6072,6 +6116,12 @@ function promptSetConfirm(){
 async function confirmSet(){
   const m=scoreMatch();
   if(!m||scoreSaving||scorePendingSave||scoreTournamentFrozen)return;
+
+  // v50: pool play never uses this confirmation path.
+  if(m.type==="pool"){
+    $("confirmModal").classList.remove("open");
+    return;
+  }
 
   if(!isSetComplete(m)){
     $("confirmModal").classList.remove("open");
@@ -6199,7 +6249,7 @@ async function unlockMatch(){
 
   const warning=
     m.type==="pool"
-      ?"Unlock this pool match for correction?\n\nAny bracket scores already entered will be cleared because this result can change standings and qualifiers."
+      ?"Unlock this final pool score for correction?\n\nAny bracket scores already entered will be cleared because this result can change standings and qualifiers. After correction, the pool match will automatically lock again when a team reaches 25."
       :"Unlock this bracket match for correction?\n\nAny later-round results that depend on this winner will be cleared automatically.";
 
   if(!confirm(warning))return;
@@ -6221,14 +6271,43 @@ async function unlockMatch(){
 
   undoStack=[];
   await loadAll();
+
+  // This score screen was opened as view-only because the match was final.
+  // Claim the scoring lock now so Admin can correct it without closing and
+  // reopening the scorekeeper.
+  if(activeScore && activeScore.type===m.type && activeScore.id===m.id){
+    activeScore.viewOnly=false;
+    activeScore.hasLock=false;
+    activeScore.lockToken=null;
+
+    const acquired=await acquireScoreLock(m.type,m.id);
+
+    if(acquired){
+      activeScore.viewOnly=false;
+      activeScore.hasLock=true;
+      startScoreHeartbeat();
+      $("scoreDeviceLock")?.classList.remove("hidden");
+    }else{
+      alert(
+        "The match was unlocked, but this device could not claim the scorer lock. Close the score screen and open the match again before editing."
+      );
+    }
+  }
+
   setSync("live","Live sync connected");
   renderAll();
+  refreshScoreOverlay();
 }
+
 function refreshScoreOverlay(){
   if(!activeScore||!$("scoreOverlay").classList.contains("open"))return;
 
   const m=scoreMatch();
   if(!m)return;
+
+  if(m.type==="pool"){
+    $("confirmModal")?.classList.remove("open");
+  }
 
   const ids=
     m.type==="pool"
@@ -6398,7 +6477,15 @@ $("fullscreenBtn").onclick=async()=>{
 $("swapSidesBtn").onclick=()=>{swapped=!swapped;refreshScoreOverlay()};$("undoBtn").onclick=restoreLast;$("unlockMatchBtn").onclick=unlockMatch;
 $("sideA").onclick=e=>{if(e.target.id!=="minusA")increment(swapped?"B":"A",1)};$("sideB").onclick=e=>{if(e.target.id!=="minusB")increment(swapped?"A":"B",1)};
 $("minusA").onclick=e=>{e.stopPropagation();increment(swapped?"B":"A",-1)};$("minusB").onclick=e=>{e.stopPropagation();increment(swapped?"A":"B",-1)};
-$("cancelConfirm").onclick=()=>$("confirmModal").classList.remove("open");$("submitConfirm").onclick=confirmSet;
+$("cancelConfirm").onclick=()=>$("confirmModal").classList.remove("open");
+$("submitConfirm").onclick=()=>{
+  const m=scoreMatch();
+  if(m?.type==="pool"){
+    $("confirmModal").classList.remove("open");
+    return;
+  }
+  confirmSet();
+};
 
 
 document.addEventListener("fullscreenchange",()=>{
@@ -6438,6 +6525,7 @@ window.addEventListener("online",()=>{
 });
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
+$("confirmModal")?.classList.remove("open");
 // v44: intentionally do not install mobile scroll-driven nav behavior.
 $("nav")?.classList.remove("mobile-nav-hidden","mobile-nav-visible");
 
