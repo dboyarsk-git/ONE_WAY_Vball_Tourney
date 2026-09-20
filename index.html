@@ -1973,7 +1973,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v42</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v43</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2124,9 +2124,21 @@ const $=id=>document.getElementById(id);
 
 let mobileNavLastY=0;
 let mobileNavTicking=false;
+let mobileNavBottomLocked=false;
 
 function mobileNavEnabled(){
   return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function mobileNavMaxScroll(){
+  return Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight
+  );
+}
+
+function mobileNavNearBottom(y=window.scrollY||0){
+  return mobileNavMaxScroll()-Math.max(0,y) <= 28;
 }
 
 function showMobileNav(){
@@ -2139,7 +2151,7 @@ function showMobileNav(){
 function hideMobileNav(){
   const nav=$("nav");
   if(!nav)return;
-  if(window.scrollY<90)return;
+  if((window.scrollY||0)<90)return;
   nav.classList.remove("mobile-nav-visible");
   nav.classList.add("mobile-nav-hidden");
 }
@@ -2150,7 +2162,8 @@ function updateMobileNavOnScroll(){
 
   if(!mobileNavEnabled()){
     nav.classList.remove("mobile-nav-hidden","mobile-nav-visible");
-    mobileNavLastY=window.scrollY;
+    mobileNavBottomLocked=false;
+    mobileNavLastY=Math.max(0,window.scrollY||0);
     return;
   }
 
@@ -2158,15 +2171,41 @@ function updateMobileNavOnScroll(){
 
   // Always keep the menu visible near the top.
   if(currentY<90){
+    mobileNavBottomLocked=false;
     showMobileNav();
     mobileNavLastY=currentY;
     return;
   }
 
+  const maxY=mobileNavMaxScroll();
+  const nearBottom=maxY-currentY<=28;
+
+  // Safari/iOS can repeatedly alter scrollY when the nav collapses at the
+  // bottom because the document height changes. Lock the nav hidden while
+  // the viewport is at the bottom so that bounce/layout movement cannot
+  // immediately reopen it.
+  if(nearBottom){
+    mobileNavBottomLocked=true;
+    hideMobileNav();
+    mobileNavLastY=Math.min(currentY,maxY);
+    return;
+  }
+
   const delta=currentY-mobileNavLastY;
 
-  // Ignore tiny iOS scroll/bounce movements.
-  if(Math.abs(delta)<8)return;
+  // While bottom-locked, only unlock after a real upward movement away from
+  // the bottom. This prevents Safari's rubber-band bounce from toggling nav.
+  if(mobileNavBottomLocked){
+    if(maxY-currentY>70 && delta<-14){
+      mobileNavBottomLocked=false;
+      showMobileNav();
+    }
+    mobileNavLastY=currentY;
+    return;
+  }
+
+  // Ignore tiny iOS scroll/bounce/layout movements.
+  if(Math.abs(delta)<10)return;
 
   if(delta>0){
     hideMobileNav();
@@ -2179,7 +2218,13 @@ function updateMobileNavOnScroll(){
 
 function installMobileNavAutoHide(){
   mobileNavLastY=Math.max(0,window.scrollY||0);
-  showMobileNav();
+  mobileNavBottomLocked=mobileNavNearBottom(mobileNavLastY);
+
+  if(mobileNavBottomLocked && mobileNavLastY>=90){
+    hideMobileNav();
+  }else{
+    showMobileNav();
+  }
 
   window.addEventListener("scroll",()=>{
     if(mobileNavTicking)return;
@@ -2192,12 +2237,24 @@ function installMobileNavAutoHide(){
   },{passive:true});
 
   window.addEventListener("resize",()=>{
-    updateMobileNavOnScroll();
-  });
+    // Recalculate after orientation/viewport changes without treating the
+    // resulting layout shift as user scroll direction.
+    mobileNavLastY=Math.max(0,window.scrollY||0);
+    if(mobileNavNearBottom(mobileNavLastY) && mobileNavLastY>=90){
+      mobileNavBottomLocked=true;
+      hideMobileNav();
+    }else if(!mobileNavEnabled()){
+      mobileNavBottomLocked=false;
+      const nav=$("nav");
+      nav?.classList.remove("mobile-nav-hidden","mobile-nav-visible");
+    }
+  },{passive:true});
 
   // If the user taps within the nav or changes page, keep it available.
   $("nav")?.addEventListener("click",()=>{
+    mobileNavBottomLocked=false;
     showMobileNav();
+    mobileNavLastY=Math.max(0,window.scrollY||0);
   });
 }
 
