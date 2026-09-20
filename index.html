@@ -2033,7 +2033,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v47</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v48</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2171,7 +2171,9 @@ let state={
   admin:false,
   activeView:"home",
   liveDataState:"loading",
-  liveDataMessage:"Connecting to tournament database…"
+  liveDataMessage:"Connecting to tournament database…",
+  scoreBackendState:"checking",
+  scoreBackendMessage:"Checking protected scoring backend…"
 };
 let adminCodeSession="";
 let activeConfirmationToken="";
@@ -2859,6 +2861,36 @@ function qualifiedBracketSeeds(){
   return qualifiers.slice(0,8).map((r,i)=>({...r,bracketSeed:i+1}));
 }
 
+
+async function checkScoreBackend(){
+  state.scoreBackendState="checking";
+  state.scoreBackendMessage="Checking protected scoring backend…";
+
+  try{
+    const {data,error}=await promiseTimeout(
+      sb.rpc("score_backend_status"),
+      6000,
+      "Protected scoring backend"
+    );
+
+    if(error)throw error;
+
+    if(!data?.ready){
+      throw new Error("Scoring backend did not report ready.");
+    }
+
+    state.scoreBackendState="ready";
+    state.scoreBackendMessage="";
+    return true;
+  }catch(error){
+    console.error("Score backend health check:",error);
+    state.scoreBackendState="error";
+    state.scoreBackendMessage=
+      "Live tournament data is connected, but protected scoring is not ready. Run the v48 scoring repair SQL in Supabase, then reload.";
+    return false;
+  }
+}
+
 async function loadAll(){
   const previouslyFinalized=!!state.settings?.poolsFinalized;
 
@@ -2923,6 +2955,7 @@ async function loadAll(){
     state.liveDataState="ready";
     state.liveDataMessage="";
     await refreshPublicCaptains();
+    await checkScoreBackend();
     renderAll();
     setSync("live","Live sync connected");
   }catch(error){
@@ -3257,18 +3290,18 @@ async function acquireScoreLock(type,id,{silent=false}={}){
         message.includes("score_acquire_match_lock")
       ){
         alert(
-          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v45 scoring repair SQL in Supabase, then reload this page."
+          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
         );
       }else if(
         code==="42501" ||
         message.toLowerCase().includes("permission denied")
       ){
         alert(
-          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v45 scoring repair SQL in Supabase, then reload this page."
+          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
         );
       }else{
         alert(
-          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v45 scoring repair SQL in Supabase.\n\nError: "+
+          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v48 scoring repair SQL in Supabase.\n\nError: "+
           (message||code||"Unknown scoring-lock error")
         );
       }
@@ -4153,10 +4186,22 @@ function renderSchedule(){
   }
 
   const scoringNotice=document.createElement("div");
-  scoringNotice.className="scoring-readiness ready";
-  scoringNotice.innerHTML=
-    '<strong>✓ Live scoring is ready.</strong>'+
-    'Tap <b>Keep Score</b> on any scheduled match to open the full-screen scorekeeper. Completed matches show <b>View Score</b>.';
+
+  if(state.scoreBackendState==="ready"){
+    scoringNotice.className="scoring-readiness ready";
+    scoringNotice.innerHTML=
+      '<strong>✓ Live scoring is ready.</strong>'+
+      'Tap <b>Keep Score</b> on any scheduled match to open the full-screen scorekeeper. Completed matches show <b>View Score</b>.';
+  }else if(state.scoreBackendState==="checking"){
+    scoringNotice.className="scoring-readiness locked";
+    scoringNotice.innerHTML=
+      '<strong>Checking live scoring…</strong> Verifying the protected score-lock system.';
+  }else{
+    scoringNotice.className="scoring-readiness locked";
+    scoringNotice.innerHTML=
+      '<strong>⚠ Live scoring needs backend repair.</strong> Tournament data is connected, but the protected scoring functions are not ready. Run the <b>v48 scoring repair SQL</b> in Supabase and reload.';
+  }
+
   root.appendChild(scoringNotice);
 
   activePools().forEach(p=>{
@@ -4195,7 +4240,14 @@ function renderSchedule(){
       const btn=document.createElement("button");
       btn.className="score-btn";
       btn.textContent=m.final?"View Score":"Keep Score";
-      btn.onclick=()=>openScore("pool",m.id);
+
+      if(!m.final && state.scoreBackendState!=="ready"){
+        btn.disabled=true;
+        btn.title="Protected scoring backend is not ready yet.";
+      }else{
+        btn.onclick=()=>openScore("pool",m.id);
+      }
+
       actions.appendChild(btn);
 
       row.append(meta,matchup,ref,actions);
@@ -5792,6 +5844,13 @@ function scoreMatch(){return !activeScore?null:(activeScore.type==="pool"?state.
 async function openScore(type,id){
   if(state.liveDataState!=="ready"){
     alert("Live tournament data is unavailable. Retry the connection before opening a scorer.");
+    return;
+  }
+
+  if(state.scoreBackendState!=="ready"){
+    alert(
+      "Tournament data is connected, but protected scoring is not ready yet. Run the ONE WAY v48 scoring repair SQL in Supabase, then reload this page."
+    );
     return;
   }
 
