@@ -16,9 +16,13 @@
 <meta http-equiv="Expires" content="0">
 <title>ONE WAY Grass 4s</title>
 <script>
-/* ONE WAY v42:
-   Player-by-player confirmation is intentionally disabled for this tournament.
-   The confirmation implementation is preserved in the source/archive for reuse. */
+(function(){
+  try{
+    if(new URLSearchParams(location.search).has("confirm")){
+      document.documentElement.classList.add("confirmation-route");
+    }
+  }catch(e){}
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1615,39 +1619,6 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   }
 }
 
-
-/* ONE WAY v42 — privacy-first public identity */
-.team-captain-public{
-  display:block;
-  margin-top:3px;
-  font-size:.82rem;
-  line-height:1.25;
-  font-weight:700;
-  color:#66635e;
-}
-.team-match-label{
-  min-width:0;
-}
-.team-match-label.right{
-  text-align:right;
-}
-.team-match-label .team-captain-public{
-  font-weight:650;
-}
-.admin-player-list{
-  margin-top:10px;
-  padding-top:9px;
-  border-top:1px solid #ece8e1;
-  display:grid;
-  gap:5px;
-}
-.admin-player-line{
-  font-size:.9rem;
-}
-#playerConfirmationPanel{
-  display:none!important;
-}
-
 </style>
 </head>
 <body>
@@ -1757,7 +1728,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <ul class="rule-list">
 <li>Registration is capped at <b>16 teams</b>.</li>
 <li><b>$15 per player / $60 per team.</b></li>
-<li><b>No player may compete unless they are registered, paid, and checked in.</b></li>
+<li><b>No player may compete unless they are fully registered, paid, and checked in.</b></li>
 <li><b>🏆 First Place Prize:</b> TBD — final prize details will be announced once confirmed with the event coordinator.</li>
 <li>4 players per team with a maximum of 16 teams.</li>
 <li>Pool size is generated from the number of fully registered teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
@@ -1794,7 +1765,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <ul class="rule-list">
 <li><b>Location:</b> Church of New Hope</li>
 <li><b>Saturday Registration &amp; Check-In:</b> during the morning conference break at the clothing spot.</li>
-<li><b>Eligibility:</b> every player must be <b>registered, paid, and checked in before 1:00 PM</b> in order to play.</li>
+<li><b>Eligibility:</b> every player must be <b>fully registered, paid, and checked in before 1:00 PM</b> in order to play.</li>
 <li><b>Pool Play:</b> starts <b>exactly at 1:00 PM on Saturday, October 3</b>. Teams should be ready to play as soon as their court slot opens.</li>
 <li><b>Match pacing:</b> approximately <b>30-minute match windows</b> with a strict turnaround so pool play stays on schedule.</li>
 <li><b>Sunday, October 4:</b> Championship bracket begins <b>after 2:00 PM</b>.</li>
@@ -1856,7 +1827,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-register" class="view hidden">
 <div class="panel">
 <div class="section-title">
-<div><h2>Register a Team</h2><div class="muted">The captain submits the complete roster once. No player confirmation link is required for ONE WAY.</div></div>
+<div><h2>Register a Team</h2><div class="muted">Captain submits the roster. Every player must personally confirm before the team becomes fully registered.</div></div>
 <span class="pill orange" id="registrationCount">Loading…</span>
 </div>
 
@@ -1888,7 +1859,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <div class="form-field full">
 <label class="agree-row">
 <input type="checkbox" id="regAgreement">
-<span>I confirm that this roster is correct, all four players are committed to the team, and the team agrees to the ONE WAY Grass 4s tournament rules.</span>
+<span>I understand that each of the four players must personally confirm their spot and agree to all ONE WAY Grass 4s tournament rules before the team is fully registered.</span>
 </label>
 </div>
 <div class="form-field full"><button class="primary" id="submitRegistration">Submit Team Registration</button></div>
@@ -1898,7 +1869,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 
 <div class="card">
 <h3 style="margin-top:0">Registration Status</h3>
-<div class="muted">The first 16 complete team submissions are registered immediately. Additional teams are placed on the waitlist.</div>
+<div class="muted">The first 16 submitted teams receive a reserved spot while player confirmations are completed. Additional teams are placed on the waitlist.</div>
 <div class="progressbar"><span id="registrationProgress" style="width:0%"></span></div>
 <div id="registrationPublicList" style="margin-top:12px"></div>
 </div>
@@ -1959,21 +1930,21 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 </div>
 
 <div class="panel admin-only" id="captainContactsPanel">
-<div class="section-title"><div><h2>Team Registration Details</h2><div class="muted">Admin only. Captain contact information and all four player names stay private here.</div></div></div>
+<div class="section-title"><div><h2>Captain Contacts</h2><div class="muted">Admin only. Contact information is never shown publicly.</div></div></div>
 <div id="adminContacts" class="admin-contacts"></div>
 </div>
 </section>
 
 <section id="view-teams" class="view hidden"><div class="panel">
-<div class="section-title"><div><h2>Teams</h2><div class="muted">Before pools lock, only team names identify teams publicly. After lock, the team captain is also shown.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset Tournament Data</button></div>
+<div class="section-title"><div><h2>Teams</h2><div class="muted">Payment and check-in status are visible to everyone. Only admin can make changes.</div></div><button class="small-btn admin-only" id="resetTeamsBtn">Reset Tournament Data</button></div>
 <div class="team-grid" id="teamGrid"></div></div></section>
 
-<section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">After pools lock, each scheduled team is shown with its captain so players can find the correct opponent.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
+<section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">Each pool stays together so teams can quickly find their matches.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
 <section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted" id="standingsNote">Standings are based only on match results.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v42</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v41</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -1985,14 +1956,19 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
 
 <div class="registration-success-overlay" id="registrationSuccessOverlay">
   <div class="registration-success-card">
-    <span class="pill green" id="registrationSuccessStatus">REGISTERED ✓</span>
+    <span class="pill green" id="registrationSuccessStatus">SPOT RESERVED ✓</span>
     <h2>Registration Complete</h2>
     <div class="muted">Team</div>
     <div style="font-size:1.25rem;font-weight:900;margin-top:2px" id="registrationSuccessTeam"></div>
 
-    <p style="line-height:1.55" id="registrationSuccessSummary">
-      Your team is registered. No teammate confirmation link is required.
+    <p style="line-height:1.55">
+      Your team has been submitted. All four players must personally confirm their spot before the team becomes fully registered.
     </p>
+
+    <div class="registration-success-instructions">
+      <b>Send this same link to all four teammates.</b><br>
+      Each player opens it, selects their own name, agrees to the tournament rules, and confirms their spot.
+    </div>
 
     <div class="registration-payment-box">
       <h3>💵 Team Payment — $60</h3>
@@ -2002,8 +1978,14 @@ Church, conference, ministry, and third-party names, logos, trademarks, and bran
       <div class="muted" id="registrationPaymentNote">Admin will mark the team Paid after payment is verified.</div>
     </div>
 
+    <div class="registration-success-link">
+      <input class="team-input" id="registrationSuccessLink" readonly>
+      <button class="small-btn" id="registrationSuccessCopy">Copy Link</button>
+    </div>
+
     <div class="registration-success-actions">
-      <button class="primary" id="registrationSuccessDone">Done</button>
+      <button class="primary" id="registrationSuccessShare">Share Link</button>
+      <button class="ghost" id="registrationSuccessDone">Done</button>
     </div>
 
     <div class="muted" style="margin-top:12px" id="registrationSuccessMessage"></div>
@@ -2096,14 +2078,12 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
 const POOLS=["A","B","C","D"];
-const ONE_WAY_CONFIRMATIONS_ENABLED=false;
 let state={
   teams:[],
   poolMatches:[],
   bracketMatches:[],
   registrations:[],
   registrationPlayers:[],
-  publicCaptains:[],
   settings:{registrationOpen:true,poolsFinalized:false,poolCount:0,teamCount:0,prizeAmount:null,ruleSections:{},paymentZelle:"",paymentCashText:"Cash can be paid at conference check-in.",paymentNote:"Captain is responsible for the full team payment."},
   poolCandidates:[],
   poolPreview:[],
@@ -2216,42 +2196,9 @@ function mapBracket(r){return {id:r.id,type:"bracket",round:r.round_name,time:r.
 function mapRegistration(r){return {id:r.id,teamName:r.team_name,status:r.status,reservedSlot:r.reserved_slot,createdAt:r.created_at,confirmedAt:r.confirmed_at,paid:!!r.paid,checkedIn:!!r.checked_in}}
 function mapSettings(r){return {registrationOpen:r?.registration_open!==false,poolsFinalized:!!r?.pools_finalized,poolCount:Number(r?.pool_count||0),teamCount:Number(r?.team_count||0),finalizedAt:r?.finalized_at||null,prizeAmount:r?.prize_amount==null?null:Number(r.prize_amount),secondPrizeAmount:r?.second_prize_amount==null?null:Number(r.second_prize_amount),ruleSections:(r?.rule_sections&&typeof r.rule_sections==="object")?r.rule_sections:{},paymentZelle:r?.payment_zelle||"",paymentCashText:r?.payment_cash_text||"Cash can be paid at conference check-in.",paymentNote:r?.payment_note||"Captain is responsible for the full team payment."}}
 function mapRegPlayer(r){return {id:r.id,registrationId:r.registration_id,playerNumber:r.player_number,fullName:r.full_name,confirmed:r.confirmed,confirmedAt:r.confirmed_at}}
-function mapPublicCaptain(r){return {teamId:Number(r.team_id),registrationId:r.registration_id,teamName:r.team_name,captainName:String(r.captain_name||"").trim()}}
 
 const teamById=id=>state.teams.find(t=>t.id===id);
 const nameOf=id=>{if(!id)return"TBD";const t=teamById(id);return t&&String(t.name||"").trim()?t.name:`Open Slot ${id}`};
-const escapeHTML=value=>String(value??"")
-  .replaceAll("&","&amp;")
-  .replaceAll("<","&lt;")
-  .replaceAll(">","&gt;")
-  .replaceAll('"',"&quot;")
-  .replaceAll("'","&#039;");
-function captainNameForTeam(id){
-  if(!state.settings.poolsFinalized||!id)return "";
-  return state.publicCaptains.find(c=>c.teamId===Number(id))?.captainName||"";
-}
-function teamPublicHTML(id,showCaptain=false){
-  const teamName=escapeHTML(nameOf(id));
-  const captain=showCaptain?captainNameForTeam(id):"";
-  return captain
-    ? `<span>${teamName}</span><span class="team-captain-public">Captain: ${escapeHTML(captain)}</span>`
-    : `<span>${teamName}</span>`;
-}
-async function refreshPublicCaptains(){
-  if(!state.settings.poolsFinalized){
-    state.publicCaptains=[];
-    return;
-  }
-
-  try{
-    const {data,error}=await sb.rpc("public_team_captains");
-    if(error)throw error;
-    state.publicCaptains=(data||[]).map(mapPublicCaptain);
-  }catch(error){
-    console.warn("Public captain directory unavailable:",error);
-    state.publicCaptains=[];
-  }
-}
 async function sha256(text){
   const data=new TextEncoder().encode(text);
   const digest=await crypto.subtle.digest("SHA-256",data);
@@ -2805,7 +2752,6 @@ async function loadAll(){
 
     state.liveDataState="ready";
     state.liveDataMessage="";
-    await refreshPublicCaptains();
     renderAll();
     setSync("live","Live sync connected");
   }catch(error){
@@ -2818,16 +2764,21 @@ async function loadAll(){
   // Registration data is secondary. Its failure does not replace tournament data.
   if(state.liveDataState==="ready"){
     try{
-      const r=await promiseTimeout(
-        sb.from("team_registrations")
-          .select("id,team_name,status,reserved_slot,created_at,confirmed_at,paid,checked_in")
-          .order("created_at"),
+      const [r,rp]=await promiseTimeout(
+        Promise.all([
+          sb.from("team_registrations")
+            .select("id,team_name,status,reserved_slot,created_at,confirmed_at,paid,checked_in")
+            .order("created_at"),
+          sb.from("registration_players")
+            .select("id,registration_id,player_number,full_name,confirmed,confirmed_at")
+            .order("player_number")
+        ]),
         8000,
         "Registration data"
       );
 
       if(!r.error)state.registrations=(r.data||[]).map(mapRegistration);
-      state.registrationPlayers=[];
+      if(!rp.error)state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
       renderAll();
     }catch(error){
       console.error("Registration live-data load:",error);
@@ -2893,6 +2844,11 @@ function subscribeRealtime(){
     await refreshRegistrations();
     renderAll();
   })
+  .on("postgres_changes",{event:"*",schema:"public",table:"registration_players"},async()=>{
+    await refreshRegistrations();
+    renderAll();
+    if(activeConfirmationToken)await loadConfirmationFromURL();
+  })
   .on("postgres_changes",{event:"*",schema:"public",table:"tournament_settings"},async payload=>{
     const wasFinalized=!!state.settings?.poolsFinalized;
 
@@ -2912,8 +2868,6 @@ function subscribeRealtime(){
       ){
         freezeActiveScoreForPoolChange();
       }
-
-      await refreshPublicCaptains();
     }
 
     renderAll();
@@ -2929,14 +2883,14 @@ function subscribeRealtime(){
 }
 
 async function refreshRegistrations(){
-  const [r,s]=await Promise.all([
+  const [r,rp,s]=await Promise.all([
     sb.from("team_registrations").select("id,team_name,status,reserved_slot,created_at,confirmed_at,paid,checked_in").order("created_at"),
+    sb.from("registration_players").select("id,registration_id,player_number,full_name,confirmed,confirmed_at").order("player_number"),
     sb.from("tournament_settings").select("*").eq("id",1).maybeSingle()
   ]);
   if(!r.error)state.registrations=(r.data||[]).map(mapRegistration);
-  state.registrationPlayers=[];
+  if(!rp.error)state.registrationPlayers=(rp.data||[]).map(mapRegPlayer);
   if(!s.error&&s.data)state.settings=mapSettings(s.data);
-  await refreshPublicCaptains();
 }
 async function updateTeam(t, changes={}){
   if(!state.admin||!adminCodeSession){alert("Admin access required.");return false;}
@@ -3504,7 +3458,7 @@ function refNameForMatch(m){
   return nameOf(id);
 }
 
-function createRefRow(m,showCaptain=false){
+function createRefRow(m){
   const wrap=document.createElement("div");
   wrap.className="ref-row";
 
@@ -3514,18 +3468,7 @@ function createRefRow(m,showCaptain=false){
 
   if(!state.admin){
     const value=document.createElement("strong");
-    const id=effectiveRefId(m);
-
-    if(id===-1){
-      value.textContent="Tournament Staff";
-    }else if(!id){
-      value.textContent="TBD";
-    }else if(showCaptain && state.settings.poolsFinalized){
-      value.innerHTML=teamPublicHTML(id,true);
-    }else{
-      value.textContent=nameOf(id);
-    }
-
+    value.textContent=refNameForMatch(m);
     wrap.appendChild(value);
     return wrap;
   }
@@ -3769,9 +3712,9 @@ function renderTeams(){
     const banner=document.createElement("div");
     banner.className="pending-review-banner";
     banner.innerHTML=
-      '<strong>NOT FINALIZED — team names only.</strong><br>'+
-      'Captain and player names stay private until Admin locks the official pools. '+
-      'Payment and check-in status still follow each team.';
+      '<strong>NOT FINALIZED — 16-team outline only.</strong><br>'+
+      'Registered teams are shown in their temporary registration slots. '+
+      'Payment and check-in are live now and will follow each team when Admin locks the balanced pools.';
     grid.appendChild(banner);
 
     POOLS.forEach(p=>{
@@ -3797,7 +3740,8 @@ function renderTeams(){
         if(reg){
           const registrationState=document.createElement("span");
           registrationState.className=`pill ${reg.status==="registered"?"green":"blue"}`;
-          registrationState.textContent=reg.status==="registered"?"Registered":"Processing";
+          registrationState.textContent=
+            reg.status==="registered"?"Registered":"Pending Confirmation";
 
           const paid=document.createElement("span");
           paid.className=`pill ${reg.paid?"green":"orange"}`;
@@ -3820,6 +3764,24 @@ function renderTeams(){
         notFinal.textContent="Not Finalized";
         status.appendChild(notFinal);
         row.appendChild(status);
+
+        const roster=provisionalRoster(slot);
+        if(roster.length){
+          const list=document.createElement("div");
+          list.className="roster-list";
+
+          roster.forEach(pl=>{
+            const line=document.createElement("div");
+            line.className="roster-line";
+            line.innerHTML=
+              `<span>${pl.fullName}</span>`+
+              `<span class="pill ${pl.confirmed?"green":"blue"}">`+
+              `${pl.confirmed?"Confirmed":"Pending"}</span>`;
+            list.appendChild(line);
+          });
+
+          row.appendChild(list);
+        }
 
         if(reg){
           const controls=document.createElement("div");
@@ -3882,14 +3844,6 @@ function renderTeams(){
           row.appendChild(publicName);
         }
 
-        const captain=captainNameForTeam(t.id);
-        if(captain){
-          const captainLine=document.createElement("div");
-          captainLine.className="team-captain-public";
-          captainLine.textContent=`Captain: ${captain}`;
-          row.appendChild(captainLine);
-        }
-
         const status=document.createElement("div");
         status.className="team-status-row";
 
@@ -3903,6 +3857,24 @@ function renderTeams(){
 
         status.append(paidStatus,checkStatus);
         row.appendChild(status);
+
+        const roster=rosterForTeam(t);
+        if(roster.length){
+          const list=document.createElement("div");
+          list.className="roster-list";
+
+          roster.forEach(pl=>{
+            const line=document.createElement("div");
+            line.className="roster-line";
+            line.innerHTML=
+              `<span>${pl.fullName}</span>`+
+              `<span class="pill ${pl.confirmed?"green":"blue"}">`+
+              `${pl.confirmed?"Confirmed":"Pending"}</span>`;
+            list.appendChild(line);
+          });
+
+          row.appendChild(list);
+        }
 
         const controls=document.createElement("div");
         controls.className="admin-only team-admin-controls";
@@ -4036,11 +4008,11 @@ function renderSchedule(){
       matchup.style.cssText=
         "display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center";
       matchup.innerHTML=
-        `<span class="team-match-label">${teamPublicHTML(m.teamA,true)}</span>`+
+        `<span>${nameOf(m.teamA)}</span>`+
         `<b>${m.final?`${m.scoreA}–${m.scoreB}`:"vs"}</b>`+
-        `<span class="team-match-label right">${teamPublicHTML(m.teamB,true)}</span>`;
+        `<span style="text-align:right">${nameOf(m.teamB)}</span>`;
 
-      const ref=createRefRow(m,true);
+      const ref=createRefRow(m);
 
       const actions=document.createElement("div");
       actions.style.cssText="margin-top:8px;display:flex;justify-content:flex-end";
@@ -4287,10 +4259,10 @@ function renderBracket(){
 
       card.innerHTML=
         `<div class="match-head"><span>${m.id} • Court ${m.court}</span><span>${m.time}</span></div>`+
-        `<div class="match-team ${win===a&&a?"winner":""}"><strong>${teamPublicHTML(a,true)}</strong><span>${w.a}</span></div>`+
-        `<div class="match-team ${win===b&&b?"winner":""}"><strong>${teamPublicHTML(b,true)}</strong><span>${w.b}</span></div>`;
+        `<div class="match-team ${win===a&&a?"winner":""}"><strong>${nameOf(a)}</strong><span>${w.a}</span></div>`+
+        `<div class="match-team ${win===b&&b?"winner":""}"><strong>${nameOf(b)}</strong><span>${w.b}</span></div>`;
 
-      card.appendChild(createRefRow(m,true));
+      card.appendChild(createRefRow(m));
 
       const foot=document.createElement("div");
       foot.style.cssText=
@@ -4335,15 +4307,15 @@ function renderRegistrations(){
   }
 
   const reserved=state.registrations.filter(r=>["pending","registered"].includes(r.status)&&r.reservedSlot).length;
-  const registeredCount=state.registrations.filter(r=>r.status==="registered").length;
+  const fullyRegistered=state.registrations.filter(r=>r.status==="registered").length;
   const poolEligible=state.registrations.filter(
     r=>r.status==="registered" && r.paid && r.checkedIn
   ).length;
 
   if(state.settings.registrationOpen){
-    countEl.textContent=`${reserved}/16 spots filled • ${registeredCount} registered`;
+    countEl.textContent=`${reserved}/16 spots reserved • ${fullyRegistered} fully registered`;
   }else{
-    countEl.textContent=`Registration Closed • ${registeredCount} registered`;
+    countEl.textContent=`Registration Closed • ${fullyRegistered} fully registered`;
   }
 
   $("registrationProgress").style.width=`${Math.min(100,(reserved/16)*100)}%`;
@@ -4375,50 +4347,93 @@ function renderRegistrations(){
     title.style.cssText="display:flex;justify-content:space-between;gap:10px;align-items:center";
 
     const statusClass=r.status==="registered"?"green":r.status==="waitlisted"?"orange":"blue";
-    const statusText=r.status==="registered"?"Registered":r.status==="waitlisted"?"Waitlisted":"Processing";
+    const statusText=r.status==="registered"?"Registered":r.status==="waitlisted"?"Waitlisted":"Pending Confirmation";
 
-    const team=document.createElement("strong");
-    team.textContent=r.teamName;
-
-    const statusPill=document.createElement("span");
-    statusPill.className=`pill ${statusClass}`;
-    statusPill.textContent=statusText;
-
-    title.append(team,statusPill);
-
+    title.innerHTML=`<strong>${r.teamName}</strong><span class="pill ${statusClass}">${statusText}</span>`;
     const statusLine=document.createElement("div");
     statusLine.className="team-status-row";
     statusLine.innerHTML=
       `<span class="pill ${r.paid?"green":"orange"}">${r.paid?"Paid":"Unpaid"}</span>`+
       `<span class="pill ${r.checkedIn?"green":"blue"}">${r.checkedIn?"Checked In":"Not Checked In"}</span>`;
 
-    box.append(title,statusLine);
+    box.appendChild(title);
+    box.appendChild(statusLine);
+
+    const players=playersForRegistration(r.id);
+    const list=document.createElement("div");
+    list.className="roster-list";
+
+    players.forEach(pl=>{
+      const line=document.createElement("div");
+      line.className="roster-line";
+      line.innerHTML=`<span>${pl.fullName}</span><span>${pl.confirmed?"✅":"⏳"}</span>`;
+      list.appendChild(line);
+    });
+
+    box.appendChild(list);
     root.appendChild(box);
   });
 }
 
-function openRegistrationComplete(teamName,status){
+
+function openRegistrationComplete(teamName,status,link){
   const overlay=$("registrationSuccessOverlay");
   $("registrationSuccessTeam").textContent=teamName;
-
-  const waitlisted=status==="waitlisted";
-  $("registrationSuccessStatus").textContent=waitlisted?"WAITLISTED":"REGISTERED ✓";
-  $("registrationSuccessStatus").className=`pill ${waitlisted?"orange":"green"}`;
-
-  const summary=$("registrationSuccessSummary");
-  if(summary){
-    summary.textContent=waitlisted
-      ?"Your complete roster has been submitted and placed on the waitlist. No teammate confirmation is required."
-      :"Your team is registered. No teammate confirmation link is required.";
-  }
-
+  $("registrationSuccessStatus").textContent=
+    status==="waitlisted"?"WAITLISTED":"SPOT RESERVED ✓";
+  $("registrationSuccessStatus").className=
+    `pill ${status==="waitlisted"?"orange":"green"}`;
+  $("registrationSuccessLink").value=link;
   $("registrationSuccessMessage").textContent="";
   renderPaymentInfo();
   overlay.classList.add("open");
+
+  $("registrationSuccessCopy").onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(link);
+      $("registrationSuccessCopy").textContent="Copied ✓";
+      $("registrationSuccessMessage").textContent=
+        "Link copied. Send it to all four teammates.";
+    }catch(error){
+      $("registrationSuccessLink").focus();
+      $("registrationSuccessLink").select();
+      $("registrationSuccessMessage").textContent=
+        "The link is selected — choose Copy on your device.";
+    }
+  };
+
+  $("registrationSuccessShare").onclick=async()=>{
+    if(navigator.share){
+      try{
+        await navigator.share({
+          title:`ONE WAY Grass 4s — ${teamName}`,
+          text:`Confirm your spot on ${teamName} for ONE WAY Grass 4s:`,
+          url:link
+        });
+        $("registrationSuccessMessage").textContent="Share menu opened.";
+        return;
+      }catch(error){
+        if(error?.name==="AbortError")return;
+      }
+    }
+
+    try{
+      await navigator.clipboard.writeText(link);
+      $("registrationSuccessMessage").textContent=
+        "Sharing is not available in this browser, so the link was copied instead.";
+      $("registrationSuccessCopy").textContent="Copied ✓";
+    }catch(error){
+      $("registrationSuccessLink").focus();
+      $("registrationSuccessLink").select();
+      $("registrationSuccessMessage").textContent=
+        "Sharing is unavailable. The link is selected so you can copy it.";
+    }
+  };
 }
 
 function closeRegistrationComplete(){
   $("registrationSuccessOverlay").classList.remove("open");
+  $("registrationSuccessCopy").textContent="Copy Link";
   $("registrationSuccessMessage").textContent="";
 }
 
@@ -4449,7 +4464,7 @@ async function submitTeamRegistration(){
   btn.disabled=true;
   btn.textContent="Submitting…";
 
-  const {data,error}=await sb.rpc("register_team_oneway",{
+  const {data,error}=await sb.rpc("register_team",{
     p_team_name:teamName,
     p_skill_level:skillLevel,
     p_captain_name:captainName,
@@ -4472,6 +4487,9 @@ async function submitTeamRegistration(){
     return;
   }
 
+  const token=data.confirmation_token;
+  const link=`${location.origin}${location.pathname}?confirm=${token}`;
+
   ["regTeamName","regCaptainName","regCaptainPhone","regCaptainEmail","regPlayer1","regPlayer2","regPlayer3","regPlayer4"]
     .forEach(id=>$(id).value="");
 
@@ -4481,18 +4499,14 @@ async function submitTeamRegistration(){
   await refreshRegistrations();
   renderAll();
 
-  openRegistrationComplete(teamName,data.status);
+  openRegistrationComplete(
+    teamName,
+    data.status,
+    link
+  );
 }
 
 async function loadConfirmationFromURL(){
-  if(!ONE_WAY_CONFIRMATIONS_ENABLED){
-    activeConfirmationToken=null;
-    document.documentElement.classList.remove("confirmation-route");
-    $("playerConfirmationPanel")?.classList.add("hidden");
-    document.body.classList.remove("confirmation-open");
-    return;
-  }
-
   const params=new URLSearchParams(location.search);
   const token=params.get("confirm");
 
@@ -4729,18 +4743,18 @@ function renderPoolBuilder(){
     status.innerHTML=
       `<b>Registration is closed, but pools need to be finalized again.</b> `+
       `${poolEligible} pool-eligible team${poolEligible===1?"":"s"} `+
-      `(${fullyRegistered} registered total).`;
+      `(${fullyRegistered} fully registered total).`;
   }else if(poolEligible<8){
     status.innerHTML=
       `<b>${poolEligible} pool-eligible team${poolEligible===1?"":"s"}.</b> `+
-      `${fullyRegistered} registered total. `+
-      `A team must be <b>registered + paid + checked in</b> before it can enter a pool. `+
+      `${fullyRegistered} fully registered total. `+
+      `A team must be <b>fully registered + paid + checked in</b> before it can enter a pool. `+
       `A minimum of 8 pool-eligible teams is required.`;
   }else{
     const format=formatForTeamCount(poolEligible);
     status.innerHTML=
       `<b>${poolEligible} pool-eligible teams.</b> `+
-      `${fullyRegistered} registered total. `+
+      `${fullyRegistered} fully registered total. `+
       `Current format: ${format.poolCount} pools (${format.sizes.join(" / ")} teams).`;
   }
 
@@ -4751,8 +4765,8 @@ function renderPoolBuilder(){
     lockBtn.classList.add("hidden");
     grid.innerHTML="";
     msg.textContent=poolEligible>=8
-      ?"Preview uses only teams that are registered, paid, and checked in. Skill level then balances those eligible teams across the starting pools."
-      :"Mark at least 8 registered teams Paid and Checked In before finalizing.";
+      ?"Preview uses only teams that are fully registered, paid, and checked in. Skill level then balances those eligible teams across the starting pools."
+      :"Mark at least 8 fully registered teams Paid and Checked In before finalizing.";
     return;
   }
 
@@ -4909,19 +4923,19 @@ async function renderAdminContacts(){
   root.innerHTML="";
 
   if(!state.admin||!adminCodeSession){
-    root.innerHTML='<div class="muted">Enter Admin mode to view registration details.</div>';
+    root.innerHTML='<div class="muted">Enter Admin mode to view contacts.</div>';
     return;
   }
 
-  const {data,error}=await sb.rpc("admin_get_registration_details",{
+  const {data,error}=await sb.rpc("admin_get_registration_contacts",{
     p_code:adminCodeSession
   });
 
   if(error){
-    console.error("Team Registration Details error:",error);
+    console.error("Captain Contacts error:",error);
     root.innerHTML=
-      `<div class="callout"><b>Unable to load private registration details.</b><br>`+
-      `<span class="muted">${escapeHTML(error.message||"Admin database function is not available yet.")}</span></div>`;
+      `<div class="callout"><b>Unable to load contacts.</b><br>`+
+      `<span class="muted">${error.message||"Admin database function is not available yet."}</span></div>`;
     return;
   }
 
@@ -4934,63 +4948,37 @@ async function renderAdminContacts(){
     const box=document.createElement("div");
     box.className="admin-contact";
 
-    const head=document.createElement("div");
-    head.innerHTML=
-      `<b>${escapeHTML(c.team_name)}</b> `+
-      `<span class="pill">${escapeHTML(c.status)}</span>`+
-      `<div class="admin-contact-status">`+
-        `<span class="pill ${c.paid?"green":"orange"}">${c.paid?"Paid":"Unpaid"}</span>`+
-        `<span class="pill ${c.checked_in?"green":"blue"}">${c.checked_in?"Checked In":"Not Checked In"}</span>`+
-      `</div>`;
-    box.appendChild(head);
-
-    const contact=document.createElement("div");
-    contact.style.marginTop="8px";
-
-    const captain=document.createElement("b");
-    captain.textContent=`Captain: ${c.captain_name||""}`;
-    contact.appendChild(captain);
-    contact.appendChild(document.createElement("br"));
-
-    const phone=document.createElement("a");
-    phone.href=`tel:${c.captain_phone||""}`;
-    phone.textContent=c.captain_phone||"";
-    contact.appendChild(phone);
-    contact.appendChild(document.createTextNode(" • "));
-
-    const email=document.createElement("a");
-    email.href=`mailto:${c.captain_email||""}`;
-    email.textContent=c.captain_email||"";
-    contact.appendChild(email);
-    box.appendChild(contact);
-
-    const skill=document.createElement("div");
-    skill.className="muted";
-    skill.style.marginTop="6px";
-    skill.textContent=`Private pool-balance level: ${skillLabel(c.skill_level||"not_sure")}`;
-    box.appendChild(skill);
-
-    const playerList=document.createElement("div");
-    playerList.className="admin-player-list";
-
-    const players=Array.isArray(c.players)?c.players:[];
-    if(players.length){
-      players.forEach(pl=>{
-        const line=document.createElement("div");
-        line.className="admin-player-line";
-        line.textContent=`Player ${pl.player_number}: ${pl.full_name}`;
-        playerList.appendChild(line);
-      });
-    }else{
-      const line=document.createElement("div");
-      line.className="muted";
-      line.textContent="No player names found.";
-      playerList.appendChild(line);
-    }
-    box.appendChild(playerList);
+    box.innerHTML=`
+      <b>${c.team_name}</b>
+      <span class="pill">${c.status}</span>
+      <div class="admin-contact-status">
+        <span class="pill ${c.paid?"green":"orange"}">${c.paid?"Paid":"Unpaid"}</span>
+        <span class="pill ${c.checked_in?"green":"blue"}">${c.checked_in?"Checked In":"Not Checked In"}</span>
+      </div>
+      ${c.captain_name}
+      <br><a href="tel:${c.captain_phone}">${c.captain_phone}</a>
+      • <a href="mailto:${c.captain_email}">${c.captain_email}</a>
+    `;
 
     const actions=document.createElement("div");
     actions.className="admin-action-row";
+
+    if(c.confirmation_token && c.status!=="cancelled"){
+      const copyBtn=document.createElement("button");
+      copyBtn.className="small-btn";
+      copyBtn.textContent="Copy Confirmation Link";
+      copyBtn.onclick=async()=>{
+        const link=`${location.origin}${location.pathname}?confirm=${c.confirmation_token}`;
+        try{
+          await navigator.clipboard.writeText(link);
+          copyBtn.textContent="Copied ✓";
+          setTimeout(()=>copyBtn.textContent="Copy Confirmation Link",1800);
+        }catch(error){
+          prompt("Copy this confirmation link:",link);
+        }
+      };
+      actions.appendChild(copyBtn);
+    }
 
     if(c.status!=="cancelled"){
       const cancelBtn=document.createElement("button");
@@ -5010,6 +4998,8 @@ async function renderAdminContacts(){
     root.appendChild(box);
   });
 }
+
+
 
 const RULE_SECTION_KEYS=["location","format","nonnegotiables","conduct","scoring","game"];
 
@@ -6086,7 +6076,7 @@ clearLegacyOneWayCache();
 installMobileNavAutoHide();
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
-if(ONE_WAY_CONFIRMATIONS_ENABLED && startupConfirmToken){
+if(startupConfirmToken){
   activeConfirmationToken=startupConfirmToken;
   document.documentElement.classList.add("confirmation-route");
   document.body.classList.add("confirmation-open");
