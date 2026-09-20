@@ -1648,6 +1648,31 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
   display:none!important;
 }
 
+
+/* ONE WAY v44 — stable mobile navigation
+   No sticky nav and no hide/show animation on phones/tablets.
+   The menu simply scrolls away with the page, which avoids Safari
+   changing the document height while the user is at the bottom. */
+@media(max-width:900px){
+  #nav,
+  .nav,
+  #nav.mobile-nav-hidden,
+  #nav.mobile-nav-visible{
+    position:static!important;
+    top:auto!important;
+    transform:none!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    max-height:none!important;
+    margin:18px 0!important;
+    padding:8px!important;
+    border-width:1px!important;
+    overflow:visible!important;
+    transition:none!important;
+    will-change:auto!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1973,7 +1998,7 @@ html.confirmation-route #playerConfirmationPanel .player-confirm-shell{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v43</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v44</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -6140,7 +6165,8 @@ window.addEventListener("online",()=>{
 });
 $("syncStatus")?.addEventListener("click",()=>loadAll());
 clearLegacyOneWayCache();
-installMobileNavAutoHide();
+// v44: intentionally do not install mobile scroll-driven nav behavior.
+$("nav")?.classList.remove("mobile-nav-hidden","mobile-nav-visible");
 
 const startupConfirmToken=new URLSearchParams(location.search).get("confirm");
 if(ONE_WAY_CONFIRMATIONS_ENABLED && startupConfirmToken){
