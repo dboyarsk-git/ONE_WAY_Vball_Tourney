@@ -14,8 +14,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ONE WAY Grass 4s — v52</title>
-<meta name="oneway-build" content="v52">
+<title>ONE WAY Grass 4s — v53</title>
+<meta name="oneway-build" content="v53">
 <script>
 /* ONE WAY v42:
    Player-by-player confirmation is intentionally disabled for this tournament.
@@ -1705,7 +1705,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <p>ONE WAY Conference volleyball at Church of New Hope. Pool play, live standings, bracket play, and a full-screen courtside scorer — all in one place.</p>
 <div class="verse">“I am the way, the truth, and the life.” — John 14:6 <span class="arrow">→</span></div>
 <div class="sync" id="syncStatus"><span class="dot"></span><span id="syncText">Connecting live sync…</span></div>
-<div class="pill blue" id="liveBuildBadge" style="margin-top:8px">LIVE BUILD v52</div>
+<div class="pill blue" id="liveBuildBadge" style="margin-top:8px">LIVE BUILD v53</div>
 </section>
 
 <nav class="nav" id="nav">
@@ -1820,11 +1820,11 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <li><b>No player may compete unless they are registered, paid, and checked in.</b></li>
 <li><b>🏆 First Place Prize:</b> TBD — final prize details will be announced once confirmed with the event coordinator.</li>
 <li>4 players per team with a maximum of 16 teams.</li>
-<li>Pool size is generated from the number of fully registered teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
+<li>Pool size is generated from the number of eligible teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
 <li>4-team pools play each opponent once; 3-team pools play each opponent twice. Every team receives at least <b>3 pool-play matches</b>.</li>
 <li>An <b>8-team championship bracket</b> is created from pool results. With 3 pools, the two best remaining teams advance as wildcards.</li>
 <li>Skill level is used <b>only to balance the initial pools</b>. It never affects standings, advancement, bracket seeding, or the champion.</li>
-<li>All 4 players must personally confirm their roster spot and agree to the rules before the team becomes fully registered.</li>
+<li>The captain submits the complete 4-player roster once. <b>No teammate confirmation link is required.</b></li>
 </ul>
 </div>
 
@@ -2035,7 +2035,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v52</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v53</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2157,7 +2157,7 @@ const SUPABASE_KEY = "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
-const LIVE_BUILD="v52";
+const LIVE_BUILD="v53";
 const POOLS=["A","B","C","D"];
 const ONE_WAY_CONFIRMATIONS_ENABLED=false;
 let state={
@@ -2889,7 +2889,7 @@ async function checkScoreBackend(){
     console.error("Score backend health check:",error);
     state.scoreBackendState="error";
     state.scoreBackendMessage=
-      "Live tournament data is connected, but protected scoring is not ready. Run the v49 Confirm Score Fix SQL in Supabase, then reload.";
+      "Live tournament data is connected, but protected scoring is not ready. Run the v53 Hardening SQL in Supabase, then reload.";
     return false;
   }
 }
@@ -3293,18 +3293,18 @@ async function acquireScoreLock(type,id,{silent=false}={}){
         message.includes("score_acquire_match_lock")
       ){
         alert(
-          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
+          "Live sync is connected, but the protected scoring system is not installed correctly yet. Run the ONE WAY v53 Hardening SQL in Supabase, then reload this page."
         );
       }else if(
         code==="42501" ||
         message.toLowerCase().includes("permission denied")
       ){
         alert(
-          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
+          "Live sync is connected, but this website does not currently have permission to use the protected scoring system. Run the ONE WAY v53 Hardening SQL in Supabase, then reload this page."
         );
       }else{
         alert(
-          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v49 Confirm Score Fix SQL in Supabase.\n\nError: "+
+          "Live sync is connected, but this match could not be locked for scoring. Reload once and try again. If it still fails, run the ONE WAY v53 Hardening SQL in Supabase.\n\nError: "+
           (message||code||"Unknown scoring-lock error")
         );
       }
@@ -4204,7 +4204,7 @@ function renderSchedule(){
   }else{
     scoringNotice.className="scoring-readiness locked";
     scoringNotice.innerHTML=
-      '<strong>⚠ Live scoring needs backend repair.</strong> Tournament data is connected, but the protected scoring functions are not ready. Run the <b>v48 scoring repair SQL</b> in Supabase and reload.';
+      '<strong>⚠ Live scoring needs backend repair.</strong> Tournament data is connected, but the protected scoring functions are not ready. Run the <b>v53 Hardening SQL</b> in Supabase and reload.';
   }
 
   root.appendChild(scoringNotice);
@@ -5275,7 +5275,17 @@ function renderRuleSections(){
     let items=[...section.items];
 
     if(key==="format"){
-      items=items.filter(item=>!/first place prize\s*:/i.test(item));
+      items=items
+        .filter(item=>!/first place prize\s*:/i.test(item))
+        .map(item=>{
+          let next=String(item);
+          if(/all\s+4\s+players.*personally\s+confirm/i.test(next) ||
+             /player.*confirm.*fully\s+registered/i.test(next)){
+            return "The captain submits the complete 4-player roster once. No teammate confirmation link is required.";
+          }
+          next=next.replace(/number of fully registered teams/gi,"number of eligible teams");
+          return next;
+        });
     }
 
     if(!state.settings.paymentEnabled){
@@ -5854,7 +5864,7 @@ async function openScore(type,id){
 
   if(state.scoreBackendState!=="ready"){
     alert(
-      "Tournament data is connected, but protected scoring is not ready yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, then reload this page."
+      "Tournament data is connected, but protected scoring is not ready yet. Run the ONE WAY v53 Hardening SQL in Supabase, then reload this page."
     );
     return;
   }
@@ -6222,7 +6232,7 @@ async function confirmSet(){
       message.includes("score_confirm_set_state")
     ){
       alert(
-        "The new score-confirm function is not installed yet. Run the ONE WAY v49 Confirm Score Fix SQL in Supabase, reload the page, and try again."
+        "The new score-confirm function is not installed yet. Run the ONE WAY v53 Hardening SQL in Supabase, reload the page, and try again."
       );
     }else{
       alert(
