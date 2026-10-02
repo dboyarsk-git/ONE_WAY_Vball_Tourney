@@ -14,8 +14,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ONE WAY Grass 4s — v53</title>
-<meta name="oneway-build" content="v53">
+<title>ONE WAY Grass 4s — v58</title>
+<meta name="oneway-build" content="v58">
 <script>
 /* ONE WAY v42:
    Player-by-player confirmation is intentionally disabled for this tournament.
@@ -56,7 +56,7 @@ tr:last-child td{border-bottom:0}
 .small-btn{background:#e8edf0;color:var(--ink)} .ghost{background:#eee9e0;color:var(--ink)} .danger{background:#8f2e28;color:white}
 .team-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fffdfa}
 .team-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px} .pool-card h3{margin:0 0 10px} .pool-badge{display:inline-block;background:var(--blue);padding:3px 9px;border-radius:99px;margin-right:6px}
-.standings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px} .bracket-grid{display:grid;grid-template-columns:1.2fr .9fr .7fr;gap:18px;align-items:start} .round{display:grid;gap:12px}
+.standings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px} .bracket-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start} .round{display:grid;gap:12px}
 .match-card{border:1px solid var(--line);border-radius:16px;background:white;overflow:hidden} .match-head{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;background:#f5f1ea;font-size:.75rem;font-weight:800}
 .match-team{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border-top:1px solid #f0ece5} .match-team strong{overflow:hidden;text-overflow:ellipsis} .winner{background:#e2f1e8} .locked{opacity:.62}
 .admin-only{display:none}
@@ -1705,7 +1705,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <p>ONE WAY Conference volleyball at Church of New Hope. Pool play, live standings, bracket play, and a full-screen courtside scorer — all in one place.</p>
 <div class="verse">“I am the way, the truth, and the life.” — John 14:6 <span class="arrow">→</span></div>
 <div class="sync" id="syncStatus"><span class="dot"></span><span id="syncText">Connecting live sync…</span></div>
-<div class="pill blue" id="liveBuildBadge" style="margin-top:8px">LIVE BUILD v53</div>
+<div class="pill blue" id="liveBuildBadge" style="margin-top:8px">LIVE BUILD v58</div>
 </section>
 
 <nav class="nav" id="nav">
@@ -1726,7 +1726,7 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <div class="card"><div class="label">Team cap</div><div class="metric">16</div><div class="muted" id="teamCapPaymentText">Loading entry details…</div></div>
 <div class="card"><div class="label">Courts</div><div class="metric">4</div><div class="muted">4 pools of 4</div></div>
 <div class="card"><div class="label">Pool games</div><div class="metric">3</div><div class="muted">Guaranteed per team</div></div>
-<div class="card"><div class="label">Advance</div><div class="metric">8</div><div class="muted">Top 2 from each pool</div></div>
+<div class="card"><div class="label">Advance</div><div class="metric">4</div><div class="muted">Semifinalists</div></div>
 </div>
 
 <div class="panel">
@@ -1820,9 +1820,9 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <li><b>No player may compete unless they are registered, paid, and checked in.</b></li>
 <li><b>🏆 First Place Prize:</b> TBD — final prize details will be announced once confirmed with the event coordinator.</li>
 <li>4 players per team with a maximum of 16 teams.</li>
-<li>Pool size is generated from the number of eligible teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 8 = 2 pools</b>.</li>
+<li>Pool size is generated from the number of eligible teams: <b>12–16 teams = 4 pools, 9–11 = 3 pools, 6–8 = 2 pools</b>.</li>
 <li>4-team pools play each opponent once; 3-team pools play each opponent twice. Every team receives at least <b>3 pool-play matches</b>.</li>
-<li>An <b>8-team championship bracket</b> is created from pool results. With 3 pools, the two best remaining teams advance as wildcards.</li>
+<li>A <b>4-team championship bracket</b> is created from pool results: with 4 pools, each pool winner advances; with 3 pools, the 3 pool winners plus the best remaining team advance; with 2 pools (6–8 teams), the top 2 from each pool advance.</li>
 <li>Skill level is used <b>only to balance the initial pools</b>. It never affects standings, advancement, bracket seeding, or the champion.</li>
 <li>The captain submits the complete 4-player roster once. <b>No teammate confirmation link is required.</b></li>
 </ul>
@@ -1881,12 +1881,12 @@ body.admin-mode #paymentCard.payment-disabled-public{
 <button class="small-btn admin-only rule-edit-btn" data-edit-rule="scoring" type="button">Edit</button>
 </div>
 <ul class="rule-list">
-<li><b>Pool Play:</b> 1 set to 25.</li>
-<li><b>25-point hard cap:</b> first team to 25 wins.</li>
+<li><b>Pool Play:</b> 1 game to <b>15</b>.</li>
+<li><b>15-point hard cap:</b> first team to <b>15</b> wins.</li>
 <li><b>Bracket Play:</b> best 2 out of 3 sets.</li>
-<li>Sets 1 &amp; 2 are played to <b>21</b>.</li>
+<li>Sets 1 &amp; 2 are played to <b>25</b>.</li>
 <li>Set 3 is played to <b>15</b>.</li>
-<li>Pool matches lock automatically as soon as a team reaches 25. Bracket sets advance through the scorekeeper.</li>
+<li>Pool matches lock automatically as soon as a team reaches <b>15</b>. Bracket sets advance through the scorekeeper.</li>
 </ul>
 </div>
 
@@ -2032,10 +2032,10 @@ body.admin-mode #paymentCard.payment-disabled-public{
 
 <section id="view-schedule" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool schedule</h2><div class="muted">After pools lock, each scheduled team is shown with its captain so players can find the correct opponent.</div></div></div><div class="team-grid" id="scheduleGrid"></div></div></section>
 <section id="view-standings" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Pool standings</h2><div class="muted" id="standingsNote">Standings are based only on match results.</div></div></div><div class="standings-grid" id="standingsGrid"></div></div></section>
-<section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Quarterfinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
+<section id="view-bracket" class="view hidden"><div class="panel"><div class="section-title"><div><h2>Championship bracket</h2><div class="muted" id="bracketNote">Semifinal scoring unlocks after all pool matches are final.</div></div></div><div class="bracket-grid" id="bracketGrid"></div></div></section>
 </main>
 <footer>
-<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v53</div>
+<div>ONE WAY Grass 4s • Church of New Hope • John 14:6 • Build FINAL v58</div>
 <div class="copyright-box">
 © 2026 Your Mom. Original tournament software, interface design, scoring workflow, and platform code — All Rights Reserved.
 Licensed use only. Unauthorized copying, resale, redistribution, or deployment is prohibited.
@@ -2157,7 +2157,7 @@ const SUPABASE_KEY = "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_HASH="18642fa8fb69ca94183ef39f93692a597872125a8b7d607afab643dfd89569a8";
-const LIVE_BUILD="v53";
+const LIVE_BUILD="v58";
 const POOLS=["A","B","C","D"];
 const ONE_WAY_CONFIRMATIONS_ENABLED=false;
 let state={
@@ -2589,12 +2589,8 @@ function buildFallbackCore(){
   });
 
   const bracketMatches=[
-    {id:"QF1",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:1,keyA:"A-1",keyB:"B-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF2",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:2,keyA:"B-1",keyB:"A-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF3",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:3,keyA:"C-1",keyB:"D-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"QF4",type:"bracket",round:"Quarterfinal",time:"Sun Oct 4 • 2:15 PM",court:4,keyA:"D-1",keyB:"C-2",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"SF1",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:1,keyA:null,keyB:null,fromA:"QF1",fromB:"QF3",sets:[],currentA:0,currentB:0,final:false,locked:false},
-    {id:"SF2",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:2,keyA:null,keyB:null,fromA:"QF2",fromB:"QF4",sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF1",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:1,keyA:"S-1",keyB:"S-4",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
+    {id:"SF2",type:"bracket",round:"Semifinal",time:"Sun Oct 4 • 3:15 PM",court:2,keyA:"S-2",keyB:"S-3",fromA:null,fromB:null,sets:[],currentA:0,currentB:0,final:false,locked:false},
     {id:"FINAL",type:"bracket",round:"Championship",time:"Sun Oct 4 • 4:15 PM",court:1,keyA:null,keyB:null,fromA:"SF1",fromB:"SF2",sets:[],currentA:0,currentB:0,final:false,locked:false}
   ];
 
@@ -2643,6 +2639,8 @@ function activePools(){
 
 function formatForTeamCount(n){
   const formats={
+    6:{poolCount:2,sizes:[3,3]},
+    7:{poolCount:2,sizes:[4,3]},
     8:{poolCount:2,sizes:[4,4]},
     9:{poolCount:3,sizes:[3,3,3]},
     10:{poolCount:3,sizes:[4,3,3]},
@@ -2847,23 +2845,53 @@ function qualifiedBracketSeeds(){
 
   pools.forEach(p=>{
     const rows=poolStandings(p);
-    if(state.settings.poolCount===2){
-      qualifiers.push(...rows.slice(0,4));
-    }else{
+
+    if(state.settings.poolCount===4){
+      qualifiers.push(...rows.slice(0,1));
+    }else if(state.settings.poolCount===3){
+      qualifiers.push(...rows.slice(0,1));
+      wildcardPool.push(...rows.slice(1));
+    }else if(state.settings.poolCount===2){
       qualifiers.push(...rows.slice(0,2));
-      wildcardPool.push(...rows.slice(2));
     }
   });
 
   if(state.settings.poolCount===3){
     wildcardPool.sort(resultRankingCompare);
-    qualifiers.push(...wildcardPool.slice(0,2).map(r=>({...r,wildcard:true})));
+    qualifiers.push(...wildcardPool.slice(0,1).map(r=>({...r,wildcard:true})));
   }
 
   qualifiers.sort(resultRankingCompare);
-  return qualifiers.slice(0,8).map((r,i)=>({...r,bracketSeed:i+1}));
+  return qualifiers.slice(0,4).map((r,i)=>({...r,bracketSeed:i+1}));
 }
 
+
+
+async function checkMasterBackend(){
+  const badge=$("liveBuildBadge");
+  if(!badge)return false;
+
+  try{
+    const {data,error}=await sb.rpc("oneway_backend_status");
+
+    if(error)throw error;
+
+    if(data?.ready && data?.backend_version==="v58"){
+      badge.textContent="LIVE BUILD v58 • DB v54";
+      badge.className="pill green";
+      return true;
+    }
+
+    badge.textContent="LIVE BUILD v58 • DB NEEDS v54 SQL";
+    badge.className="pill orange";
+    return false;
+  }catch(error){
+    console.error("Master backend check:",error);
+    badge.textContent="LIVE BUILD v58 • DB NEEDS v54 SQL";
+    badge.className="pill orange";
+    return false;
+  }
+}
 
 async function checkScoreBackend(){
   state.scoreBackendState="checking";
@@ -2941,7 +2969,7 @@ async function loadAll(){
     state.teams=(t.data||[]).map(mapTeam);
     state.poolMatches=(p.data||[]).map(mapPool);
 
-    const order={QF1:1,QF2:2,QF3:3,QF4:4,SF1:5,SF2:6,FINAL:7};
+    const order={SF1:1,SF2:2,FINAL:3};
     state.bracketMatches=(b.data||[])
       .map(mapBracket)
       .sort((x,y)=>(order[x.id]||99)-(order[y.id]||99));
@@ -2959,6 +2987,7 @@ async function loadAll(){
     state.liveDataMessage="";
     await refreshPublicCaptains();
     await checkScoreBackend();
+    await checkMasterBackend();
     renderAll();
     setSync("live","Live sync connected");
   }catch(error){
@@ -3647,18 +3676,10 @@ function nonQualifyingTeamsForRefs(){
 }
 
 function autoBracketRefId(m){
-  if(m.id.startsWith("QF")){
+  if(m.id==="SF1" || m.id==="SF2"){
     if(!allPoolsFinal())return null;
-    const index={QF1:0,QF2:1,QF3:2,QF4:3}[m.id]??0;
+    const index=m.id==="SF1"?0:1;
     return nonQualifyingTeamsForRefs()[index]?.teamId ?? -1;
-  }
-
-  if(m.id==="SF1"){
-    return loserOfBracket("QF3") ?? loserOfBracket("QF4") ?? null;
-  }
-
-  if(m.id==="SF2"){
-    return loserOfBracket("QF1") ?? loserOfBracket("QF2") ?? null;
   }
 
   if(m.id==="FINAL"){
@@ -3811,78 +3832,58 @@ function qualifiedBracketSeeds(){
   pools.forEach(p=>{
     const rows=poolStandings(p);
 
-    if(state.settings.poolCount===2){
-      qualifiers.push(...rows.slice(0,4));
-    }else{
+    if(state.settings.poolCount===4){
+      qualifiers.push(...rows.slice(0,1));
+    }else if(state.settings.poolCount===3){
+      qualifiers.push(...rows.slice(0,1));
+      wildcardPool.push(...rows.slice(1));
+    }else if(state.settings.poolCount===2){
       qualifiers.push(...rows.slice(0,2));
-      wildcardPool.push(...rows.slice(2));
     }
   });
 
   if(state.settings.poolCount===3){
     wildcardPool.sort(resultRankingCompare);
-    qualifiers.push(
-      ...wildcardPool.slice(0,2).map(r=>({...r,wildcard:true}))
-    );
+    qualifiers.push(...wildcardPool.slice(0,1).map(r=>({...r,wildcard:true})));
   }
 
   qualifiers.sort(resultRankingCompare);
-  qualifiers=qualifiers.slice(0,8).map((r,i)=>({
-    ...r,
-    resultRank:i+1
-  }));
+  qualifiers=qualifiers.slice(0,4).map((r,i)=>({...r,resultRank:i+1}));
 
-  if(qualifiers.length!==8)return qualifiers;
+  if(qualifiers.length!==4){
+    return qualifiers.map((r,i)=>({...r,bracketSeed:i+1}));
+  }
 
-  // Keep result ranks 1–4 in the upper half and place ranks 5–8
-  // against them. Pick the deterministic low-half permutation that:
-  //   1) minimizes same-pool quarterfinal rematches;
-  //   2) stays as close as possible to normal 1v8, 4v5, 2v7, 3v6.
-  // Skill level is never consulted here.
-  const highOrder=[qualifiers[0],qualifiers[3],qualifiers[1],qualifiers[2]];
-  const idealLowRanks=[8,5,7,6];
-  const low=qualifiers.slice(4);
-
-  let bestPermutation=null;
+  const high=[qualifiers[0],qualifiers[1]];
+  const low=qualifiers.slice(2);
+  const options=[low,[low[1],low[0]]];
+  let best=options[0];
   let bestScore=Infinity;
 
-  permutations(low).forEach(perm=>{
-    let samePool=0;
-    let deviation=0;
-
-    perm.forEach((team,i)=>{
-      if(team.pool===highOrder[i].pool)samePool++;
-      deviation+=Math.abs(team.resultRank-idealLowRanks[i]);
-    });
-
+  options.forEach(option=>{
+    const pairings=[[high[0],option[0]],[high[1],option[1]]];
+    const samePool=pairings.reduce((sum,[a,b])=>sum+(a.pool===b.pool?1:0),0);
+    const deviation=Math.abs(option[0].resultRank-4)+Math.abs(option[1].resultRank-3);
     const score=samePool*10000+deviation;
+
     if(score<bestScore){
       bestScore=score;
-      bestPermutation=perm;
+      best=option;
     }
   });
 
-  const slotPairs=[
-    [1,8],
-    [4,5],
-    [2,7],
-    [3,6]
+  return [
+    {...high[0],bracketSeed:1},
+    {...best[0],bracketSeed:4},
+    {...high[1],bracketSeed:2},
+    {...best[1],bracketSeed:3}
   ];
-
-  const output=[];
-
-  slotPairs.forEach((slots,i)=>{
-    output.push({...highOrder[i],bracketSeed:slots[0]});
-    output.push({...bestPermutation[i],bracketSeed:slots[1]});
-  });
-
-  return output;
 }
 
 function bracketKeyMap(){
   const map={};
 
-  // Do not publish tentative quarterfinal participants.
+  // Do not publish tentative semifinal participants.
   // S-* bracket placements become official only after every pool match is final.
   if(allPoolsFinal()){
     qualifiedBracketSeeds().forEach(r=>{
@@ -4196,7 +4197,7 @@ function renderSchedule(){
     scoringNotice.className="scoring-readiness ready";
     scoringNotice.innerHTML=
       '<strong>✓ Live scoring is ready.</strong>'+
-      'Pool matches <b>automatically lock at 25</b> — there is <b>NO Confirm Match popup</b> for pool play. If a final score needs correction, Admin can unlock it. Completed matches show <b>View Score</b>.';
+      'Pool matches <b>automatically lock at 15</b> — there is <b>NO Confirm Match popup</b> for pool play. If a final score needs correction, Admin can unlock it. Completed matches show <b>View Score</b>.';
   }else if(state.scoreBackendState==="checking"){
     scoringNotice.className="scoring-readiness locked";
     scoringNotice.innerHTML=
@@ -4322,10 +4323,10 @@ function renderStandings(){
   if(note){
     note.textContent=
       poolCount===4
-        ?"Top 2 from each pool advance. Cross-pool bracket placement uses win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
+        ?"The winner of each pool advances to the semifinals. Semifinal seeding uses win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
         :poolCount===3
-          ?"Top 2 from each pool advance plus 2 wildcards. Wildcards and bracket placement use win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
-          :"All 8 pool teams advance; pool play determines bracket placement using win % → point differential/game → points/game. Exact statistical ties use a neutral draw key.";
+          ?"Each pool winner advances plus the best remaining team as a wildcard. Semifinal seeding uses win % → point differential/game → points/game. Exact statistical ties use a neutral draw key."
+          :"The top 2 teams from each pool advance to the semifinals. Semifinal seeding uses win % → point differential/game → points/game. Exact statistical ties use a neutral draw key.";
   }
 
   const qualified=allPoolsFinal()?qualifiedBracketSeeds():[];
@@ -4386,7 +4387,7 @@ function bracketStatus(m){
   if(m.final)return"Final";
   const[a,b]=bracketTeamIds(m);
   if(!a||!b)return"Waiting";
-  if(m.id.startsWith("QF")&&!allPoolsFinal())return"Locked";
+  if(m.id.startsWith("SF")&&!allPoolsFinal())return"Locked";
   return"Ready";
 }
 
@@ -4406,25 +4407,16 @@ function renderBracket(){
     const banner=document.createElement("div");
     banner.className="pending-review-banner";
     banner.innerHTML=
-      '<strong>NOT FINALIZED.</strong> This shows the planned 8-team championship bracket. '+
-      'Quarterfinal refs are assigned from non-advancing teams when available; later rounds use eliminated bracket teams.';
+      '<strong>NOT FINALIZED.</strong> This shows the planned 4-team championship bracket. '+
+      'Semifinal refs are assigned from non-advancing teams when available; the final uses an eliminated semifinal team.';
     root.appendChild(banner);
 
     const outline=[
       {
-        name:"Quarterfinals",
-        games:[
-          ["QF1 • Court 1","Pool A #1","Pool B #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
-          ["QF2 • Court 2","Pool B #1","Pool A #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
-          ["QF3 • Court 3","Pool C #1","Pool D #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"],
-          ["QF4 • Court 4","Pool D #1","Pool C #2","Sun Oct 4 • 2:15 PM","Non-advancing team / Staff"]
-        ]
-      },
-      {
         name:"Semifinals",
         games:[
-          ["SF1 • Court 1","QF Winner","QF Winner","Sun Oct 4 • 3:15 PM","Quarterfinal loser"],
-          ["SF2 • Court 2","QF Winner","QF Winner","Sun Oct 4 • 3:15 PM","Quarterfinal loser"]
+          ["SF1 • Court 1","Seed #1","Seed #4","Sun Oct 4 • 3:15 PM","Non-advancing team / Staff"],
+          ["SF2 • Court 2","Seed #2","Seed #3","Sun Oct 4 • 3:15 PM","Non-advancing team / Staff"]
         ]
       },
       {
@@ -4468,7 +4460,6 @@ function renderBracket(){
   }
 
   [
-    {name:"Quarterfinals",ids:["QF1","QF2","QF3","QF4"]},
     {name:"Semifinals",ids:["SF1","SF2"]},
     {name:"Championship",ids:["FINAL"]}
   ].forEach(round=>{
@@ -4938,12 +4929,12 @@ function renderPoolBuilder(){
       `<b>Registration is closed, but pools need to be finalized again.</b> `+
       `${poolEligible} pool-eligible team${poolEligible===1?"":"s"} `+
       `(${fullyRegistered} registered total).`;
-  }else if(poolEligible<8){
+  }else if(poolEligible<6){
     status.innerHTML=
       `<b>${poolEligible} pool-eligible team${poolEligible===1?"":"s"}.</b> `+
       `${fullyRegistered} registered total. `+
       `A team must be <b>${eligibilityLabel}</b> before it can enter a pool. `+
-      `A minimum of 8 pool-eligible teams is required.`;
+      `A minimum of 6 pool-eligible teams is required.`;
   }else{
     const format=formatForTeamCount(poolEligible);
     status.innerHTML=
@@ -4952,17 +4943,17 @@ function renderPoolBuilder(){
       `Current format: ${format.poolCount} pools (${format.sizes.join(" / ")} teams).`;
   }
 
-  previewBtn.disabled=poolEligible<8||poolEligible>16;
+  previewBtn.disabled=poolEligible<6||poolEligible>16;
 
   if(!state.poolPreview.length){
     regenBtn.classList.add("hidden");
     lockBtn.classList.add("hidden");
     grid.innerHTML="";
-    msg.textContent=poolEligible>=8
+    msg.textContent=poolEligible>=6
       ?`Preview uses only teams that are ${eligibilityLabel}. Skill level then balances those eligible teams across the starting pools.`
       :paymentRequired
-        ?"Mark at least 8 registered teams Paid and Checked In before finalizing."
-        :"Check in at least 8 registered teams before finalizing.";
+        ?"Mark at least 6 registered teams Paid and Checked In before finalizing."
+        :"Check in at least 6 registered teams before finalizing.";
     return;
   }
 
@@ -5279,13 +5270,32 @@ function renderRuleSections(){
         .filter(item=>!/first place prize\s*:/i.test(item))
         .map(item=>{
           let next=String(item);
+
           if(/all\s+4\s+players.*personally\s+confirm/i.test(next) ||
              /player.*confirm.*fully\s+registered/i.test(next)){
             return "The captain submits the complete 4-player roster once. No teammate confirmation link is required.";
           }
+
+          if(/8-team championship bracket/i.test(next)){
+            return "A 4-team championship bracket is created from pool results: with 4 pools, each pool winner advances; with 3 pools, the 3 pool winners plus the best remaining team advance; with 2 pools (6–8 teams), the top 2 from each pool advance.";
+          }
+
           next=next.replace(/number of fully registered teams/gi,"number of eligible teams");
+          next=next.replace(/12[–-]16 teams = 4 pools, 9[–-]11 = 3 pools, 8 = 2 pools/gi,"12–16 teams = 4 pools, 9–11 = 3 pools, 6–8 = 2 pools");
           return next;
         });
+    }
+
+    if(key==="scoring"){
+      items=items.map(item=>{
+        const next=String(item);
+        if(/Pool Play:/i.test(next)) return "Pool Play: 1 game to 15.";
+        if(/25-point hard cap/i.test(next)) return "15-point hard cap: first team to 15 wins.";
+        if(/Sets 1.*2.*21/i.test(next)) return "Sets 1 & 2 are played to 25.";
+        if(/Set 3.*15/i.test(next)) return "Set 3 is played to 15.";
+        if(/Pool matches lock automatically/i.test(next)) return "Pool matches lock automatically as soon as a team reaches 15. Bracket sets advance through the scorekeeper.";
+        return next;
+      });
     }
 
     if(!state.settings.paymentEnabled){
@@ -6005,10 +6015,10 @@ function isSetComplete(m){
   const[a,b]=currentScores(m);
 
   if(m.type==="pool"){
-    return (a===25||b===25) && a!==b;
+    return (a===15||b===15) && a!==b;
   }
 
-  const target=(m.sets.length+1)===3?15:21;
+  const target=(m.sets.length+1)===3?15:25;
   return (a>=target||b>=target) && Math.abs(a-b)>=2;
 }
 
@@ -6026,7 +6036,7 @@ async function increment(side,delta){
 
   if(m.type==="bracket"&&bracketStatus(m)!=="Ready")return;
 
-  // If a pool match somehow reloads at a legal 25-point winning score without
+  // If a pool match somehow reloads at a legal 15-point winning score without
   // being finalized, do not add another point. The next normal save/finalize
   // path will protect the hard cap.
   if(delta>0 && isSetComplete(m)){
@@ -6041,13 +6051,13 @@ async function increment(side,delta){
 
   if(m.type==="pool"){
     if(side==="A"){
-      m.scoreA=Math.max(0,Math.min(25,m.scoreA+delta));
+      m.scoreA=Math.max(0,Math.min(15,m.scoreA+delta));
     }else{
-      m.scoreB=Math.max(0,Math.min(25,m.scoreB+delta));
+      m.scoreB=Math.max(0,Math.min(15,m.scoreB+delta));
     }
 
     // ONE WAY v50:
-    // Pool play is first to 25 with a hard cap. The final point is written
+    // Pool play is first to 15 with a hard cap. The final point is written
     // together with final=true + locked=true in the SAME protected save.
     // There is no separate confirmation step.
     if(isSetComplete(m)){
@@ -6075,7 +6085,7 @@ async function increment(side,delta){
 
   if(!ok)return;
 
-  // Pool match is finished immediately on the 25th point.
+  // Pool match is finished immediately on the 15th point.
   if(m.type==="pool" && m.final){
     stopScoreHeartbeat();
     await releaseScoreLock();
@@ -6259,7 +6269,7 @@ async function unlockMatch(){
 
   const warning=
     m.type==="pool"
-      ?"Unlock this final pool score for correction?\n\nAny bracket scores already entered will be cleared because this result can change standings and qualifiers. After correction, the pool match will automatically lock again when a team reaches 25."
+      ?"Unlock this final pool score for correction?\n\nAny bracket scores already entered will be cleared because this result can change standings and qualifiers. After correction, the pool match will automatically lock again when a team reaches 15."
       :"Unlock this bracket match for correction?\n\nAny later-round results that depend on this winner will be cleared automatically.";
 
   if(!confirm(warning))return;
@@ -6411,14 +6421,27 @@ async function resetDemo(){
 
   setSync("","Resetting tournament…");
 
-  const {error}=await sb.rpc("admin_reset_tournament_v2",{
+  const {error}=await sb.rpc("admin_reset_tournament_v55",{
     p_code:reenteredCode,
     p_confirmation:typed
   });
 
   if(error){
     console.error("Reset error:",error);
-    alert(error.message||"Tournament reset failed.");
+
+    const message=String(error?.message||"Tournament reset failed.");
+
+    if(
+      message.includes("admin_reset_tournament_v54") ||
+      message.includes("Could not find the function")
+    ){
+      alert(
+        "The website is v54, but Supabase is not on the v55 master backend yet. Run ONE_WAY_v55_MASTER_REPAIR_RUN_THIS.sql in Supabase, then reload."
+      );
+    }else{
+      alert(message);
+    }
+
     setSync("error","Reset failed");
     return;
   }
