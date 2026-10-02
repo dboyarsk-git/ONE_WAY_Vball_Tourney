@@ -1,0 +1,40 @@
+ONE WAY v58 — CLEAN DOWNLOAD
+
+YOU ONLY NEED TWO FILES:
+
+1) RUN_THIS_IN_SUPABASE_v58.sql
+   - Open Supabase
+   - SQL Editor
+   - New Query
+   - Delete everything in the editor
+   - Paste the ENTIRE file
+   - Make sure nothing is highlighted
+   - Click Run
+   - You should see:
+       ONE WAY v58 FORMAT INSTALLED — SUCCESS
+
+2) UPLOAD_THIS_AS_index.html
+   - Go to the CORRECT GitHub repository:
+       ONE_WAY_Vball_Tourney
+   - On the MAIN branch, root folder
+   - Replace the existing index.html
+   - IMPORTANT: rename UPLOAD_THIS_AS_index.html to exactly:
+       index.html
+   - Commit the change
+
+DO NOT upload this into the Evana Draperies repo.
+
+FINAL CHECK:
+Open:
+https://dboyarsk-git.github.io/ONE_WAY_Vball_Tourney/?v=58
+
+You should see:
+LIVE BUILD v58 • DB v58
+
+FORMAT INCLUDED:
+- Minimum 6 teams
+- 6 teams = 2 pools of 3
+- 7 teams = pools of 4 + 3
+- Pool play = one game to 15, hard cap
+- Bracket = best 2/3: 25, 25, 15
+- Only SF1, SF2, then Final
